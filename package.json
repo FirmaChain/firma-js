@@ -1,0 +1,55 @@
+{
+  "name": "@firmachain/firma-js",
+  "version": "0.2.0",
+  "description": "The Official FirmaChain Javascript SDK written in Typescript",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "mocha test/**/*.test.ts -r ts-node/register --timeout 120000",
+    "lint": "eslint src test --ext .ts,.tsx",
+    "nodemon": "nodemon",
+    "dev": "ts-node ./test/test_index.ts",
+    "build": "tsc --module commonjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/firmachain/firma-js.git"
+  },
+  "keywords": [
+    "firma",
+    "firmachain",
+    "javascript",
+    "typescript"
+  ],
+  "author": "FirmaChain <developer@firmagroup.co>",
+  "license": "MIT License",
+  "bugs": {
+    "url": "https://github.com/firmachain/firma-js/issues"
+  },
+  "homepage": "https://firmachain.org",
+  "dependencies": {
+    "@cosmjs/amino": "^0.26.0",
+    "@cosmjs/launchpad": "^0.25.6",
+    "@cosmjs/math": "^0.26.0",
+    "@cosmjs/proto-signing": "^0.25.6",
+    "@cosmjs/tendermint-rpc": "^0.26.0",
+    "axios": "^0.21.4",
+    "cosmjs-types": "^0.2.0",
+    "crypto-js": "^4.1.1",
+    "ipfs-http-client": "^52.0.5",
+    "protobufjs": "^6.10.2"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.21",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.4.3",
+    "chai": "^4.3.4",
+    "mocha": "^9.1.1",
+    "nodemon": "^2.0.12",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.3.5"
+  }
+}
