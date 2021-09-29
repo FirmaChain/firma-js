@@ -1,5 +1,5 @@
 import { Registry, EncodeObject, OfflineDirectSigner } from "@cosmjs/proto-signing";
-import { SignAndBroadcastOptions } from "../common";
+import { SignAndBroadcastOptions } from ".";
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { SigningStargateClient } from "./signingstargateclient";
 import { BroadcastTxResponse } from "./stargateclient";
