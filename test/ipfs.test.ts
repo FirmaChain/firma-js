@@ -1,10 +1,10 @@
 import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
-import { FirmaConfig } from "../sdk/FirmaConfig"
+import { TestChainConfig } from './config_test';
 
 describe('[IPFS Test]', () => {
 
-	const firma = new FirmaSDK(FirmaConfig.LocalDevNetConfig);;
+	const firma = new FirmaSDK(TestChainConfig);
 
 	it('ipfs test', async () => {
 

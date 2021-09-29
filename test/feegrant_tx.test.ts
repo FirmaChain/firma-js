@@ -1,13 +1,13 @@
 import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
-import { FirmaConfig } from "../sdk/FirmaConfig"
+import { TestChainConfig } from './config_test';
 
 describe('[feegrant Tx Test]', () => {
 
 	const aliceMnemonic = "ozone unfold device pave lemon potato omit insect column wise cover hint narrow large provide kidney episode clay notable milk mention dizzy muffin crazy";
 	const bobMnemonic = "burst torch enemy quick crime slogan trust wood hamster way armor visual common language close park leg ill ball board couch nose theory must";
 
-	const firma = new FirmaSDK(FirmaConfig.LocalDevNetConfig);
+	const firma = new FirmaSDK(TestChainConfig);
 
 	//alice: firma1wa3u4knw74r598quvzydvca42qsmk6jrvgqn7y
 	//bob: firma1skc6cpuwnqr6m3ee68pdhwl29qwx2r98kxnn0u
@@ -66,8 +66,6 @@ describe('[feegrant Tx Test]', () => {
 	});
 
 	it('feegrant send tx', async () => {
-
-		const firma = new FirmaSDK(FirmaConfig.LocalDevNetConfig);
 
 		const alicewallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);

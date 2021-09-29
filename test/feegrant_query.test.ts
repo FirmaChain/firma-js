@@ -1,16 +1,17 @@
 
 import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
-import { FirmaConfig } from "../sdk/FirmaConfig"
+import { TestChainConfig } from './config_test';
 
 describe('[feegrant Query Test]', () => {
 
 	const aliceMnemonic = "ozone unfold device pave lemon potato omit insect column wise cover hint narrow large provide kidney episode clay notable milk mention dizzy muffin crazy";
 	const bobMnemonic = "burst torch enemy quick crime slogan trust wood hamster way armor visual common language close park leg ill ball board couch nose theory must";
 
+	const firma = new FirmaSDK(TestChainConfig);
+
 	it.skip('feegrant getGranteeAllowance', async () => {
 
-		const firma = new FirmaSDK(FirmaConfig.LocalDevNetConfig);;
 
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
@@ -23,8 +24,6 @@ describe('[feegrant Query Test]', () => {
 	});
 
 	it('feegrant getGranteeAllowanceAll', async () => {
-
-		const firma = new FirmaSDK(FirmaConfig.LocalDevNetConfig);;
 
 		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 

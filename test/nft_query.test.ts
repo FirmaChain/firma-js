@@ -1,12 +1,12 @@
 import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
-import { FirmaConfig } from "../sdk/FirmaConfig"
 import { NftItemType } from '../sdk/firmachain/nft';
+import { TestChainConfig } from './config_test';
 
 describe('[NFT Test]', () => {
 
 	const aliceMnemonic = "ozone unfold device pave lemon potato omit insect column wise cover hint narrow large provide kidney episode clay notable milk mention dizzy muffin crazy";
-	const firma = new FirmaSDK(FirmaConfig.LocalDevNetConfig);;
+	const firma = new FirmaSDK(TestChainConfig);
 
 	it('NFT getBalanceOf', async () => {
 
