@@ -1,10 +1,9 @@
 import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
-import { TestChainConfig } from './config_test';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[wallet Test]', () => {
 
-	const aliceMnemonic = "ozone unfold device pave lemon potato omit insect column wise cover hint narrow large provide kidney episode clay notable milk mention dizzy muffin crazy";
 	const firma = new FirmaSDK(TestChainConfig);
 
 	it('fromMnemonic check', async () => {

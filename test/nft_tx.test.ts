@@ -1,11 +1,8 @@
 import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
-import { TestChainConfig } from './config_test';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[NFT Tx Test]', () => {
-
-	const aliceMnemonic = "ozone unfold device pave lemon potato omit insect column wise cover hint narrow large provide kidney episode clay notable milk mention dizzy muffin crazy";
-	const targetMnemonic = "burst torch enemy quick crime slogan trust wood hamster way armor visual common language close park leg ill ball board couch nose theory must";
 
 	const firma = new FirmaSDK(TestChainConfig);
 
@@ -24,7 +21,7 @@ describe('[NFT Tx Test]', () => {
 	it('NFT Transfer', async () => {
 
 		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		let targetWallet = await firma.Wallet.fromMnemonic(targetMnemonic);
+		let targetWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
 		var result = await firma.Nft.mint(wallet, "https://naver.com");
 

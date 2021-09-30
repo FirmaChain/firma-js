@@ -1,16 +1,10 @@
 import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
-import { TestChainConfig } from './config_test';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[feegrant Tx Test]', () => {
 
-	const aliceMnemonic = "ozone unfold device pave lemon potato omit insect column wise cover hint narrow large provide kidney episode clay notable milk mention dizzy muffin crazy";
-	const bobMnemonic = "burst torch enemy quick crime slogan trust wood hamster way armor visual common language close park leg ill ball board couch nose theory must";
-
 	const firma = new FirmaSDK(TestChainConfig);
-
-	//alice: firma1wa3u4knw74r598quvzydvca42qsmk6jrvgqn7y
-	//bob: firma1skc6cpuwnqr6m3ee68pdhwl29qwx2r98kxnn0u
 
 	it('feegrant GrantPeriodicAllowance tx', async () => {
 
