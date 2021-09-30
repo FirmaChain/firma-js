@@ -8,8 +8,8 @@ import {
   DelayedVestingAccount,
   PeriodicVestingAccount,
 } from "cosmjs-types/cosmos/vesting/v1beta1/vesting";
-import { Any } from "cosmjs-types/google/protobuf/any";
 import Long from "long";
+import { Any } from "../google/protobuf/any";
 
 export interface Account {
   /** Bech32 account address */

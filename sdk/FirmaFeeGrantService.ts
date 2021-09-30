@@ -3,11 +3,11 @@ import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { FirmaUtil } from "./FirmaUtil";
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
-import { Any } from 'cosmjs-types/google/protobuf/any';
 import { BasicAllowance, PeriodicAllowance } from './firmachain/feegrant/FeeGrantTxTypes';
 import { FeeAllowanceType, FeeAllowanceType1, FeeGrantQueryClient } from './firmachain/feegrant/FeeGrantQueryClient';
 import { Coin } from 'cosmjs-types/cosmos/base/v1beta1/coin';
 import { BroadcastTxResponse } from './firmachain/common/stargateclient';
+import { Any } from './firmachain/google/protobuf/any';
 
 export class FirmaFeeGrantService {
 

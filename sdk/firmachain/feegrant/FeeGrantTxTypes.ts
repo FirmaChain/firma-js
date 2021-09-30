@@ -3,9 +3,9 @@ import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import _m0 from "protobufjs/minimal";
 import { Writer } from "protobufjs/minimal";
 
-import { Timestamp } from "./google/protobuf/timestamp";
-import { Any } from "./google/protobuf/any";
-import { Duration } from "./google/protobuf/duration";
+import { Timestamp } from "../google/protobuf/timestamp";
+import { Any } from "../google/protobuf/any";
+import { Duration } from "../google/protobuf/duration";
 
 export interface MsgGrantAllowance {
   granter: string;

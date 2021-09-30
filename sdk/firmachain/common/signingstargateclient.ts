@@ -7,7 +7,6 @@ import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import { AuthInfo, SignerInfo, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { Any } from "cosmjs-types/google/protobuf/any";
 import Long from "long";
 import { StdFee } from ".";
 import { Account, accountFromAny } from "./accounts";
@@ -15,6 +14,7 @@ import { Account, accountFromAny } from "./accounts";
 import { BroadcastTxResponse, StargateClient } from "./stargateclient";
 import Axios from 'axios';
 import { Int53 } from "@cosmjs/math";
+import { Any } from "../google/protobuf/any";
 
 export interface SignerData {
   readonly accountNumber: number;
