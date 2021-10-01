@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
-describe('[Gas Estimation Test]', () => {
+describe('[08. Gas Estimation Test]', () => {
 
 	const firma = new FirmaSDK(TestChainConfig);
 

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { TestChainConfig } from './config_test';
 
-describe('[bank test]', () => {
+describe('[05. Bank test]', () => {
 
 	const firma = new FirmaSDK(TestChainConfig);
 

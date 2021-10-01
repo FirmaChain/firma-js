@@ -1,12 +1,12 @@
 import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { FirmaUtil } from "../sdk/FirmaUtil"
-import { TestChainConfig } from './config_test';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
-describe('[Contract scenario base test]', () => {
+describe('[03. Contract scenario base test]', () => {
 
-	const donueMnemonic = "ozone unfold device pave lemon potato omit insect column wise cover hint narrow large provide kidney episode clay notable milk mention dizzy muffin crazy";
-	const creatorMnemonic = "acid unlock clown truth proud garment work cup detect wrist trumpet intact protect mansion average west review hidden private shoulder adjust feature alley anchor";
+	const donueMnemonic = aliceMnemonic;
+	const creatorMnemonic = bobMnemonic;
 	const signer1Mnemonic = "couch tonight jelly pond notice spring gold tornado cancel hover hill soft table can buyer already region bean mask cart gasp include change rent";
 	const signer2Mnemonic = "frozen never essence submit moon night cement omit final guilt border draft caution zoo gorilla illegal notable whisper try name orange hollow maximum arrive";
 	const signer3Mnemonic = "stock vapor planet van asthma upgrade scheme fuel cushion before brief knee kick lesson gun spatial protect danger they stem stay chunk critic cram";

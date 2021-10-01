@@ -4,9 +4,8 @@ import { FirmaUtil } from "../sdk/FirmaUtil"
 import { ContractFileType, ContractLogType } from '../sdk/firmachain/contract';
 import { TestChainConfig } from './config_test';
 
-describe('[Contract Query Test]', () => {
+describe('[02. Contract Query Test]', () => {
 
-	const aliceMnemonic = "ozone unfold device pave lemon potato omit insect column wise cover hint narrow large provide kidney episode clay notable milk mention dizzy muffin crazy";
 	const firma = new FirmaSDK(TestChainConfig);
 
 	it('Contract getContractLogAll-pagination', async () => {

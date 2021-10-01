@@ -3,7 +3,7 @@ import { FirmaSDK } from "../sdk/FirmaSDK"
 import { NftItemType } from '../sdk/firmachain/nft';
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
-describe('[NFT Test]', () => {
+describe('[11. NFT Test]', () => {
 
 	const firma = new FirmaSDK(TestChainConfig);
 
