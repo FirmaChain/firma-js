@@ -45,7 +45,7 @@ describe('[Contract Query Test]', () => {
 
 	it('Contract getContractLog', async () => {
 
-		const logId = "79";
+		const logId = "0";
 
 		var contractLog = await firma.Contract.getContractLog(logId);
 		expect(contractLog.id).to.be.equal(logId);
