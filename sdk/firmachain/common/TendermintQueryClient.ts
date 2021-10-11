@@ -13,12 +13,12 @@ export class TendermintQueryClient {
     });
   }
 
-  public async queryEstimateGas(hexTx: string) : Promise<number> {
+  public async queryEstimateGas(hexTx: string): Promise<number> {
 
     /*https://imperium-lcd.firmachain.org:26657/abci_query?path=%22app/simulate%22&data=0x0a9b010a8d010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e64126d0a2c6669726d6131747271796c65396d326e7679616663326e323566726b70776564323530347936617667667a72122c6669726d6131306e65336e77346b63666a36766a7a38346c326d33676a38767961637a66686d6135666636391a0f0a0475666374120731303030303030120974657374206d656d6f12670a510a460a1f2f636f736d6f732e63727970746f2e736563703235366b312e5075624b657912230a21027b57273b1d23a87862c6a47f214d77b6144b552498c2dff9e9368551b4e08a8c12040a02080118e60412120a0c0a047566637412043230303010c09a0c1a40ce1072ff09660c80595b7ff2fec36062ebcf8fde88947f1fa3f6cb5ff808edba04fcf584f81ce52e5ec9be6724759fb58a411a17ed2816210f4df5b811117e4c */
 
     let path = "/abci_query?path=\"app/simulate\"";
-    var result = await this._axios.get(path, { params: {data: hexTx } });
+    var result = await this._axios.get(path, { params: { data: hexTx } });
 
     let data = result.data.result.response.value;
     let jsonString = Buffer.from(data, "base64").toString('utf8');
