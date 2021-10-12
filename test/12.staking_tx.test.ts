@@ -59,7 +59,7 @@ describe('[12. Staking Tx Test]', () => {
 	});
 
 	// new case added. if succeed, the dapp needs to prevent zero amount input from users.
-	it.only('staking send Fail - send zero money', async () => {
+	it('staking send Fail - send zero money', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		
