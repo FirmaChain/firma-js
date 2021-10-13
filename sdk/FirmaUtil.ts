@@ -7,6 +7,8 @@ const CryptoJS = require('crypto-js');
 const sha256 = require('crypto-js/sha256');
 const encHex = require('crypto-js/enc-hex');
 
+import { Bech32 } from "@cosmjs/encoding";
+
 export class FirmaUtil {
 
 	public static Config: FirmaConfig;
@@ -20,6 +22,16 @@ export class FirmaUtil {
 		let data = CryptoJS.lib.WordArray.create(fileData.buffer);
 
 		return sha256(data).toString(encHex);
+	}
+
+	public static getValOperAddressFromAccAddress(address: string): string {
+		let data = Bech32.decode(address).data;
+		return Bech32.encode(FirmaUtil.Config.prefix + "valoper", data);
+	}
+
+	public static getAccAddressFromValOperAddress(address: string): string {
+		let data = Bech32.decode(address).data;
+		return Bech32.encode(FirmaUtil.Config.prefix, data);
 	}
 
 	public static async estimateGas(txRaw: TxRaw): Promise<number> {
