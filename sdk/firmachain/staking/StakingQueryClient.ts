@@ -1,6 +1,5 @@
 import Axios, { AxiosInstance } from 'axios';
 
-
 export interface ParamsDataType {
   unbonding_time: string;
   max_validators: number;
@@ -12,19 +11,6 @@ export interface ParamsDataType {
 export interface PoolDataType {
   not_bonded_tokens: string;
   bonded_tokens: string;
-}
-
-export interface UnbondingInfo {
-
-  delegator_address: string,
-  validator_address: string,
-
-  entries: {
-    creation_height: number,
-    completion_time: string,
-    initial_balance: string,
-    balances: string
-  }[];
 }
 
 export interface RedelegationInfo {
@@ -47,6 +33,19 @@ export interface RedelegationInfo {
   }[]
 }
 
+export interface UndelegationInfo {
+
+  delegator_address: string;
+  validator_address: string;
+
+  entries: {
+    creation_height: string,
+    completion_time: string,
+    initial_balance: string,
+    balance: string
+  }[]
+}
+
 export interface DelegationInfo {
 
   delegation: {
@@ -60,7 +59,6 @@ export interface DelegationInfo {
     amount: string
   }
 }
-
 
 export interface ValidatorDataType {
   operator_address: string;
@@ -103,9 +101,7 @@ export class StakingQueryClient {
     });
   }
 
-  // UnbondingInfo
-
-  public async querygetTotalUnbondingInfo(address: string): Promise<UnbondingInfo[]> {
+  public async queryGetTotalUndelegateInfo(address: string): Promise<UndelegationInfo[]> {
 
     let path = "/cosmos/staking/v1beta1/delegators" + "/" + address + "/unbonding_delegations";
     var result = await this._axios.get(path);
@@ -119,6 +115,22 @@ export class StakingQueryClient {
     var result = await this._axios.get(path);
 
     return result.data.redelegation_responses;
+  }
+
+  public async queryGetUndelegationListFromValidator(address: string): Promise<UndelegationInfo[]> {
+
+    let path = "/cosmos/staking/v1beta1/validators" + "/" + address + "/unbonding_delegations";
+    var result = await this._axios.get(path);
+
+    return result.data.unbonding_responses;
+  }
+
+  public async queryGetDelegateListFromValidator(address: string): Promise<DelegationInfo[]> {
+
+    let path = "/cosmos/staking/v1beta1/validators" + "/" + address + "/delegations";
+    var result = await this._axios.get(path);
+
+    return result.data.delegation_responses;
   }
 
   public async queryGetTotalDelegationInfo(address: string): Promise<DelegationInfo[]> {
@@ -143,6 +155,14 @@ export class StakingQueryClient {
     var result = await this._axios.get(path);
 
     return result.data.pool;
+  }
+
+  public async queryValidator(valoperAddress: string): Promise<ValidatorDataType> {
+
+    let path = "/cosmos/staking/v1beta1/validators/" + valoperAddress;
+    var result = await this._axios.get(path);
+
+    return result.data.validator;
   }
 
   public async queryValidators(): Promise<ValidatorDataType[]> {

@@ -1,11 +1,11 @@
-import { StakingTxClient, StakingQueryClient, TxMisc, DefaultTxMisc, getSignAndBroadcastOption, ValidatorDataType, PoolDataType, ParamsDataType, DelegationInfo, RedelegationInfo, UnbondingInfo } from './firmachain/staking';
+import { StakingTxClient, StakingQueryClient, TxMisc, DefaultTxMisc, getSignAndBroadcastOption, ValidatorDataType, PoolDataType, ParamsDataType, DelegationInfo, RedelegationInfo, UndelegationInfo } from './firmachain/staking';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { FirmaUtil } from "./FirmaUtil";
 import { BroadcastTxResponse } from './firmachain/common/stargateclient';
-import { Description, Pool } from 'cosmjs-types/cosmos/staking/v1beta1/staking';
+import { Description } from 'cosmjs-types/cosmos/staking/v1beta1/staking';
 import { MsgCreateValidator } from 'cosmjs-types/cosmos/staking/v1beta1/tx';
 
 export class FirmaStakingService {
@@ -202,11 +202,10 @@ export class FirmaStakingService {
 	}
 
 	// query
-
-	public async getTotalUnbondingInfo(address: string): Promise<UnbondingInfo[]> {
+	public async getTotalUndelegateInfo(address: string): Promise<UndelegationInfo[]> {
 		try {
 			let queryClient = new StakingQueryClient(this._config.restApiAddress);
-			let result = await queryClient.querygetTotalUnbondingInfo(address);
+			let result = await queryClient.queryGetTotalUndelegateInfo(address);
 
 			return result;
 
@@ -220,6 +219,32 @@ export class FirmaStakingService {
 		try {
 			let queryClient = new StakingQueryClient(this._config.restApiAddress);
 			let result = await queryClient.querygetTotalRedelegationInfo(address);
+
+			return result;
+
+		} catch (error) {
+			FirmaUtil.printLog(error);
+			throw error;
+		}
+	}
+
+	public async getUndelegationListFromValidator(valoperAddress: string): Promise<UndelegationInfo[]> {
+		try {
+			let queryClient = new StakingQueryClient(this._config.restApiAddress);
+			let result = await queryClient.queryGetUndelegationListFromValidator(valoperAddress);
+
+			return result;
+
+		} catch (error) {
+			FirmaUtil.printLog(error);
+			throw error;
+		}
+	}
+
+	public async getDelegationListFromValidator(valoperAddress: string): Promise<DelegationInfo[]> {
+		try {
+			let queryClient = new StakingQueryClient(this._config.restApiAddress);
+			let result = await queryClient.queryGetDelegateListFromValidator(valoperAddress);
 
 			return result;
 
@@ -259,6 +284,19 @@ export class FirmaStakingService {
 		try {
 			let queryClient = new StakingQueryClient(this._config.restApiAddress);
 			let result = await queryClient.queryGetPool();
+
+			return result;
+
+		} catch (error) {
+			FirmaUtil.printLog(error);
+			throw error;
+		}
+	}
+
+	public async getValidator(valoperAddress: string): Promise<ValidatorDataType> {
+		try {
+			let queryClient = new StakingQueryClient(this._config.restApiAddress);
+			let result = await queryClient.queryValidator(valoperAddress);
 
 			return result;
 
