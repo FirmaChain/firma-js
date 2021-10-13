@@ -24,7 +24,7 @@ describe.skip('[16. Gov Tx Test]', () => {
 		const title = "test submit proposal";
 		const description = "test description";
 
-		var result = await firma.Gov.SubmitTextProposal(wallet, title, description, initialDepositFCT, proposer);
+		var result = await firma.Gov.submitTextProposal(wallet, title, description, initialDepositFCT, proposer);
 
 		console.log(result);
 		expect(result.code).to.equal(0);
@@ -42,7 +42,7 @@ describe.skip('[16. Gov Tx Test]', () => {
 		const amount = 1000;
 		const recipient = await bobWallet.getAddress();
 
-		var result = await firma.Gov.SubmitCommunityPoolSpendProposal(aliceWallet, title, description, initialDepositFCT, proposer, amount, recipient);
+		var result = await firma.Gov.submitCommunityPoolSpendProposal(aliceWallet, title, description, initialDepositFCT, proposer, amount, recipient);
 
 		console.log(result);
 		expect(result.code).to.equal(0);
@@ -63,7 +63,7 @@ describe.skip('[16. Gov Tx Test]', () => {
 			value: "100",
 		}];
 
-		var result = await firma.Gov.SubmitParameterChangeProposal(aliceWallet, title, description, initialDepositFCT, proposer, changeParamList);
+		var result = await firma.Gov.submitParameterChangeProposal(aliceWallet, title, description, initialDepositFCT, proposer, changeParamList);
 
 		console.log(result);
 		expect(result.code).to.equal(0);
@@ -81,7 +81,7 @@ describe.skip('[16. Gov Tx Test]', () => {
 		const upgradeName = "v0.2.7";
 		const upgradeHeight = Long.fromInt(20000000);
 
-		var result = await firma.Gov.SubmitSoftwareUpgradeProposalByHeight(aliceWallet, title, description, initialDepositFCT, proposer, upgradeName, upgradeHeight);
+		var result = await firma.Gov.submitSoftwareUpgradeProposalByHeight(aliceWallet, title, description, initialDepositFCT, proposer, upgradeName, upgradeHeight);
 
 		//console.log(result);
 		expect(result.code).to.equal(0);
@@ -122,7 +122,7 @@ describe.skip('[16. Gov Tx Test]', () => {
 
 		const proposalId = Long.fromInt(tempProposalId);
 		const amount = 1000;
-		var result = await firma.Gov.Deposit(wallet, proposalId, amount);
+		var result = await firma.Gov.deposit(wallet, proposalId, amount);
 		//console.log(result);
 		expect(result.code).to.equal(0);
 	});
@@ -132,7 +132,7 @@ describe.skip('[16. Gov Tx Test]', () => {
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const proposalId = Long.fromInt(tempProposalId);
 
-		var result = await firma.Gov.Vote(wallet, proposalId, VotingOption.VOTE_OPTION_YES);
+		var result = await firma.Gov.vote(wallet, proposalId, VotingOption.VOTE_OPTION_YES);
 		//console.log(result);
 		expect(result.code).to.equal(0);
 	});
@@ -142,7 +142,7 @@ describe.skip('[16. Gov Tx Test]', () => {
 		const wallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 		const proposalId = Long.fromInt(tempProposalId);
 
-		var result = await firma.Gov.Vote(wallet, proposalId, VotingOption.VOTE_OPTION_NO);
+		var result = await firma.Gov.vote(wallet, proposalId, VotingOption.VOTE_OPTION_NO);
 		//console.log(result);
 		expect(result.code).to.equal(0);
 	});

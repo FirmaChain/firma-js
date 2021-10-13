@@ -29,7 +29,7 @@ export class FirmaFeeGrantService {
 		}
 	}
 
-	public async RevokeAllowance(wallet: FirmaWalletService, granteeAddress: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async revokeAllowance(wallet: FirmaWalletService, granteeAddress: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 
 		try {
 			let txRaw = await this.getSignedTxRevokeAllowance(wallet, granteeAddress, txMisc);
@@ -116,7 +116,7 @@ export class FirmaFeeGrantService {
 		}
 	}
 
-	public async GrantPeriodicAllowance(wallet: FirmaWalletService, granteeAddress: string, feegrantOption: PeriodicFeeGrantOption, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async grantPeriodicAllowance(wallet: FirmaWalletService, granteeAddress: string, feegrantOption: PeriodicFeeGrantOption, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 
 		try {
 			let txRaw = await this.getSignedTxGrantPeriodicAllowance(wallet, granteeAddress, feegrantOption, txMisc);
@@ -131,7 +131,7 @@ export class FirmaFeeGrantService {
 	}
 
 
-	public async GrantBasicAllowance(wallet: FirmaWalletService, granteeAddress: string, feegrantOption: BasicFeeGrantOption = DefaultBasicFeeGrantOption, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async grantBasicAllowance(wallet: FirmaWalletService, granteeAddress: string, feegrantOption: BasicFeeGrantOption = DefaultBasicFeeGrantOption, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 			let txRaw = await this.getSignedTxGrantBasicAllowance(wallet, granteeAddress, feegrantOption, txMisc);
 

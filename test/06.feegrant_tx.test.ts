@@ -24,7 +24,7 @@ describe('[06. Feegrant Tx Test]', () => {
 			periodReset: expirationDate
 		};
 
-		var result = await firma.FeeGrant.GrantPeriodicAllowance(aliceWallet, await bobWallet.getAddress(), periodicAllowanceData);
+		var result = await firma.FeeGrant.grantPeriodicAllowance(aliceWallet, await bobWallet.getAddress(), periodicAllowanceData);
 
 		expect(result.code).to.equal(0);
 	});
@@ -34,7 +34,7 @@ describe('[06. Feegrant Tx Test]', () => {
 		const alicewallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
-		var result = await firma.FeeGrant.RevokeAllowance(alicewallet, await bobWallet.getAddress());
+		var result = await firma.FeeGrant.revokeAllowance(alicewallet, await bobWallet.getAddress());
 		//console.log(result);
 
 		expect(result.code).to.equal(0);
@@ -54,7 +54,7 @@ describe('[06. Feegrant Tx Test]', () => {
 		//var result = await firma.FeeGrant.GrantBasicAllowance(aliceWallet, await bobWallet.getAddress(), {spendLimit : spendLimit, expiration : expirationDate});
 		//var result = await firma.FeeGrant.GrantBasicAllowance(aliceWallet, await bobWallet.getAddress(), {expiration : expirationDate});
 		//var result = await firma.FeeGrant.GrantBasicAllowance(aliceWallet, await bobWallet.getAddress(), {spendLimit : spendLimit});
-		var result = await firma.FeeGrant.GrantBasicAllowance(aliceWallet, await bobWallet.getAddress());
+		var result = await firma.FeeGrant.grantBasicAllowance(aliceWallet, await bobWallet.getAddress());
 
 		expect(result.code).to.equal(0);
 	});
@@ -77,7 +77,7 @@ describe('[06. Feegrant Tx Test]', () => {
 		const alicewallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
-		var result = await firma.FeeGrant.RevokeAllowance(alicewallet, await bobWallet.getAddress());
+		var result = await firma.FeeGrant.revokeAllowance(alicewallet, await bobWallet.getAddress());
 		//console.log(result);
 
 		expect(result.code).to.equal(0);

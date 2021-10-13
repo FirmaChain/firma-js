@@ -137,7 +137,7 @@ export class FirmaGovService {
 		}
 	}
 
-	public async SubmitSoftwareUpgradeProposalByHeight(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, upgradeName: string, height: Long, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async submitSoftwareUpgradeProposalByHeight(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, upgradeName: string, height: Long, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 			let plan = {
 				name: upgradeName,
@@ -158,7 +158,7 @@ export class FirmaGovService {
 		}
 	}
 
-	public async SubmitSoftwareUpgradeProposalByTime(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, upgradeName: string, upgradeTime: Date, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async submitSoftwareUpgradeProposalByTime(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, upgradeName: string, upgradeTime: Date, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 			let plan = {
 				name: upgradeName,
@@ -180,7 +180,7 @@ export class FirmaGovService {
 	}
 
 
-	public async SubmitParameterChangeProposal(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, paramList: ParamChangeOption[], txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async submitParameterChangeProposal(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, paramList: ParamChangeOption[], txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 
 			let txRaw = await this.getSignedTxParameterChangeProposal(wallet, title, description, initialDeposit, proposer, paramList, txMisc);
@@ -194,7 +194,7 @@ export class FirmaGovService {
 		}
 	}
 
-	public async SubmitCommunityPoolSpendProposal(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, amount: number, recipient: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async submitCommunityPoolSpendProposal(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, amount: number, recipient: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 
 			let txRaw = await this.getSignedTxCommunityPoolSpendProposal(wallet, title, description, initialDeposit, proposer, amount, recipient, txMisc);
@@ -209,7 +209,7 @@ export class FirmaGovService {
 	}
 
 
-	public async SubmitTextProposal(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async submitTextProposal(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 
 			let txRaw = await this.getSignedTxSubmitTextProposal(wallet, title, description, initialDeposit, proposer, txMisc);
@@ -238,7 +238,7 @@ export class FirmaGovService {
 		}
 	}
 
-	public async Vote(wallet: FirmaWalletService, proposalId: Long, option: VotingOption, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async vote(wallet: FirmaWalletService, proposalId: Long, option: VotingOption, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 
 			let txRaw = await this.getSignedTxVote(wallet, proposalId, option, txMisc);
@@ -270,7 +270,7 @@ export class FirmaGovService {
 		}
 	}
 
-	public async Deposit(wallet: FirmaWalletService, proposalId: Long, amount: number, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async deposit(wallet: FirmaWalletService, proposalId: Long, amount: number, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 			let txRaw = await this.getSignedTxDeposit(wallet, proposalId, amount, txMisc);
 

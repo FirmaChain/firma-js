@@ -31,7 +31,7 @@ describe('[14. Distribution Tx Test]', () => {
 		const validatorList = await firma.Staking.getValidatorList();
 		const validatorAddress = validatorList[0].operator_address;
 
-		var result = await firma.Distribution.WithdrawValidatorCommission(wallet, validatorAddress);
+		var result = await firma.Distribution.withdrawValidatorCommission(wallet, validatorAddress);
 
 		//console.log(result);
 
@@ -42,7 +42,7 @@ describe('[14. Distribution Tx Test]', () => {
 		const wallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
 		const amount = 1;
 
-		var result = await firma.Distribution.FundCommunityPool(wallet, amount);
+		var result = await firma.Distribution.fundCommunityPool(wallet, amount);
 		expect(result.code).to.equal(0);
 	});
 
@@ -53,7 +53,7 @@ describe('[14. Distribution Tx Test]', () => {
 		const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
-		var result = await firma.Distribution.SetWithdrawAddress(validatorWallet, await aliceWallet.getAddress());
+		var result = await firma.Distribution.setWithdrawAddress(validatorWallet, await aliceWallet.getAddress());
 		expect(result.code).to.equal(0);
 	});
 });

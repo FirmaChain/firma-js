@@ -88,7 +88,7 @@ export class FirmaDistributionService {
 		}
 	}
 
-	public async SetWithdrawAddress(wallet: FirmaWalletService, withdrawAddress: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async setWithdrawAddress(wallet: FirmaWalletService, withdrawAddress: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 			let txRaw = await this.getSignedTxSetWithdrawAddress(wallet, withdrawAddress, txMisc);
 
@@ -101,7 +101,7 @@ export class FirmaDistributionService {
 		}
 	}
 
-	public async FundCommunityPool(wallet: FirmaWalletService, amount: number, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async fundCommunityPool(wallet: FirmaWalletService, amount: number, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 			let txRaw = await this.getSignedTxFundCommunityPool(wallet, amount, txMisc);
 
@@ -114,7 +114,7 @@ export class FirmaDistributionService {
 		}
 	}
 
-	public async WithdrawValidatorCommission(wallet: FirmaWalletService, validatorAddres: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async withdrawValidatorCommission(wallet: FirmaWalletService, validatorAddres: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 			let txRaw = await this.getSignedTxWithdrawValidatorCommission(wallet, validatorAddres, txMisc);
 
