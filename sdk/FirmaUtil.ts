@@ -8,13 +8,33 @@ const sha256 = require('crypto-js/sha256');
 const encHex = require('crypto-js/enc-hex');
 
 import { Bech32 } from "@cosmjs/encoding";
+import Long from "long";
 
 export class FirmaUtil {
 
 	public static Config: FirmaConfig;
 
+	public static getUFCTStringFromFCTStr(fctAmount: string): string {
+		let fct = Number.parseFloat(fctAmount);
+		let big = fct * 1000000;
+
+		return big.toString();
+	}
+
+	public static getFCTStringFromUFCTStr(uFctAmount: string): string {
+		let ufct = Number.parseInt(uFctAmount);
+		return (ufct / 1000000).toString();
+	}
+
 	public static getUFCTStringFromFCT(fctAmount: number): string {
-		return fctAmount + "000000";
+		let big = fctAmount * 1000000;
+
+		return big.toString();
+	}
+
+	public static getFCTStringFromUFCT(uFctAmount: number): string {
+		let number = uFctAmount;
+		return (number / 1000000).toString();
 	}
 
 	public static async getFileHash(filePath: string): Promise<string> {
