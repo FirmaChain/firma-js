@@ -6,47 +6,52 @@ describe('[13. Staking Query Test]', () => {
 
 	const firma = new FirmaSDK(TestChainConfig);
 
-	it('get validator list', async () => {
+	it('1.get total validator list', async () => {
 
 		var result = await firma.Staking.getValidatorList();
-		expect(result.length).to.above(0);
-
-		//console.log(result[0].grantee);
-		//console.log("total: " + result.length);
-		//console.log("commission_rates.max_rate:" + result[0].commission.commission_rates.max_rate);
+		//console.log(result);
 	})
 
-	it('get pool', async () => {
+	it('2.get validator data', async () => {
+
+		var validatorList = await firma.Staking.getValidatorList();
+		var result = await firma.Staking.getValidator(validatorList[0].operator_address);
+		//console.log(result);
+	})
+
+	it('3.get getDelegationListFromValidator', async () => {
+
+		var validatorList = await firma.Staking.getValidatorList();
+		var result = await firma.Staking.getDelegationListFromValidator(validatorList[1].operator_address);
+		//console.log(result);
+	})
+
+	it('4.get getUndelegationListFromValidator', async () => {
+
+		var validatorList = await firma.Staking.getValidatorList();
+		var result = await firma.Staking.getUndelegationListFromValidator(validatorList[0].operator_address);
+
+		//console.log(result);
+	})
+
+	// param side
+	it('5.get staking total pool', async () => {
 
 		var result = await firma.Staking.getPool();
-		//console.log(result.bonded_tokens);
-		//console.log(result.not_bonded_tokens);
+
+		// bonded_token, not_bonded_tokens
+		//console.log(result);
 	})
 
-	it('get getParams', async () => {
+
+	it('6.get getParams', async () => {
 
 		var result = await firma.Staking.getParams();
 		//console.log(result);
 	})
 
-	// [TODO: need to implement]
-	// get delegation list based validator side
-	// not give total delegations, but give each user amount list.
-	it.skip('get getTotalDelegationFromValidator', async () => {
-
-		// [CHECK]
-		// I'm confusing of modify return type of cosmos sdk rest api
-		// Too complicated. I'm still thinking about it.
-
-		//const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		//var result = await firma.Staking.getTotalDelegationInfo(await wallet.getAddress());
-
-		//console.log(result);
-	})
-
-	
-	// Receive a list of supplies delegated by the user.
-	it('get getTotalDelegationInfo', async () => {
+	// user side
+	it('7.get userside getTotalDelegationInfo', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		var result = await firma.Staking.getTotalDelegationInfo(await wallet.getAddress());
@@ -54,22 +59,19 @@ describe('[13. Staking Query Test]', () => {
 		//console.log(result);
 	})
 
-	it('get getTotalRedelegationInfo', async () => {
+	it('8.get userside getTotalRedelegationInfo', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		var result = await firma.Staking.getTotalRedelegationInfo(await wallet.getAddress());
 
 		//console.log(result);
-		//console.log(result[0].entries[0].redelegation_entry.creation_height);
-		//console.log(result[0].entries[0]);
 	})
 
-	it('get getTotalUnbondingInfo', async () => {
+	it('9.get userside getTotalUndelegateInfo', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		var result = await firma.Staking.getTotalUnbondingInfo(await wallet.getAddress());
+		var result = await firma.Staking.getTotalUndelegateInfo(await wallet.getAddress());
 
 		//console.log(result);
-		//console.log(result[0].entries[0]);
 	})
 });
