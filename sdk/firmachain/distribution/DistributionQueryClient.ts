@@ -1,4 +1,5 @@
 import Axios, { AxiosInstance } from 'axios';
+import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 
 interface TotalRewardInfoInternal {
   rewards: { validator_address: string, reward: { denom: string, amount: string }[] }[];
@@ -40,6 +41,21 @@ export class DistributionQueryClient {
 
     // reward array is very important for refactroing and other functions.
     return result.data.rewards[0].amount;
+  }
+
+
+  public async queryGetValidatorOutStandingReward(address: string): Promise<Coin[]> {
+    let path = "/cosmos/distribution/v1beta1/validators" + "/" + address + "/outstanding_rewards";
+
+    var result = await this._axios.get(path);
+    return result.data.rewards.rewards;
+  }
+
+  public async queryGetValidatorCommission(address: string): Promise<Coin[]> {
+    let path = "/cosmos/distribution/v1beta1/validators" + "/" + address + "/commission";
+
+    var result = await this._axios.get(path);
+    return result.data.commission.commission;
   }
 
   public async queryGetTotalRewardInfo(address: string): Promise<TotalRewardInfo> {

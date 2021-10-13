@@ -5,6 +5,7 @@ import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { FirmaUtil } from "./FirmaUtil";
 import { BroadcastTxResponse } from './firmachain/common/stargateclient';
+import { Coin } from 'cosmjs-types/cosmos/base/v1beta1/coin';
 
 export class FirmaDistributionService {
 
@@ -146,6 +147,32 @@ export class FirmaDistributionService {
 		try {
 			let queryClient = new DistributionQueryClient(this._config.restApiAddress);
 			let result = await queryClient.queryGetRewardInfo(address, validatorAddress);
+
+			return result;
+
+		} catch (error) {
+			FirmaUtil.printLog(error);
+			throw error;
+		}
+	}
+
+	public async getValidatorOutStandingReward(validatorAddress: string): Promise<Coin[]> {
+		try {
+			let queryClient = new DistributionQueryClient(this._config.restApiAddress);
+			let result = await queryClient.queryGetValidatorOutStandingReward(validatorAddress);
+
+			return result;
+
+		} catch (error) {
+			FirmaUtil.printLog(error);
+			throw error;
+		}
+	}
+
+	public async getValidatorCommission(validatorAddress: string): Promise<Coin[]> {
+		try {
+			let queryClient = new DistributionQueryClient(this._config.restApiAddress);
+			let result = await queryClient.queryGetValidatorCommission(validatorAddress);
 
 			return result;
 
