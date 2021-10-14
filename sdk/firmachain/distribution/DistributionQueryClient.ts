@@ -81,7 +81,9 @@ export class DistributionQueryClient {
       finalData.rewards.push(tempData);
     };
 
-    finalData.total = data.total[0].amount;
+    if (data.total.length > 0) {
+      finalData.total = data.total[0].amount;
+    }
 
     return finalData;
   }

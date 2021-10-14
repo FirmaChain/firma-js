@@ -87,4 +87,21 @@ describe('[15. Distribution Query Test]', () => {
 		//console.log("validator_address: " + validatorAddress);
 		//console.log("reward: " + amount);
 	})
+
+	it('get getTotalRewardInfo from no balance user', async () => {
+
+		const wallet = await firma.Wallet.newWallet();
+
+		var result = await firma.Distribution.getTotalRewardInfo(await wallet.getAddress());
+		expect(result.total).to.equal("");
+	})
+
+	// reward per validator
+	it('get getRewardInfo from no balance user', async () => {
+
+		const wallet = await firma.Wallet.newWallet();
+
+		var totalReward = await firma.Distribution.getTotalRewardInfo(await wallet.getAddress());
+		expect(totalReward.rewards.length).to.equal(0);
+	})
 });

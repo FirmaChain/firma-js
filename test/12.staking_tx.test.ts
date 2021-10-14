@@ -8,7 +8,7 @@ describe('[12. Staking Tx Test]', () => {
 
 	it('delegate OK', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const validatorList = await firma.Staking.getValidatorList();
 		const validatorAddress = validatorList[0].operator_address;
 
@@ -22,7 +22,7 @@ describe('[12. Staking Tx Test]', () => {
 
 	it('undelegate OK', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const validatorList = await firma.Staking.getValidatorList();
 		const validatorAddress = validatorList[0].operator_address;
 
@@ -42,6 +42,9 @@ describe('[12. Staking Tx Test]', () => {
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
 		const validatorList = await firma.Staking.getValidatorList();
+
+		if (validatorList.length < 2)
+			return;
 
 		const srcValidatorAddress = validatorList[0].operator_address;
 		const dstValidatorAddress = validatorList[1].operator_address;
