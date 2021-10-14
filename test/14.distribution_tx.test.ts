@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { FirmaUtil } from '..';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
 
@@ -6,18 +7,25 @@ describe('[14. Distribution Tx Test]', () => {
 
 	const firma = new FirmaSDK(TestChainConfig);
 
-	it('withdrawAllRewards OK', async () => {
+	it('withdrawAllRewards for delegator side', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
-		const validatorList = await firma.Staking.getValidatorList();
-		const validatorAddress = validatorList[0].operator_address;
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const delegationList = await firma.Staking.getTotalDelegationInfo(await wallet.getAddress());
+
+		let validatorAddress = delegationList[0].delegation.validator_address
 
 		var result = await firma.Distribution.withdrawAllRewards(wallet, validatorAddress);
+		expect(result.code).to.equal(0);
+	});
 
-		// CHECK: Why can't I find out how much I received on the result log?
-		// Anyway, it seems that it will come out if you check the tx hash value.
+	it('withdrawAllRewards for validator side', async () => {
 
-		// It is expected that there will be a difference in quantity at the time of call and receive.
+		const wallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
+		const address = await wallet.getAddress();
+
+		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(address);
+
+		var result = await firma.Distribution.withdrawAllRewards(wallet, validatorAddress);
 
 		expect(result.code).to.equal(0);
 	});
@@ -28,12 +36,11 @@ describe('[14. Distribution Tx Test]', () => {
 		// this command is only valid for validator not delegator.
 
 		const wallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
-		const validatorList = await firma.Staking.getValidatorList();
-		const validatorAddress = validatorList[0].operator_address;
+		const address = await wallet.getAddress();
+
+		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(address);
 
 		var result = await firma.Distribution.withdrawValidatorCommission(wallet, validatorAddress);
-
-		//console.log(result);
 
 		expect(result.code).to.equal(0);
 	});
