@@ -101,6 +101,25 @@ export class StakingQueryClient {
     });
   }
 
+  public async queryGetUndelegationInfoFromValidator(address: string, validatorAddress: string): Promise<UndelegationInfo> {
+
+    let path = "/cosmos/staking/v1beta1/validators" + "/" + validatorAddress + "/delegations/" + address + "/unbonding_delegation";
+    var result = await this._axios.get(path);
+
+    // If there is no data in the list, throw 404 exception.
+    //console.log(result);
+
+    return result.data.unbond;
+  }
+
+  public async queryGetDelegationInfoFromValidator(address: string, validatorAddress: string): Promise<DelegationInfo> {
+
+    let path = "/cosmos/staking/v1beta1/validators" + "/" + validatorAddress + "/delegations/" + address;
+    var result = await this._axios.get(path);
+
+    return result.data.delegation_response;
+  }
+
   public async queryGetTotalUndelegateInfo(address: string): Promise<UndelegationInfo[]> {
 
     let path = "/cosmos/staking/v1beta1/delegators" + "/" + address + "/unbonding_delegations";
