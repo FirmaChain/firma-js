@@ -10,7 +10,7 @@ describe('[15. Distribution Query Test]', () => {
 	it('get communityPool', async () => {
 
 		var poolAmount = await firma.Distribution.getCommunityPool();
-		console.log("communityPool :" + poolAmount);
+		//console.log("communityPool :" + poolAmount);
 	})
 
 	it('get validator commission', async () => {
