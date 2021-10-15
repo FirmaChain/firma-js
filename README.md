@@ -1,7 +1,12 @@
 # firma-js
-Javascript SDK for FirmaChain
 
 [![npm version](https://badge.fury.io/js/%40firmachain%2Ffirma-js.svg)](https://badge.fury.io/js/%40firmachain%2Ffirma-js)
+[![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/firmachain/firma-js)](https://github.com/firmachain/firma-js/releases)
+[![license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/firmachain/firma-js/blob/master/LICENSE)
+![Lines of code](https://img.shields.io/tokei/lines/github/firmachain/firma-js)
+
+Javascript SDK for FirmaChain
+
 
 ## Install
 You can install `firma-js` using [NPM](https://www.npmjs.com/package/@firmachain/firma-js)
@@ -146,9 +151,3 @@ firma.createAndSign(wallet, msg).then((signedTx) => {
 }).catch(console.error);
 
 ```
-
-
-
-## License
-MIT
-[See LICENSE](https://github.com/FirmaChain/firma-js/blob/main/LICENSE)
