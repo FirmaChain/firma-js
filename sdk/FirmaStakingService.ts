@@ -202,6 +202,33 @@ export class FirmaStakingService {
 	}
 
 	// query
+
+	public async getUndelegationInfoFromValidator(address: string, validatorAddress: string): Promise<UndelegationInfo> {
+		try {
+			let queryClient = new StakingQueryClient(this._config.restApiAddress);
+			let result = await queryClient.queryGetUndelegationInfoFromValidator(address, validatorAddress);
+
+			return result;
+
+		} catch (error) {
+			FirmaUtil.printLog(error);
+			throw error;
+		}
+	}
+
+	public async getDelegationInfoFromValidator(address: string, validatorAddress: string): Promise<DelegationInfo> {
+		try {
+			let queryClient = new StakingQueryClient(this._config.restApiAddress);
+			let result = await queryClient.queryGetDelegationInfoFromValidator(address, validatorAddress);
+
+			return result;
+
+		} catch (error) {
+			FirmaUtil.printLog(error);
+			throw error;
+		}
+	}
+
 	public async getTotalUndelegateInfo(address: string): Promise<UndelegationInfo[]> {
 		try {
 			let queryClient = new StakingQueryClient(this._config.restApiAddress);

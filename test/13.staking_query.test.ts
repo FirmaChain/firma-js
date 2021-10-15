@@ -22,7 +22,7 @@ describe('[13. Staking Query Test]', () => {
 	it('3.get getDelegationListFromValidator', async () => {
 
 		var validatorList = await firma.Staking.getValidatorList();
-		var result = await firma.Staking.getDelegationListFromValidator(validatorList[1].operator_address);
+		var result = await firma.Staking.getDelegationListFromValidator(validatorList[0].operator_address);
 		//console.log(result);
 	})
 
@@ -72,6 +72,28 @@ describe('[13. Staking Query Test]', () => {
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		var result = await firma.Staking.getTotalUndelegateInfo(await wallet.getAddress());
 
+		//console.log(result);
+	})
+
+	it('10.get userside getDelegationInfoFromValidator', async () => {
+
+		var validatorList = await firma.Staking.getValidatorList();
+
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		var result = await firma.Staking.getDelegationInfoFromValidator(await wallet.getAddress(), validatorList[0].operator_address);
+
+		// If there is no data in the list, throw 404 exception.
+		//console.log(result);
+	})
+
+	it('11.get userside getUndelegationInfoFromValidator', async () => {
+
+		var validatorList = await firma.Staking.getValidatorList();
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+
+		var result = await firma.Staking.getUndelegationInfoFromValidator(await wallet.getAddress(), validatorList[0].operator_address);
+
+		// If there is no data in the list, throw 404 exception.
 		//console.log(result);
 	})
 });

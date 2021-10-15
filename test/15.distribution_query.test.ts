@@ -10,7 +10,7 @@ describe('[15. Distribution Query Test]', () => {
 	it('get communityPool', async () => {
 
 		var poolAmount = await firma.Distribution.getCommunityPool();
-		console.log("communityPool :" + poolAmount);
+		//console.log("communityPool :" + poolAmount);
 	})
 
 	it('get validator commission', async () => {
@@ -86,5 +86,22 @@ describe('[15. Distribution Query Test]', () => {
 
 		//console.log("validator_address: " + validatorAddress);
 		//console.log("reward: " + amount);
+	})
+
+	it('get getTotalRewardInfo from no balance user', async () => {
+
+		const wallet = await firma.Wallet.newWallet();
+
+		var result = await firma.Distribution.getTotalRewardInfo(await wallet.getAddress());
+		expect(result.total).to.equal("");
+	})
+
+	// reward per validator
+	it('get getRewardInfo from no balance user', async () => {
+
+		const wallet = await firma.Wallet.newWallet();
+
+		var totalReward = await firma.Distribution.getTotalRewardInfo(await wallet.getAddress());
+		expect(totalReward.rewards.length).to.equal(0);
 	})
 });
