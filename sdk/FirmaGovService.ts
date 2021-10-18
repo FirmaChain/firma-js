@@ -1,4 +1,4 @@
-import { GovTxClient, GovQueryClient, TxMisc, DefaultTxMisc, getSignAndBroadcastOption, ParamChangeOption, SoftwareUpgradePlan, VotingOption } from './firmachain/gov';
+import { GovTxClient, GovQueryClient, TxMisc, DefaultTxMisc, getSignAndBroadcastOption, ParamChangeOption, SoftwareUpgradePlan, VotingOption, ProposalInfo, ProposalStatus, ProposalParam } from './firmachain/gov';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 
 import { FirmaWalletService } from "./FirmaWalletService";
@@ -9,7 +9,7 @@ import { Any } from './firmachain/google/protobuf/any';
 import { TextProposal } from 'cosmjs-types/cosmos/gov/v1beta1/gov';
 import { CommunityPoolSpendProposal } from 'cosmjs-types/cosmos/distribution/v1beta1/distribution';
 import { ParameterChangeProposal } from 'cosmjs-types/cosmos/params/v1beta1/params';
-import { SoftwareUpgradeProposal } from 'cosmjs-types/cosmos/upgrade/v1beta1/upgrade';
+import { CancelSoftwareUpgradeProposal, SoftwareUpgradeProposal } from 'cosmjs-types/cosmos/upgrade/v1beta1/upgrade';
 import Long from 'long';
 
 export class FirmaGovService {
@@ -46,6 +46,32 @@ export class FirmaGovService {
 			});
 
 			let message = txClient.msgSubmitProposal({ content: content, initialDeposit: [sendAmount], proposer: proposer });
+			return await txClient.sign([message], getSignAndBroadcastOption(this._config.denom, txMisc));
+
+		} catch (error) {
+			FirmaUtil.printLog(error);
+			throw error;
+		}
+	}
+
+	private async getSignedTxCancelSoftwareUpgradeProposal(wallet: FirmaWalletService, title: string, description: string, initialDepositFCT: number, proposer: string, txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+
+		try {
+			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
+
+			const initialDepositAmount = { denom: this._config.denom, amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT) };
+
+			const proposal = CancelSoftwareUpgradeProposal.fromPartial({
+				title: title,
+				description: description,
+			});
+
+			let content = Any.fromPartial({
+				typeUrl: "/cosmos.upgrade.v1beta1.CancelSoftwareUpgradeProposal",
+				value: Uint8Array.from(SoftwareUpgradeProposal.encode(proposal).finish()),
+			});
+
+			let message = txClient.msgSubmitProposal({ content: content, initialDeposit: [initialDepositAmount], proposer: proposer });
 			return await txClient.sign([message], getSignAndBroadcastOption(this._config.denom, txMisc));
 
 		} catch (error) {
@@ -130,6 +156,20 @@ export class FirmaGovService {
 
 			let message = txClient.msgSubmitProposal({ content: content, initialDeposit: [initialDepositAmount], proposer: proposer });
 			return await txClient.sign([message], getSignAndBroadcastOption(this._config.denom, txMisc));
+
+		} catch (error) {
+			FirmaUtil.printLog(error);
+			throw error;
+		}
+	}
+
+	public async submitCancelSoftwareUpgradeProposal(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+		try {
+
+			let txRaw = await this.getSignedTxCancelSoftwareUpgradeProposal(wallet, title, description, initialDeposit, proposer, txMisc);
+
+			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
+			return await txClient.broadcast(txRaw);
 
 		} catch (error) {
 			FirmaUtil.printLog(error);
@@ -276,6 +316,61 @@ export class FirmaGovService {
 
 			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
 			return await txClient.broadcast(txRaw);
+
+		} catch (error) {
+			FirmaUtil.printLog(error);
+			throw error;
+		}
+	}
+
+	//query
+
+
+	public async getParam(): Promise<ProposalParam> {
+		try {
+			let queryClient = new GovQueryClient(this._config.restApiAddress);
+			let result = await queryClient.queryGetParam();
+
+			return result;
+
+		} catch (error) {
+			FirmaUtil.printLog(error);
+			throw error;
+		}
+	}
+
+	public async getProposal(id: string): Promise<ProposalInfo> {
+		try {
+			let queryClient = new GovQueryClient(this._config.restApiAddress);
+			let result = await queryClient.queryGetProposal(id);
+
+			return result;
+
+		} catch (error) {
+			FirmaUtil.printLog(error);
+			throw error;
+		}
+	}
+
+	public async getProposalListByStatus(status: ProposalStatus): Promise<ProposalInfo[]> {
+		try {
+			let queryClient = new GovQueryClient(this._config.restApiAddress);
+			let result = await queryClient.queryGetProposalListByStatus(status);
+
+			return result;
+
+		} catch (error) {
+			FirmaUtil.printLog(error);
+			throw error;
+		}
+	}
+
+	public async getProposalList(): Promise<ProposalInfo[]> {
+		try {
+			let queryClient = new GovQueryClient(this._config.restApiAddress);
+			let result = await queryClient.queryGetProposalList();
+
+			return result;
 
 		} catch (error) {
 			FirmaUtil.printLog(error);
