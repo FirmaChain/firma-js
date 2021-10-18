@@ -28,7 +28,7 @@ export class FirmaGovService {
 		}
 	}
 
-	private async getSignedTxSubmitTextProposal(wallet: FirmaWalletService, title: string, description: string, initialDepositFCT: number, proposer: string, txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+	private async getSignedTxSubmitTextProposal(wallet: FirmaWalletService, title: string, description: string, initialDepositFCT: number, txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
 		try {
 			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
@@ -45,6 +45,7 @@ export class FirmaGovService {
 				value: Uint8Array.from(TextProposal.encode(proposal).finish()),
 			});
 
+			let proposer = await wallet.getAddress();
 			let message = txClient.msgSubmitProposal({ content: content, initialDeposit: [sendAmount], proposer: proposer });
 			return await txClient.sign([message], getSignAndBroadcastOption(this._config.denom, txMisc));
 
@@ -54,7 +55,7 @@ export class FirmaGovService {
 		}
 	}
 
-	private async getSignedTxCancelSoftwareUpgradeProposal(wallet: FirmaWalletService, title: string, description: string, initialDepositFCT: number, proposer: string, txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+	private async getSignedTxCancelSoftwareUpgradeProposal(wallet: FirmaWalletService, title: string, description: string, initialDepositFCT: number, txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
 		try {
 			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
@@ -71,7 +72,9 @@ export class FirmaGovService {
 				value: Uint8Array.from(SoftwareUpgradeProposal.encode(proposal).finish()),
 			});
 
+			let proposer = await wallet.getAddress();
 			let message = txClient.msgSubmitProposal({ content: content, initialDeposit: [initialDepositAmount], proposer: proposer });
+
 			return await txClient.sign([message], getSignAndBroadcastOption(this._config.denom, txMisc));
 
 		} catch (error) {
@@ -80,7 +83,7 @@ export class FirmaGovService {
 		}
 	}
 
-	private async getSignedTxSoftwareUpgradeProposal(wallet: FirmaWalletService, title: string, description: string, initialDepositFCT: number, proposer: string, plan: SoftwareUpgradePlan, txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+	private async getSignedTxSoftwareUpgradeProposal(wallet: FirmaWalletService, title: string, description: string, initialDepositFCT: number, plan: SoftwareUpgradePlan, txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
 		try {
 			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
@@ -98,6 +101,7 @@ export class FirmaGovService {
 				value: Uint8Array.from(SoftwareUpgradeProposal.encode(proposal).finish()),
 			});
 
+			let proposer = await wallet.getAddress();
 			let message = txClient.msgSubmitProposal({ content: content, initialDeposit: [initialDepositAmount], proposer: proposer });
 			return await txClient.sign([message], getSignAndBroadcastOption(this._config.denom, txMisc));
 
@@ -107,7 +111,7 @@ export class FirmaGovService {
 		}
 	}
 
-	private async getSignedTxParameterChangeProposal(wallet: FirmaWalletService, title: string, description: string, initialDepositFCT: number, proposer: string, paramList: ParamChangeOption[], txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+	private async getSignedTxParameterChangeProposal(wallet: FirmaWalletService, title: string, description: string, initialDepositFCT: number, paramList: ParamChangeOption[], txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
 		try {
 			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
@@ -125,6 +129,7 @@ export class FirmaGovService {
 				value: Uint8Array.from(ParameterChangeProposal.encode(proposal).finish()),
 			});
 
+			let proposer = await wallet.getAddress();
 			let message = txClient.msgSubmitProposal({ content: content, initialDeposit: [initialDepositAmount], proposer: proposer });
 			return await txClient.sign([message], getSignAndBroadcastOption(this._config.denom, txMisc));
 
@@ -134,7 +139,7 @@ export class FirmaGovService {
 		}
 	}
 
-	private async getSignedTxCommunityPoolSpendProposal(wallet: FirmaWalletService, title: string, description: string, initialDepositFCT: number, proposer: string, amount: number, recipient: string, txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+	private async getSignedTxCommunityPoolSpendProposal(wallet: FirmaWalletService, title: string, description: string, initialDepositFCT: number, amount: number, recipient: string, txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
 		try {
 			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
@@ -154,6 +159,7 @@ export class FirmaGovService {
 				value: Uint8Array.from(CommunityPoolSpendProposal.encode(proposal).finish()),
 			});
 
+			let proposer = await wallet.getAddress();
 			let message = txClient.msgSubmitProposal({ content: content, initialDeposit: [initialDepositAmount], proposer: proposer });
 			return await txClient.sign([message], getSignAndBroadcastOption(this._config.denom, txMisc));
 
@@ -163,10 +169,10 @@ export class FirmaGovService {
 		}
 	}
 
-	public async submitCancelSoftwareUpgradeProposal(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async submitCancelSoftwareUpgradeProposal(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 
-			let txRaw = await this.getSignedTxCancelSoftwareUpgradeProposal(wallet, title, description, initialDeposit, proposer, txMisc);
+			let txRaw = await this.getSignedTxCancelSoftwareUpgradeProposal(wallet, title, description, initialDeposit, txMisc);
 
 			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
 			return await txClient.broadcast(txRaw);
@@ -177,7 +183,7 @@ export class FirmaGovService {
 		}
 	}
 
-	public async submitSoftwareUpgradeProposalByHeight(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, upgradeName: string, height: Long, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async submitSoftwareUpgradeProposalByHeight(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, upgradeName: string, height: Long, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 			let plan = {
 				name: upgradeName,
@@ -187,7 +193,7 @@ export class FirmaGovService {
 				upgradedClientState: undefined
 			};
 
-			let txRaw = await this.getSignedTxSoftwareUpgradeProposal(wallet, title, description, initialDeposit, proposer, plan, txMisc);
+			let txRaw = await this.getSignedTxSoftwareUpgradeProposal(wallet, title, description, initialDeposit, plan, txMisc);
 
 			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
 			return await txClient.broadcast(txRaw);
@@ -198,7 +204,7 @@ export class FirmaGovService {
 		}
 	}
 
-	public async submitSoftwareUpgradeProposalByTime(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, upgradeName: string, upgradeTime: Date, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async submitSoftwareUpgradeProposalByTime(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, upgradeName: string, upgradeTime: Date, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 			let plan = {
 				name: upgradeName,
@@ -208,7 +214,7 @@ export class FirmaGovService {
 				upgradedClientState: undefined
 			};
 
-			let txRaw = await this.getSignedTxSoftwareUpgradeProposal(wallet, title, description, initialDeposit, proposer, plan, txMisc);
+			let txRaw = await this.getSignedTxSoftwareUpgradeProposal(wallet, title, description, initialDeposit, plan, txMisc);
 
 			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
 			return await txClient.broadcast(txRaw);
@@ -220,10 +226,10 @@ export class FirmaGovService {
 	}
 
 
-	public async submitParameterChangeProposal(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, paramList: ParamChangeOption[], txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async submitParameterChangeProposal(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, paramList: ParamChangeOption[], txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 
-			let txRaw = await this.getSignedTxParameterChangeProposal(wallet, title, description, initialDeposit, proposer, paramList, txMisc);
+			let txRaw = await this.getSignedTxParameterChangeProposal(wallet, title, description, initialDeposit, paramList, txMisc);
 
 			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
 			return await txClient.broadcast(txRaw);
@@ -234,10 +240,10 @@ export class FirmaGovService {
 		}
 	}
 
-	public async submitCommunityPoolSpendProposal(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, amount: number, recipient: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async submitCommunityPoolSpendProposal(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, amount: number, recipient: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 
-			let txRaw = await this.getSignedTxCommunityPoolSpendProposal(wallet, title, description, initialDeposit, proposer, amount, recipient, txMisc);
+			let txRaw = await this.getSignedTxCommunityPoolSpendProposal(wallet, title, description, initialDeposit, amount, recipient, txMisc);
 
 			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
 			return await txClient.broadcast(txRaw);
@@ -249,10 +255,10 @@ export class FirmaGovService {
 	}
 
 
-	public async submitTextProposal(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, proposer: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async submitTextProposal(wallet: FirmaWalletService, title: string, description: string, initialDeposit: number, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 
-			let txRaw = await this.getSignedTxSubmitTextProposal(wallet, title, description, initialDeposit, proposer, txMisc);
+			let txRaw = await this.getSignedTxSubmitTextProposal(wallet, title, description, initialDeposit, txMisc);
 
 			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
 			return await txClient.broadcast(txRaw);
@@ -278,10 +284,11 @@ export class FirmaGovService {
 		}
 	}
 
-	public async vote(wallet: FirmaWalletService, proposalId: Long, option: VotingOption, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async vote(wallet: FirmaWalletService, proposalId: number, option: VotingOption, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
 
-			let txRaw = await this.getSignedTxVote(wallet, proposalId, option, txMisc);
+			const longId = Long.fromInt(proposalId);
+			let txRaw = await this.getSignedTxVote(wallet, longId, option, txMisc);
 
 			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
 			return await txClient.broadcast(txRaw);
@@ -310,9 +317,11 @@ export class FirmaGovService {
 		}
 	}
 
-	public async deposit(wallet: FirmaWalletService, proposalId: Long, amount: number, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+	public async deposit(wallet: FirmaWalletService, proposalId: number, amount: number, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 		try {
-			let txRaw = await this.getSignedTxDeposit(wallet, proposalId, amount, txMisc);
+
+			const longId = Long.fromInt(proposalId);
+			let txRaw = await this.getSignedTxDeposit(wallet, longId, amount, txMisc);
 
 			let txClient = new GovTxClient(wallet.getRawWallet(), this._config.rpcAddress);
 			return await txClient.broadcast(txRaw);
