@@ -8,7 +8,7 @@ export interface FeeAllowanceType {
 }
 
 export interface FeeAllowanceType1 {
-  "@type": string,
+  "@type": string;
   spendLimit: Coin[];
   expiration: Date | undefined;
 }
