@@ -55,12 +55,26 @@ describe('[14. Distribution Tx Test]', () => {
 
 	it('SetWithdrawAddress OK', async () => {
 
-		//NOTICE: The change was successful, but I didn't understand who and how to receive it. I'll do it again.
+		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+
+		//console.log(await aliceWallet.getAddress());
+		//console.log(await bobWallet.getAddress());
+
+		//console.log(await firma.Bank.getBalance(await aliceWallet.getAddress()));
+		//console.log(await firma.Bank.getBalance(await bobWallet.getAddress()));
+
+		var result = await firma.Distribution.setWithdrawAddress(aliceWallet, await bobWallet.getAddress());
+		expect(result.code).to.equal(0);
 
 		const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
-		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
 
-		var result = await firma.Distribution.setWithdrawAddress(validatorWallet, await aliceWallet.getAddress());
-		expect(result.code).to.equal(0);
+		var result1 = await firma.Distribution.withdrawAllRewards(aliceWallet, validatorAddress);
+		//console.log(result1);
+		expect(result1.code).to.equal(0);
+
+		//console.log(await firma.Bank.getBalance(await aliceWallet.getAddress()));
+		//console.log(await firma.Bank.getBalance(await bobWallet.getAddress()));
 	});
 });

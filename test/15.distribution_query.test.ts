@@ -88,6 +88,15 @@ describe('[15. Distribution Query Test]', () => {
 		//console.log("reward: " + amount);
 	})
 
+	it('get withdrawAddress', async () => {
+
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		var withdrawAddress = await firma.Distribution.getWithdrawAddress(await wallet.getAddress());
+
+		//console.log("withdrawAddress: " + withdrawAddress);
+	})
+
+
 	it('get getTotalRewardInfo from no balance user', async () => {
 
 		const wallet = await firma.Wallet.newWallet();
