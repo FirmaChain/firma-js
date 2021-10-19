@@ -11,8 +11,7 @@ describe('[14. Distribution Tx Test]', () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const delegationList = await firma.Staking.getTotalDelegationInfo(await wallet.getAddress());
-
-		let validatorAddress = delegationList[0].delegation.validator_address
+        const validatorAddress = delegationList[0].delegation.validator_address;
 
 		var result = await firma.Distribution.withdrawAllRewards(wallet, validatorAddress);
 		expect(result.code).to.equal(0);

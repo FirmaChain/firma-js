@@ -7,7 +7,7 @@ describe('[00. Wallet Test]', () => {
 	const firma = new FirmaSDK(TestChainConfig);
 
 	it('fromMnemonic check', async () => {
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+        const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		expect(wallet.getMnemonic()).to.equal(aliceMnemonic);
 	});
 

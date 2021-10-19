@@ -41,7 +41,6 @@ describe('[12. Staking Tx Test]', () => {
 		//INFO: need two validators but starport serve support only one validator.
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-
 		const validatorList = await firma.Staking.getValidatorList();
 
 		if (validatorList.length < 2)

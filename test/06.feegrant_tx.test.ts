@@ -31,10 +31,10 @@ describe('[06. Feegrant Tx Test]', () => {
 
 	it('feegrant RevokeAllowanec tx1', async () => {
 
-		const alicewallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
-		var result = await firma.FeeGrant.revokeAllowance(alicewallet, await bobWallet.getAddress());
+		var result = await firma.FeeGrant.revokeAllowance(aliceWallet, await bobWallet.getAddress());
 		//console.log(result);
 
 		expect(result.code).to.equal(0);
