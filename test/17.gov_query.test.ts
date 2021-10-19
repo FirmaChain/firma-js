@@ -22,9 +22,13 @@ describe('[17. Gov Query Test]', () => {
 
 	it('get getProposal', async () => {
 
-		const id = "1";
-		let proposal = await firma.Gov.getProposal(id);
-		//console.log(proposal);
+		let proposalList = await firma.Gov.getProposalList();
+
+		if (proposalList.length > 0) {
+			const id = "1";
+			let proposal = await firma.Gov.getProposal(id);
+			//console.log(proposal);
+		}
 	})
 
 	// integrated function with params/voting, params/deposit, params/tallying

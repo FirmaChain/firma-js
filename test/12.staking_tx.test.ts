@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
+import { FirmaUtil } from '../sdk/FirmaUtil';
 import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
 
 describe('[12. Staking Tx Test]', () => {
@@ -9,8 +10,8 @@ describe('[12. Staking Tx Test]', () => {
 	it('delegate OK', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const validatorList = await firma.Staking.getValidatorList();
-		const validatorAddress = validatorList[0].operator_address;
+		const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
+		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
 
 		const amountFCT = 60;
 
@@ -23,8 +24,8 @@ describe('[12. Staking Tx Test]', () => {
 	it('undelegate OK', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const validatorList = await firma.Staking.getValidatorList();
-		const validatorAddress = validatorList[0].operator_address;
+		const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
+		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
 
 		const amount = 5;
 
@@ -66,8 +67,8 @@ describe('[12. Staking Tx Test]', () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
-		const validatorList = await firma.Staking.getValidatorList();
-		const validatorAddress = validatorList[0].operator_address;
+		const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
+		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
 
 		const amount = 0;
 
@@ -86,8 +87,8 @@ describe('[12. Staking Tx Test]', () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
-		const validatorList = await firma.Staking.getValidatorList();
-		const validatorAddress = validatorList[0].operator_address;
+		const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
+		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
 
 		const amount = 20000000000000;
 
@@ -102,8 +103,8 @@ describe('[12. Staking Tx Test]', () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
 
-		const validatorList = await firma.Staking.getValidatorList();
-		const validatorAddress = validatorList[0].operator_address;
+		const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
+		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
 
 		//const inputPercentage = 0.123456; // 12.34% (Only 2 decimal places are allowed.)
 		const inputPercentage = 0.098767; // 9.87% (Only 2 decimal places are allowed. 67 is expected to be thrown away.)
