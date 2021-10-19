@@ -208,5 +208,17 @@ export class FirmaDistributionService {
 		}
 	}
 
+	public async getWithdrawAddress(address: string): Promise<string> {
+		try {
+			let queryClient = new DistributionQueryClient(this._config.restApiAddress);
+			let result = await queryClient.queryGetWithdrawAddress(address);
+
+			return result;
+
+		} catch (error) {
+			FirmaUtil.printLog(error);
+			throw error;
+		}
+	}
 }
 

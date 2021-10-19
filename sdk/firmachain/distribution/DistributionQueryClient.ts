@@ -94,4 +94,11 @@ export class DistributionQueryClient {
     var result = await this._axios.get(path);
     return result.data.pool[0].amount;
   }
+
+  public async queryGetWithdrawAddress(address: string): Promise<string> {
+    let path = "/cosmos/distribution/v1beta1/delegators/" + address + "/withdraw_address";
+
+    var result = await this._axios.get(path);
+    return result.data.withdraw_address;
+  }
 }
