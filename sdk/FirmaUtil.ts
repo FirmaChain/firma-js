@@ -68,9 +68,7 @@ export class FirmaUtil {
 
             const multiplier = 1.25;
 
-            const targetGas = Math.ceil(gas * multiplier);
-            return Math.ceil(targetGas * 0.01); // 3.2 -> 4
-
+            return Math.ceil(gas * multiplier);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
