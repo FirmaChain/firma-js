@@ -2,36 +2,34 @@ import { Registry, OfflineDirectSigner, EncodeObject } from "@cosmjs/proto-signi
 import { MsgGrantAllowance, MsgRevokeAllowance } from "./FeeGrantTxTypes";
 import { ITxClient } from "../common/ITxClient";
 
-import _m0 from "protobufjs/minimal";
-
 const types = [
-  ["/cosmos.feegrant.v1beta1.MsgGrantAllowance", MsgGrantAllowance],
-  ["/cosmos.feegrant.v1beta1.MsgRevokeAllowance", MsgRevokeAllowance]
+    ["/cosmos.feegrant.v1beta1.MsgGrantAllowance", MsgGrantAllowance],
+    ["/cosmos.feegrant.v1beta1.MsgRevokeAllowance", MsgRevokeAllowance]
 ];
 
-const registry = new Registry(<any>types);
+const registry = new Registry(types as any);
 
-interface MsgGrantAllowanceEncodeObject extends EncodeObject {
-  readonly typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance";
-  readonly value: Partial<MsgGrantAllowance>;
+export interface MsgGrantAllowanceEncodeObject extends EncodeObject {
+    readonly typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance";
+    readonly value: Partial<MsgGrantAllowance>;
 }
 
-interface MsgRevokeAllowanceEncodeObject extends EncodeObject {
-  readonly typeUrl: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance";
-  readonly value: Partial<MsgRevokeAllowance>;
+export interface MsgRevokeAllowanceEncodeObject extends EncodeObject {
+    readonly typeUrl: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance";
+    readonly value: Partial<MsgRevokeAllowance>;
 }
 
 export class FeeGrantTxClient extends ITxClient {
 
-  constructor(_wallet: OfflineDirectSigner, _addr: string) {
-    super(_wallet, _addr, registry);
-  }
+    constructor(wallet: OfflineDirectSigner, serverUrl: string) {
+        super(wallet, serverUrl, registry);
+    }
 
-  public msgGrantAllowance(data: MsgGrantAllowance): MsgGrantAllowanceEncodeObject {
-    return { typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance", value: data };
-  }
+    msgGrantAllowance(data: MsgGrantAllowance): MsgGrantAllowanceEncodeObject {
+        return { typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance", value: data };
+    }
 
-  public msgRevokeAllowance(data: MsgRevokeAllowance): MsgRevokeAllowanceEncodeObject {
-    return { typeUrl: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance", value: data };
-  }
+    msgRevokeAllowance(data: MsgRevokeAllowance): MsgRevokeAllowanceEncodeObject {
+        return { typeUrl: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance", value: data };
+    }
 }

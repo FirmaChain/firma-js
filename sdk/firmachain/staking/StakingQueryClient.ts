@@ -1,194 +1,195 @@
-import Axios, { AxiosInstance } from 'axios';
+import Axios, { AxiosInstance } from "axios";
 
 export interface ParamsDataType {
-  unbonding_time: string;
-  max_validators: number;
-  max_entries: number;
-  historical_entries: number;
-  bond_denom: string;
+    unbonding_time: string;
+    max_validators: number;
+    max_entries: number;
+    historical_entries: number;
+    bond_denom: string;
 }
 
 export interface PoolDataType {
-  not_bonded_tokens: string;
-  bonded_tokens: string;
+    not_bonded_tokens: string;
+    bonded_tokens: string;
 }
 
 export interface RedelegationInfo {
 
-  redelegation: {
-    delegator_address: string,
-    validator_src_address: string,
-    validator_dst_address: string,
-    entries: string
-  };
+    redelegation: {
+        delegator_address: string,
+        validator_src_address: string,
+        validator_dst_address: string,
+        entries: string;
+    };
 
-  entries: {
-    redelegation_entry: {
-      creation_height: number,
-      completion_time: string,
-      initial_balance: string,
-      shares_dst: string
-    },
-    balances: string
-  }[]
+    entries: {
+        redelegation_entry: {
+            creation_height: number,
+            completion_time: string,
+            initial_balance: string,
+            shares_dst: string;
+        },
+        balances: string;
+    }[];
 }
 
 export interface UndelegationInfo {
 
-  delegator_address: string;
-  validator_address: string;
+    delegator_address: string;
+    validator_address: string;
 
-  entries: {
-    creation_height: string,
-    completion_time: string,
-    initial_balance: string,
-    balance: string
-  }[]
+    entries: {
+        creation_height: string,
+        completion_time: string,
+        initial_balance: string,
+        balance: string;
+    }[];
 }
 
 export interface DelegationInfo {
 
-  delegation: {
-    delegator_address: string,
-    validator_address: string,
-    shares: string
-  };
+    delegation: {
+        delegator_address: string,
+        validator_address: string,
+        shares: string;
+    };
 
-  balance: {
-    denom: string,
-    amount: string
-  }
+    balance: {
+        denom: string,
+        amount: string;
+    };
 }
 
 export interface ValidatorDataType {
-  operator_address: string;
-  consensus_pubkey: { typeUrl: string, value: string };
-  jailed: boolean;
-  status: string;
-  tokens: string;
-  delegator_shares: string;
-  description: {
-    moniker: string,
-    identity: string,
-    website: string,
-    security_contact: string,
-    details: string
-  };
-  unbonding_height: string,
-  unbonding_time: string,
+    operator_address: string;
+    consensus_pubkey: { typeUrl: string, value: string };
+    jailed: boolean;
+    status: string;
+    tokens: string;
+    delegator_shares: string;
+    description: {
+        moniker: string,
+        identity: string,
+        website: string,
+        security_contact: string,
+        details: string;
+    };
+    unbonding_height: string,
+    unbonding_time: string,
 
-  commission: {
-    commission_rates: {
-      rate: string,
-      max_rate: string,
-      max_change_rate: string
-    },
-    update_time: string
-  };
-  min_self_delegation: string
+    commission: {
+        commission_rates: {
+            rate: string,
+            max_rate: string,
+            max_change_rate: string;
+        },
+        update_time: string;
+    };
+    min_self_delegation: string;
 }
 
 export class StakingQueryClient {
-  private _axios: AxiosInstance;
+    private readonly axios: AxiosInstance;
 
-  constructor(baseUrl: string) {
-    this._axios = Axios.create({
-      baseURL: baseUrl,
-      headers: {
-        Accept: 'application/json',
-      },
-      timeout: 15000,
-    });
-  }
+    constructor(baseUrl: string) {
+        this.axios = Axios.create({
+            baseURL: baseUrl,
+            headers: {
+                Accept: "application/json",
+            },
+            timeout: 15000,
+        });
+    }
 
-  public async queryGetUndelegationInfoFromValidator(address: string, validatorAddress: string): Promise<UndelegationInfo> {
+    async queryGetUndelegationInfoFromValidator(address: string, validatorAddress: string): Promise<UndelegationInfo> {
 
-    let path = "/cosmos/staking/v1beta1/validators" + "/" + validatorAddress + "/delegations/" + address + "/unbonding_delegation";
-    var result = await this._axios.get(path);
+        const path =
+            `/cosmos/staking/v1beta1/validators/${validatorAddress}/delegations/${address}/unbonding_delegation`;
+        const result = await this.axios.get(path);
 
-    // If there is no data in the list, throw 404 exception.
-    //console.log(result);
+        // If there is no data in the list, throw 404 exception.
+        //console.log(result);
 
-    return result.data.unbond;
-  }
+        return result.data.unbond;
+    }
 
-  public async queryGetDelegationInfoFromValidator(address: string, validatorAddress: string): Promise<DelegationInfo> {
+    async queryGetDelegationInfoFromValidator(address: string, validatorAddress: string): Promise<DelegationInfo> {
 
-    let path = "/cosmos/staking/v1beta1/validators" + "/" + validatorAddress + "/delegations/" + address;
-    var result = await this._axios.get(path);
+        const path = `/cosmos/staking/v1beta1/validators/${validatorAddress}/delegations/${address}`;
+        const result = await this.axios.get(path);
 
-    return result.data.delegation_response;
-  }
+        return result.data.delegation_response;
+    }
 
-  public async queryGetTotalUndelegateInfo(address: string): Promise<UndelegationInfo[]> {
+    async queryGetTotalUndelegateInfo(address: string): Promise<UndelegationInfo[]> {
 
-    let path = "/cosmos/staking/v1beta1/delegators" + "/" + address + "/unbonding_delegations";
-    var result = await this._axios.get(path);
+        const path = `/cosmos/staking/v1beta1/delegators/${address}/unbonding_delegations`;
+        const result = await this.axios.get(path);
 
-    return result.data.unbonding_responses;
-  }
+        return result.data.unbonding_responses;
+    }
 
-  public async querygetTotalRedelegationInfo(address: string): Promise<RedelegationInfo[]> {
+    async querygetTotalRedelegationInfo(address: string): Promise<RedelegationInfo[]> {
 
-    let path = "/cosmos/staking/v1beta1/delegators" + "/" + address + "/redelegations";
-    var result = await this._axios.get(path);
+        const path = `/cosmos/staking/v1beta1/delegators/${address}/redelegations`;
+        const result = await this.axios.get(path);
 
-    return result.data.redelegation_responses;
-  }
+        return result.data.redelegation_responses;
+    }
 
-  public async queryGetUndelegationListFromValidator(address: string): Promise<UndelegationInfo[]> {
+    async queryGetUndelegationListFromValidator(address: string): Promise<UndelegationInfo[]> {
 
-    let path = "/cosmos/staking/v1beta1/validators" + "/" + address + "/unbonding_delegations";
-    var result = await this._axios.get(path);
+        const path = `/cosmos/staking/v1beta1/validators/${address}/unbonding_delegations`;
+        const result = await this.axios.get(path);
 
-    return result.data.unbonding_responses;
-  }
+        return result.data.unbonding_responses;
+    }
 
-  public async queryGetDelegateListFromValidator(address: string): Promise<DelegationInfo[]> {
+    async queryGetDelegateListFromValidator(address: string): Promise<DelegationInfo[]> {
 
-    let path = "/cosmos/staking/v1beta1/validators" + "/" + address + "/delegations";
-    var result = await this._axios.get(path);
+        const path = `/cosmos/staking/v1beta1/validators/${address}/delegations`;
+        const result = await this.axios.get(path);
 
-    return result.data.delegation_responses;
-  }
+        return result.data.delegation_responses;
+    }
 
-  public async queryGetTotalDelegationInfo(address: string): Promise<DelegationInfo[]> {
+    async queryGetTotalDelegationInfo(address: string): Promise<DelegationInfo[]> {
 
-    let path = "/cosmos/staking/v1beta1/delegations" + "/" + address;
-    var result = await this._axios.get(path);
+        const path = `/cosmos/staking/v1beta1/delegations/${address}`;
+        const result = await this.axios.get(path);
 
-    return result.data.delegation_responses;
-  }
+        return result.data.delegation_responses;
+    }
 
-  public async queryGetParams(): Promise<ParamsDataType> {
+    async queryGetParams(): Promise<ParamsDataType> {
 
-    let path = "/cosmos/staking/v1beta1/params";
-    var result = await this._axios.get(path);
+        const path = "/cosmos/staking/v1beta1/params";
+        const result = await this.axios.get(path);
 
-    return result.data.params;
-  }
+        return result.data.params;
+    }
 
-  public async queryGetPool(): Promise<PoolDataType> {
+    async queryGetPool(): Promise<PoolDataType> {
 
-    let path = "/cosmos/staking/v1beta1/pool";
-    var result = await this._axios.get(path);
+        const path = "/cosmos/staking/v1beta1/pool";
+        const result = await this.axios.get(path);
 
-    return result.data.pool;
-  }
+        return result.data.pool;
+    }
 
-  public async queryValidator(valoperAddress: string): Promise<ValidatorDataType> {
+    async queryValidator(valoperAddress: string): Promise<ValidatorDataType> {
 
-    let path = "/cosmos/staking/v1beta1/validators/" + valoperAddress;
-    var result = await this._axios.get(path);
+        const path = `/cosmos/staking/v1beta1/validators/${valoperAddress}`;
+        const result = await this.axios.get(path);
 
-    return result.data.validator;
-  }
+        return result.data.validator;
+    }
 
-  public async queryValidators(): Promise<ValidatorDataType[]> {
+    async queryValidators(): Promise<ValidatorDataType[]> {
 
-    let path = "/cosmos/staking/v1beta1/validators";
-    var result = await this._axios.get(path);
+        const path = "/cosmos/staking/v1beta1/validators";
+        const result = await this.axios.get(path);
 
-    return result.data.validators;
-  }
+        return result.data.validators;
+    }
 }

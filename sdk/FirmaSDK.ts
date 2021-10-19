@@ -9,20 +9,22 @@ import { IpfsService } from "./FirmaIpfsService";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaUtil } from "./FirmaUtil";
 import { FirmaGovService } from "./FirmaGovService";
+//import config = FirmaUtil.config;
 
 export class FirmaSDK {
-	constructor(public Config: FirmaConfig,
-		public Wallet: FirmaWalletService = new FirmaWalletService(Config),
-		public Bank: FirmaBankService = new FirmaBankService(Config),
-		public FeeGrant: FirmaFeeGrantService = new FirmaFeeGrantService(Config),
-		public Staking: FirmaStakingService = new FirmaStakingService(Config),
-		public Distribution: FirmaDistributionService = new FirmaDistributionService(Config),
-		public Gov: FirmaGovService = new FirmaGovService(Config),
-		public Nft: NftService = new NftService(Config),
-		public Contract: ContractService = new ContractService(Config),
-		public Ipfs: IpfsService = new IpfsService(Config)) {
-			FirmaUtil.Config = Config;
-		 }
+    constructor(public Config: FirmaConfig,
+        public Wallet: FirmaWalletService = new FirmaWalletService(Config),
+        public Bank: FirmaBankService = new FirmaBankService(Config),
+        public FeeGrant: FirmaFeeGrantService = new FirmaFeeGrantService(Config),
+        public Staking: FirmaStakingService = new FirmaStakingService(Config),
+        public Distribution: FirmaDistributionService = new FirmaDistributionService(Config),
+        public Gov: FirmaGovService = new FirmaGovService(Config),
+        public Nft: NftService = new NftService(Config),
+        public Contract: ContractService = new ContractService(Config),
+        public Ipfs: IpfsService = new IpfsService(Config)) {
+
+        FirmaUtil.config = Config;
+    }
 }
 
 

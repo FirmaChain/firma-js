@@ -11,7 +11,7 @@ export class FirmaConfig {
 		public isShowLog: boolean) {
 	}
 
-	static DevNetConfig: FirmaConfig = {
+	static readonly DevNetConfig: FirmaConfig = {
 		chainID: "imperium-2",
 		rpcAddress: "https://imperium-node1.firmachain.org:26657",
 		restApiAddress: "https://imperium-node1.firmachain.org:1317",
@@ -24,7 +24,7 @@ export class FirmaConfig {
 		isShowLog: true,
 	}
 
-	static TestNetConfig: FirmaConfig = {
+	static readonly TestNetConfig: FirmaConfig = {
 		chainID: "colosseum-1",
 		rpcAddress: "https://imperium-node1.firmachain.org:26657",
 		restApiAddress: "https://imperium-node1.firmachain.org:1317",
@@ -37,7 +37,7 @@ export class FirmaConfig {
 		isShowLog: true,
 	}
 
-	static MainNetConfig: FirmaConfig = {
+	static readonly MainNetConfig: FirmaConfig = {
 		chainID: "augutus-2",
 		rpcAddress: "https://imperium-node1.firmachain.org:26657",
 		restApiAddress: "https://imperium-node1.firmachain.org:1317",

@@ -1,224 +1,292 @@
-import { DistributionTxClient, DistributionQueryClient, TxMisc, DefaultTxMisc, getSignAndBroadcastOption, TotalRewardInfo } from './firmachain/distribution';
-import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import {
+    DistributionTxClient,
+    DistributionQueryClient,
+    TxMisc,
+    DefaultTxMisc,
+    getSignAndBroadcastOption,
+    TotalRewardInfo
+} from "./firmachain/distribution";
+import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { FirmaUtil } from "./FirmaUtil";
-import { BroadcastTxResponse } from './firmachain/common/stargateclient';
-import { Coin } from 'cosmjs-types/cosmos/base/v1beta1/coin';
+import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
+import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 
 export class FirmaDistributionService {
 
-	constructor(private _config: FirmaConfig) { }
+    constructor(private readonly config: FirmaConfig) {}
+    
+    async getGasEstimationSetWithdrawAddress(wallet: FirmaWalletService,
+            withdrawAddress: string,
+            txMisc: TxMisc = DefaultTxMisc):
+        Promise<number> {
 
-	public async getGasEstimationDelegate(wallet: FirmaWalletService, validatorAddres: string, txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+        try {
+            const txRaw = await this.getSignedTxSetWithdrawAddress(wallet, withdrawAddress, txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
 
-		try {
-			let txRaw = await this.getSignedTxWithdrawAllRewards(wallet, validatorAddres, txMisc);
-			return await FirmaUtil.estimateGas(txRaw);
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
-		} catch (error) {
-			FirmaUtil.printLog(error);
-			throw error;
-		}
-	}
+    async getGasEstimationFundCommunityPool(wallet: FirmaWalletService,
+            amount: number,
+            txMisc: TxMisc = DefaultTxMisc):
+        Promise<number> {
 
-	private async getSignedTxWithdrawAllRewards(wallet: FirmaWalletService, validatorAddress: string, txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        try {
+            const txRaw = await this.getSignedTxFundCommunityPool(wallet, amount, txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
 
-		try {
-			let txClient = new DistributionTxClient(wallet.getRawWallet(), this._config.rpcAddress);
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
-			const address = await wallet.getAddress();
-			let message = txClient.msgWithdrawDelegatorReward({ delegatorAddress: address, validatorAddress: validatorAddress });
+    async getGasEstimationWithdrawValidatorCommission(wallet: FirmaWalletService,
+            validatorAddress: string,
+            txMisc: TxMisc = DefaultTxMisc):
+        Promise<number> {
 
-			return await txClient.sign([message], getSignAndBroadcastOption(this._config.denom, txMisc));
+        try {
+            const txRaw = await this.getSignedTxWithdrawValidatorCommission(wallet, validatorAddress, txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
 
-		} catch (error) {
-			FirmaUtil.printLog(error);
-			throw error;
-		}
-	}
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
-	private async getSignedTxSetWithdrawAddress(wallet: FirmaWalletService, withdrawAddress: string, txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
-		try {
-			let txClient = new DistributionTxClient(wallet.getRawWallet(), this._config.rpcAddress);
+    async getGasEstimationWithdrawAllRewards(wallet: FirmaWalletService,
+            validatorAddress: string,
+            txMisc: TxMisc = DefaultTxMisc):
+        Promise<number> {
 
-			const address = await wallet.getAddress();
-			let message = txClient.msgSetWithdrawAddress({ delegatorAddress: address, withdrawAddress: withdrawAddress });
+        try {
+            const txRaw = await this.getSignedTxWithdrawAllRewards(wallet, validatorAddress, txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
 
-			return await txClient.sign([message], getSignAndBroadcastOption(this._config.denom, txMisc));
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
-		} catch (error) {
-			FirmaUtil.printLog(error);
-			throw error;
-		}
-	}
+    private async getSignedTxWithdrawAllRewards(wallet: FirmaWalletService,
+        validatorAddress: string,
+        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
-	private async getSignedTxFundCommunityPool(wallet: FirmaWalletService, amount: number, txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        try {
+            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
 
-		try {
-			let txClient = new DistributionTxClient(wallet.getRawWallet(), this._config.rpcAddress);
+            const address = await wallet.getAddress();
+            const message =
+                txClient.msgWithdrawDelegatorReward({ delegatorAddress: address, validatorAddress: validatorAddress });
 
-			const address = await wallet.getAddress();
-			const sendAmount = { denom: this._config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amount) }
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
-			let message = txClient.msgFundCommunityPool({ depositor: address, amount: [sendAmount] });
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
-			return await txClient.sign([message], getSignAndBroadcastOption(this._config.denom, txMisc));
+    private async getSignedTxSetWithdrawAddress(wallet: FirmaWalletService,
+        withdrawAddress: string,
+        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        try {
+            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
 
-		} catch (error) {
-			FirmaUtil.printLog(error);
-			throw error;
-		}
-	}
+            const address = await wallet.getAddress();
+            const message =
+                txClient.msgSetWithdrawAddress({ delegatorAddress: address, withdrawAddress: withdrawAddress });
 
-	private async getSignedTxWithdrawValidatorCommission(wallet: FirmaWalletService, validatorAddres: string, txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
-		try {
-			let txClient = new DistributionTxClient(wallet.getRawWallet(), this._config.rpcAddress);
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
-			const address = await wallet.getAddress();
-			let message = txClient.msgWithdrawValidatorCommission({ validatorAddress: validatorAddres });
+    private async getSignedTxFundCommunityPool(wallet: FirmaWalletService,
+        amount: number,
+        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
-			return await txClient.sign([message], getSignAndBroadcastOption(this._config.denom, txMisc));
+        try {
+            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
 
-		} catch (error) {
-			FirmaUtil.printLog(error);
-			throw error;
-		}
-	}
+            const address = await wallet.getAddress();
+            const sendAmount = { denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amount) };
 
-	public async setWithdrawAddress(wallet: FirmaWalletService, withdrawAddress: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
-		try {
-			let txRaw = await this.getSignedTxSetWithdrawAddress(wallet, withdrawAddress, txMisc);
+            const message = txClient.msgFundCommunityPool({ depositor: address, amount: [sendAmount] });
 
-			let txClient = new DistributionTxClient(wallet.getRawWallet(), this._config.rpcAddress);
-			return await txClient.broadcast(txRaw);
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
-		} catch (error) {
-			FirmaUtil.printLog(error);
-			throw error;
-		}
-	}
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
-	public async fundCommunityPool(wallet: FirmaWalletService, amount: number, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
-		try {
-			let txRaw = await this.getSignedTxFundCommunityPool(wallet, amount, txMisc);
+    private async getSignedTxWithdrawValidatorCommission(wallet: FirmaWalletService,
+        validatorAddres: string,
+        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
-			let txClient = new DistributionTxClient(wallet.getRawWallet(), this._config.rpcAddress);
-			return await txClient.broadcast(txRaw);
+        try {
+            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
 
-		} catch (error) {
-			FirmaUtil.printLog(error);
-			throw error;
-		}
-	}
+            const message = txClient.msgWithdrawValidatorCommission({ validatorAddress: validatorAddres });
 
-	public async withdrawValidatorCommission(wallet: FirmaWalletService, validatorAddres: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
-		try {
-			let txRaw = await this.getSignedTxWithdrawValidatorCommission(wallet, validatorAddres, txMisc);
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
-			let txClient = new DistributionTxClient(wallet.getRawWallet(), this._config.rpcAddress);
-			return await txClient.broadcast(txRaw);
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
-		} catch (error) {
-			FirmaUtil.printLog(error);
-			throw error;
-		}
-	}
+    async setWithdrawAddress(wallet: FirmaWalletService, withdrawAddress: string, txMisc: TxMisc = DefaultTxMisc):
+        Promise<BroadcastTxResponse> {
+        try {
+            const txRaw = await this.getSignedTxSetWithdrawAddress(wallet, withdrawAddress, txMisc);
 
-	public async withdrawAllRewards(wallet: FirmaWalletService, validatorAddress: string, txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
-		try {
-			let txRaw = await this.getSignedTxWithdrawAllRewards(wallet, validatorAddress, txMisc);
+            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            return await txClient.broadcast(txRaw);
 
-			let txClient = new DistributionTxClient(wallet.getRawWallet(), this._config.rpcAddress);
-			return await txClient.broadcast(txRaw);
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
-		} catch (error) {
-			FirmaUtil.printLog(error);
-			throw error;
-		}
-	}
+    async fundCommunityPool(wallet: FirmaWalletService, amount: number, txMisc: TxMisc = DefaultTxMisc):
+        Promise<BroadcastTxResponse> {
+        try {
+            const txRaw = await this.getSignedTxFundCommunityPool(wallet, amount, txMisc);
 
-	// query
-	// 
+            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            return await txClient.broadcast(txRaw);
 
-	public async getRewardInfo(address: string, validatorAddress: string): Promise<string> {
-		try {
-			let queryClient = new DistributionQueryClient(this._config.restApiAddress);
-			let result = await queryClient.queryGetRewardInfo(address, validatorAddress);
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
-			return result;
+    async withdrawValidatorCommission(wallet: FirmaWalletService,
+        validatorAddres: string,
+        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        try {
+            const txRaw = await this.getSignedTxWithdrawValidatorCommission(wallet, validatorAddres, txMisc);
 
-		} catch (error) {
-			FirmaUtil.printLog(error);
-			throw error;
-		}
-	}
+            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            return await txClient.broadcast(txRaw);
 
-	public async getValidatorOutStandingReward(validatorAddress: string): Promise<Coin[]> {
-		try {
-			let queryClient = new DistributionQueryClient(this._config.restApiAddress);
-			let result = await queryClient.queryGetValidatorOutStandingReward(validatorAddress);
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
-			return result;
+    async withdrawAllRewards(wallet: FirmaWalletService, validatorAddress: string, txMisc: TxMisc = DefaultTxMisc):
+        Promise<BroadcastTxResponse> {
+        try {
+            const txRaw = await this.getSignedTxWithdrawAllRewards(wallet, validatorAddress, txMisc);
 
-		} catch (error) {
-			FirmaUtil.printLog(error);
-			throw error;
-		}
-	}
+            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            return await txClient.broadcast(txRaw);
 
-	public async getValidatorCommission(validatorAddress: string): Promise<Coin[]> {
-		try {
-			let queryClient = new DistributionQueryClient(this._config.restApiAddress);
-			let result = await queryClient.queryGetValidatorCommission(validatorAddress);
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
-			return result;
+    // query
+    // 
 
-		} catch (error) {
-			FirmaUtil.printLog(error);
-			throw error;
-		}
-	}
+    async getRewardInfo(address: string, validatorAddress: string): Promise<string> {
+        try {
+            const queryClient = new DistributionQueryClient(this.config.restApiAddress);
+            const result = await queryClient.queryGetRewardInfo(address, validatorAddress);
 
-	public async getTotalRewardInfo(address: string): Promise<TotalRewardInfo> {
-		try {
-			let queryClient = new DistributionQueryClient(this._config.restApiAddress);
-			let result = await queryClient.queryGetTotalRewardInfo(address);
+            return result;
 
-			return result;
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
-		} catch (error) {
-			FirmaUtil.printLog(error);
-			throw error;
-		}
-	}
+    async getValidatorOutStandingReward(validatorAddress: string): Promise<Coin[]> {
+        try {
+            const queryClient = new DistributionQueryClient(this.config.restApiAddress);
+            const result = await queryClient.queryGetValidatorOutStandingReward(validatorAddress);
 
-	public async getCommunityPool(): Promise<string> {
-		try {
-			let queryClient = new DistributionQueryClient(this._config.restApiAddress);
-			let result = await queryClient.queryGetCommunityPool();
+            return result;
 
-			return result;
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
-		} catch (error) {
-			FirmaUtil.printLog(error);
-			throw error;
-		}
-	}
+    async getValidatorCommission(validatorAddress: string): Promise<Coin[]> {
+        try {
+            const queryClient = new DistributionQueryClient(this.config.restApiAddress);
+            const result = await queryClient.queryGetValidatorCommission(validatorAddress);
 
-	public async getWithdrawAddress(address: string): Promise<string> {
-		try {
-			let queryClient = new DistributionQueryClient(this._config.restApiAddress);
-			let result = await queryClient.queryGetWithdrawAddress(address);
+            return result;
 
-			return result;
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
-		} catch (error) {
-			FirmaUtil.printLog(error);
-			throw error;
-		}
-	}
+    async getTotalRewardInfo(address: string): Promise<TotalRewardInfo> {
+        try {
+            const queryClient = new DistributionQueryClient(this.config.restApiAddress);
+            const result = await queryClient.queryGetTotalRewardInfo(address);
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getCommunityPool(): Promise<string> {
+        try {
+            const queryClient = new DistributionQueryClient(this.config.restApiAddress);
+            const result = await queryClient.queryGetCommunityPool();
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getWithdrawAddress(address: string): Promise<string> {
+        try {
+            const queryClient = new DistributionQueryClient(this.config.restApiAddress);
+            const result = await queryClient.queryGetWithdrawAddress(address);
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 }
-

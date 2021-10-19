@@ -1,35 +1,34 @@
 import { FirmaConfig } from "./FirmaConfig";
 import { create, IPFSHTTPClient } from 'ipfs-http-client';
-import fs from 'fs';
+import fs from "fs";
 import { FirmaUtil } from "./FirmaUtil";
 
 export class IpfsService {
 
-    private _ipfsNodeClient: IPFSHTTPClient;
-    private _protocol: string;
+    private ipfsNodeClient: IPFSHTTPClient;
+    private readonly protocol: string;
 
-    constructor(private _config: FirmaConfig) {
+    constructor(private readonly config: FirmaConfig) {
 
-        if (_config.ipfsNodeAddress.includes("https://")) {
-            this._protocol = "https";
-        } else if (_config.ipfsNodeAddress.includes("http://")) {
-            this._protocol = "http";
+        if (config.ipfsNodeAddress.includes("https://")) {
+            this.protocol = "https";
+        } else if (config.ipfsNodeAddress.includes("http://")) {
+            this.protocol = "http";
+        } else {
+            this.protocol = "https";
         }
-        else {
-            this._protocol = "https";
-        }
 
-        let address = _config.ipfsNodeAddress;
+        let address = config.ipfsNodeAddress;
         address = address.replace("https://", "");
         address = address.replace("http://", "");
 
-        this._ipfsNodeClient = create({ host: address, port: _config.ipfsNodePort, protocol: this._protocol });
+        this.ipfsNodeClient = create({ host: address, port: config.ipfsNodePort, protocol: this.protocol });
     }
 
-    public async addJson(jsonData: string): Promise<string> {
+    async addJson(jsonData: string): Promise<string> {
 
         try {
-            var result = await this._ipfsNodeClient.add(jsonData);
+            const result = await this.ipfsNodeClient.add(jsonData);
             return result.cid.toString();
 
         } catch (error) {
@@ -38,10 +37,10 @@ export class IpfsService {
         }
     }
 
-    public async addBuffer(buffer: ArrayBuffer): Promise<string> {
+    async addBuffer(buffer: ArrayBuffer): Promise<string> {
 
         try {
-            var result = await this._ipfsNodeClient.add(buffer);
+            const result = await this.ipfsNodeClient.add(buffer);
             return result.cid.toString();
 
         } catch (error) {
@@ -50,11 +49,11 @@ export class IpfsService {
         }
     }
 
-    public async addFile(fileUrl: string): Promise<string> {
+    async addFile(fileUrl: string): Promise<string> {
 
         try {
-            var data = fs.readFileSync(fileUrl);
-            var result = await this._ipfsNodeClient.add(data);
+            const data = fs.readFileSync(fileUrl);
+            const result = await this.ipfsNodeClient.add(data);
 
             return result.cid.toString();
         } catch (error) {
@@ -63,16 +62,16 @@ export class IpfsService {
         }
     }
 
-    public async getFile(hash: string): Promise<string> {
+    async getFile(hash: string): Promise<string> {
 
         try {
-            var stream = this._ipfsNodeClient.get(hash);
-            var data = "";
+            const stream = this.ipfsNodeClient.get(hash);
+            let data = "";
 
             // CHECK: output data is string. is ok?
             // chunks of data are returned as a Buffer, convert it back to a string
             for await (const chunk of stream) {
-                data += chunk.toString()
+                data += chunk.toString();
             }
 
             return data;
@@ -82,8 +81,7 @@ export class IpfsService {
         }
     }
 
-    public getURLFromHash(hash: string) {
-        return this._config.ipfsWebApiAddress + "/ipfs/" + hash;
+    getURLFromHash(hash: string) {
+        return this.config.ipfsWebApiAddress + "/ipfs/" + hash;
     }
 }
-
