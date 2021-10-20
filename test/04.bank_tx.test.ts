@@ -44,7 +44,7 @@ describe('[04. Bank Tx Test]', () => {
 		// it is not recorded as tx, but an extension is given at the code space level.
 
 		try {
-			var result = await firma.Bank.send(wallet, await targetWallet.getAddress(), amount, { memo: "memeo" });
+			var result = await firma.Bank.send(wallet, await targetWallet.getAddress(), amount, { memo: "memo" });
 
 		} catch (error) {
 			expect(true);
