@@ -9,7 +9,7 @@ import { IpfsService } from "./FirmaIpfsService";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaUtil } from "./FirmaUtil";
 import { FirmaGovService } from "./FirmaGovService";
-//import config = FirmaUtil.config;
+import { ChainService } from "./FirmaChainService";
 
 export class FirmaSDK {
     constructor(public Config: FirmaConfig,
@@ -21,7 +21,8 @@ export class FirmaSDK {
         public Gov: FirmaGovService = new FirmaGovService(Config),
         public Nft: NftService = new NftService(Config),
         public Contract: ContractService = new ContractService(Config),
-        public Ipfs: IpfsService = new IpfsService(Config)) {
+        public Ipfs: IpfsService = new IpfsService(Config),
+        public BlockChain: ChainService = new ChainService(Config)) {
 
         FirmaUtil.config = Config;
     }
