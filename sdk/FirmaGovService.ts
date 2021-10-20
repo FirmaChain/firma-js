@@ -9,7 +9,8 @@ import {
     VotingOption,
     ProposalInfo,
     ProposalStatus,
-    ProposalParam
+    ProposalParam,
+    CurrentVoteInfo
 } from "./firmachain/gov";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
@@ -27,7 +28,7 @@ import Long from "long";
 
 export class FirmaGovService {
 
-    constructor(private readonly config: FirmaConfig) {}
+    constructor(private readonly config: FirmaConfig) { }
 
     async getGasEstimationVote(wallet: FirmaWalletService,
         proposalId: number,
@@ -571,6 +572,18 @@ export class FirmaGovService {
 
     //query
 
+    async getCurrentVoteInfo(id: string): Promise<CurrentVoteInfo> {
+        try {
+            const queryClient = new GovQueryClient(this.config.restApiAddress);
+            const result = await queryClient.queryGetCurrentVoteInfo(id);
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
     async getParam(): Promise<ProposalParam> {
         try {

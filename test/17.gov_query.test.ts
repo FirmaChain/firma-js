@@ -38,4 +38,15 @@ describe('[17. Gov Query Test]', () => {
 		//console.log(param);
 	})
 
+	// current tally info
+	it('get getCurrentVoteInfo', async () => {
+
+		let proposalList = await firma.Gov.getProposalList();
+
+		if (proposalList.length > 0) {
+			const proposalId = "1";
+			let param = await firma.Gov.getCurrentVoteInfo(proposalId);
+			console.log(param);
+		}
+	})
 });

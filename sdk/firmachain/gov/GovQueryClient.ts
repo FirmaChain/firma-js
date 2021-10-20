@@ -25,6 +25,13 @@ export interface ProposalParam {
     };
 }
 
+export interface CurrentVoteInfo {
+    yes: string,
+    abstain: string,
+    no: string,
+    no_with_veto: string;
+}
+
 export interface ProposalInfo {
     proposal_id: string;
     content: {
@@ -60,6 +67,13 @@ export class GovQueryClient {
             },
             timeout: 15000,
         });
+    }
+
+    async queryGetCurrentVoteInfo(id: string): Promise<CurrentVoteInfo> {
+        const path = `/cosmos/gov/v1beta1/proposals/${id}/tally`;
+
+        const result = await this.axios.get(path);
+        return result.data.tally;
     }
 
     async queryGetParam(): Promise<ProposalParam> {
