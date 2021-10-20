@@ -5,7 +5,19 @@
 [![license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/firmachain/firma-js/blob/master/LICENSE)
 ![Lines of code](https://img.shields.io/tokei/lines/github/firmachain/firma-js)
 
-Javascript SDK for FirmaChain
+The Javascript & TypeScript SDK for FirmaChain
+
+Firma-js is a SDK for writing applications based on javascript & typescript. You can use it client web app or Node.js. This SDK is created inspired by cosmjs and several sdk. All functions of the FirmaChain can be accessed at the service level.
+
+## Features
+ Most cosmos sdk features are supported
+- Wallet / Bank
+- Nft / Contract
+- Ipfs / Gov
+- Staking / Distribution
+- Feegrant ...and so one
+
+</br>
 
 
 ## Install
@@ -21,133 +33,105 @@ npm i @firmachain/firma-js
 ## Usage
 ### Initializing SDK
 ```js
-const {Firma} = require('@firmachain/firma-js');
+import { FirmaSDK } from "@firmachain/firma-js"
+import { FirmaConfig } from "@firmachain/firma-js"
 
-const chainId = 'imperium-0001';
-const lcdUrl = 'http://localhost:1317';
+// use preset config
+const firma = new FirmaSDK(FirmaConfig.TestNetConfig);
 
-const firma = new Firma(chainId, lcdUrl);
+// or use custom set
+let chainConfig = {
+    chainID: "imperium-2",
+    rpcAddress: "http://127.0.0.1:26657",
+    restApiAddress: "http://127.0.0.1:1317",
+    ipfsNodeAddress: "ipfs-api-firma-devnet.firmachain.org",
+    ipfsNodePort: 5001,
+    ipfsWebApiAddress: "https://ipfs-firma-devnet.firmachain.org",
+    hdPath: "m/44'/7777777'/",
+    prefix: "firma",
+    denom: "ufct",
+    isShowLog: true,
+}
+
+const firma = new FirmaSDK(chainConfig);
+
 ```
 
-### Create account
+### Create wallet account
 ```js
-const {Wallet} = require('@firmachain/firma-js');
+// create new wallet
+const newWallet = await firma.Wallet.newWallet();
 
-const mnemonic = Wallet.generateMnemonic();
+// generateMnemonic
+const mnemonic = await firma.Wallet.generateMnemonic();
 const index = 0;
 
-const wallet = Wallet.fromMnemonic(mnemonic, index);
-
-console.log(wallet.accAddress);
+// or from mnemonic
+const wallet = await firma.Wallet.fromMnemonic(mnemonic, index);
+console.log(await wallet.getAddress());
 ```
 
 ### Import account by private key
 ```js
-const {Wallet} = require('@firmachain/firma-js');
-
-const wallet = Wallet.fromPrivateKey(privateKey);
-
-console.log(wallet.accAddress);
+const privateKey = wallet.getPrivateKey();
+const wallet1 = await firma.Wallet.fromPrivateKey(privateKey);
 ```
 
-### Get current block number
+### Get chaion status (include height, time etc)
 ```js
-firma.blockchain.getBlockNumber().then((blockNumber) => {
-    console.log(blockNumber);
-}).catch((e) => {
-    console.error(e);
-};
+const result = await firma.Chain.getChainStatus();
+console.log(result);
 ```
 
 ### Get FIRMA balance of specific account
 ```js
-firma.account.getBalance(address).then((balance) => {
-    console.log(balance);
-}).catch((e) => {
-    console.error(e);
-};
+const address = await wallet.getAddress();
+const balance = await firma.Bank.getBalance(address);
+console.log("balance: " + balance);
 ```
 
 ### Get transaction by hash
 ```js
-firma.tx.getTransactionByHash(txHash).then((tx) => {
-    console.log(tx)
-}).catch((e) => {
-    console.error(e);
-});
+const txHash = "0xC5509A32CF57798F8C3185DFAF03BD2D09DFC04FE842283ECA9298F5F60E340F";
+const result = await firma.Chain.getTransactionByHash(txHash);
+console.log(result);
 ```
 
-### Create Message (MsgSend) & StdTx
+### Bank send - create tx and broadcast
 ```js
-const {MsgSend, StdTx} = require('@firmachain/firma-js');
-const msg = new MsgSend(fromAddress, toAddress, (1 * 10 ** 6)); //send 1 FIRMA to toAddress
-const stdTx = new StdTx(msg);
+const fctAmount = 10;
+let result = await firma.Bank.send(wallet, address, fctAmount);
+```
+
+### Bank send - extended version
+```js
+const fctAmount = 10;
+let result = await firma.Bank.send(wallet, address, fctAmount, { memo: "", fee: 3000, gas: 200000 });
 ```
 
 ### Calculate gas
 ```js
-const gasAdjustment = 2;
-firma.tx.estimateGas(stdTx, gasAdjustment).then((fee) => { 
-    // return Fee object
-    stdTx.setFee(fee);
-}).catch((e) => {
-    console.log(e);
-});
-```
-
-### Sign Transaction & Broadcast Transaction
-```js
-const {Wallet} = require('@firmachain/firma-js');
-const wallet = Wallet.fromPrivateKey(privateKey);
-
-firma.signStdTx(stdTx, wallet).then((tx) => {
-    firma.tx.broadcast(tx).then((result) => {
-      console.log('result', result);
-    }).catch((e) => {
-      console.log(e);
-    });
-}).catch((e) => {
-    console.log(e);
-});
-```
-
-### Shortcut of sign transaction
-```js
-firma.createAndSign(wallet, msg).then((signedTx) => {
-    firma.tx.broadcast(signedTx).then(console.log)
-})
+let gas = await firma.Bank.getGasEstimationSend(wallet, address, fctAmount);
 ```
 
 ### Mint NFT
 ```js
-// MintNFT msg
-// image, tokenURI, description are metadata
-const msg = new MsgMintNFT("f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b", testAccount.accAddress, 'https://ipfs.infura.io:5001/api/v0/cat?arg=QmfWVHyTiVXscS4kHENQRXKD5ug1qd2UQJAE6aCX5ch2Eq', "test description", "https://ipfs.infura.io:5001/api/v0/cat?arg=QmTF7NerdGZhnDPJj3Yj51gqH18o8kLtgkgtVjMLk1V9tx");
-
-firma.createAndSign(wallet, msg).then((signedTx) => {
-    firma.tx.broadcast(signedTx).then(console.log)
-}).catch(console.error)
-
+const tokenURI = "https://ipfs-firma-devnet.firmachain.org/ipfs/QmYsezxzunake9EmyoU4HsWKEyHQLgE3syTEpTSQEhNChA";
+let result = await firma.Nft.mint(wallet, tokenURI);
 ```
 
 ### Transfer NFT
 ```js
-// TransferNFT msg
-const msg = new MsgTransferNFT("f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b", testAccount.accAddress, 'firma1rhfahdeh2f644f8mjeclyzp2jn9cshs0md8z5a');
-
-firma.createAndSign(wallet, msg).then((signedTx) => {
-    firma.tx.broadcast(signedTx).then(console.log)
-}).catch(console.error);
+const tokenId = 1;
+let result = await firma.Nft.transfer(wallet, address, tokenId);
 ```
-
 
 ### Burn NFT
 ```js
-// BurnNFT msg
-const msg = new MsgBurnNFT("f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b", testAccount.accAddress);
-
-firma.createAndSign(wallet, msg).then((signedTx) => {
-    firma.tx.broadcast(signedTx).then(console.log)
-}).catch(console.error);
-
+const tokenId = 1;
+let result = await firma.Nft.burn(wallet, tokenId);
 ```
+
+You can see everything usage of firma-js on the test folder.
+</br>
+https://github.com/FirmaChain/firma-js/tree/main/test
