@@ -1,5 +1,3 @@
-import { expect } from 'chai';
-import { FirmaUtil } from '../dist';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { TestChainConfig } from './config_test';
 
