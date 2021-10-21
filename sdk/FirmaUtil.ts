@@ -47,6 +47,19 @@ export class FirmaUtil {
         return sha256(data).toString(encHex);
     }
 
+    static isValidAddress(address: string): boolean {
+
+        try {
+            const data = Bech32.decode(address).data;
+            return true;
+        }
+        catch (e) {
+
+        }
+
+        return false;
+    }
+
     static getValOperAddressFromAccAddress(address: string): string {
         const data = Bech32.decode(address).data;
         return Bech32.encode(FirmaUtil.config.prefix + "valoper", data);

@@ -3,6 +3,22 @@ import { FirmaUtil } from '..';
 
 describe('[18. util Test]', () => {
 
+	it('isValidAddress test', async () => {
+
+		const validAddress = "firma134pp6s2nv7pl4mxu58aeufdd6fv5s2zujrrmsa";
+		const wrongAddress1 = "firma134pp6s2nv7pl4mxu58aeufdd6fv5s2zujrrmsb";
+		const wrongAddress2 = "firma134pp6s2nv7pl4mxu58aeufdd6fv5s2zujrrmsa1";
+
+		let result = FirmaUtil.isValidAddress(validAddress);
+		expect(result).to.be.equal(true);
+
+		result = FirmaUtil.isValidAddress(wrongAddress1);
+		expect(result).to.be.equal(false);
+
+		result = FirmaUtil.isValidAddress(wrongAddress2);
+		expect(result).to.be.equal(false);
+	})
+
 	it('getValOperAddressFromAccAddress test', async () => {
 
 		const accAddress = "firma134pp6s2nv7pl4mxu58aeufdd6fv5s2zujrrmsa";
