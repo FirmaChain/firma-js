@@ -46,7 +46,7 @@ describe('[17. Gov Query Test]', () => {
 		if (proposalList.length > 0) {
 			const proposalId = "1";
 			let param = await firma.Gov.getCurrentVoteInfo(proposalId);
-			console.log(param);
+			//	console.log(param);
 		}
 	})
 });

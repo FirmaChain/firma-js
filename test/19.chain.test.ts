@@ -7,12 +7,12 @@ describe('[19. chain Test]', () => {
 
 	it('getChainStatus test', async () => {
 		const result = await firma.BlockChain.getChainStatus();
-		console.log(result)
+		//console.log(result)
 	})
 
 	it.skip('getTransactionByHash test', async () => {
 		const txHash = "0xC5509A32CF57798F8C3185DFAF03BD2D09DFC04FE842283ECA9298F5F60E340F";
 		const result = await firma.BlockChain.getTransactionByHash(txHash);
-		console.log(result)
+		//console.log(result)
 	})
 });
