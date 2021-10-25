@@ -1,5 +1,43 @@
 import Axios, { AxiosInstance } from "axios";
 
+export interface ChainSyncInfo {
+    latest_block_hash: string;
+    latest_app_hash: string;
+    latest_block_height: string;
+    latest_block_time: string;
+    earliest_block_hash: string;
+    earliest_app_hash: string;
+    earliest_block_height: string;
+    earliest_block_time: string;
+    catching_up: boolean;
+}
+
+export interface TransactionEvent {
+    type: string;
+    attributes: {
+        key: string,
+        value: string,
+        index: boolean
+    }[];
+}
+
+export interface TransactionHash {
+    hash: string;
+    height: string;
+    index: number;
+    tx_result: {
+        code: number,
+        data: string,
+        log: string,
+        info: string,
+        gas_wanted: string,
+        gas_used: string,
+        events: TransactionEvent[],
+        codespace: string
+    }
+    tx: string;
+}
+
 export class TendermintQueryClient {
     private readonly axios: AxiosInstance;
 
@@ -26,20 +64,20 @@ export class TendermintQueryClient {
         return Number.parseInt(jsonData.gas_info.gas_used);
     }
 
-    async queryChainHeight(): Promise<string> {
+    async queryChainSyncInfo(): Promise<ChainSyncInfo> {
 
         const path = "/status";
         const result = await this.axios.get(path);
 
-        return JSON.stringify(result.data.result);
+        return result.data.result.sync_info;
     }
 
-    async queryTransactionHash(txHash: string): Promise<string> {
+    async queryTransactionHash(txHash: string): Promise<TransactionHash> {
 
         const path = "/tx?hash=" + txHash;
         const result = await this.axios.get(path);
 
-        return JSON.stringify(result.data.result);
+        return result.data.result;
     }
 }
 

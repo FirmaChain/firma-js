@@ -1,14 +1,14 @@
 import { FirmaConfig } from "./FirmaConfig";
 import { FirmaUtil } from "./FirmaUtil";
-import { TendermintQueryClient } from "./firmachain/common/TendermintQueryClient";
+import { ChainSyncInfo, TendermintQueryClient, TransactionHash } from "./firmachain/common/TendermintQueryClient";
 
 export class ChainService {
     constructor(private readonly config: FirmaConfig) { }
 
-    async getChainStatus(): Promise<string> {
+    async getChainSyncInfo(): Promise<ChainSyncInfo> {
         try {
             const queryClient = new TendermintQueryClient(this.config.rpcAddress);
-            return await queryClient.queryChainHeight();
+            return await queryClient.queryChainSyncInfo();
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -16,7 +16,7 @@ export class ChainService {
         }
     }
 
-    async getTransactionByHash(txHash: string): Promise<string> {
+    async getTransactionByHash(txHash: string): Promise<TransactionHash> {
         try {
             const queryClient = new TendermintQueryClient(this.config.rpcAddress);
             return await queryClient.queryTransactionHash(txHash);
