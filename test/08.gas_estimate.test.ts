@@ -290,7 +290,7 @@ describe.skip('[08. Gas Estimation Test]', () => {
 		const description = "This is a software upgrade proposal";
 
 		const upgradeName = "v0.2.7";
-		const upgradeHeight = Long.fromInt(20000000);
+		const upgradeHeight = 20000000;
 
 		const gas = await firma.Gov.getGasEstimationSubmitSoftwareUpgradeProposalByHeight(aliceWallet, title, description, initialDepositFCT, upgradeName, upgradeHeight);
 		console.log("estimateGas : " + gas);

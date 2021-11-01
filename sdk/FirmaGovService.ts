@@ -85,15 +85,17 @@ export class FirmaGovService {
         description: string,
         initialDepositFCT: number,
         upgradeName: string,
-        height: Long,
+        height: number,
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
 
+            const upgradeHeight = Long.fromInt(height);
+
             const plan = {
                 name: upgradeName,
                 time: undefined as any,
-                height: height,
+                height: upgradeHeight,
                 info: undefined as any,
                 upgradedClientState: undefined as any
             };
