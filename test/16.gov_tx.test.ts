@@ -75,7 +75,7 @@ describe.skip('[16. Gov Tx Test]', () => {
 		const description = "This is a software upgrade proposal";
 
 		const upgradeName = "v0.2.7";
-		const upgradeHeight = Long.fromInt(20000000);
+		const upgradeHeight = 20000000;
 
 		var result = await firma.Gov.submitSoftwareUpgradeProposalByHeight(aliceWallet, title, description, initialDepositFCT, upgradeName, upgradeHeight);
 
