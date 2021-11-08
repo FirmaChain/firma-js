@@ -1,5 +1,10 @@
 import Axios, { AxiosInstance } from "axios";
 
+export interface Token{
+    denom: string;
+    amount: string;
+}
+
 export class BankQueryClient {
     private readonly axios: AxiosInstance;
 
@@ -20,11 +25,27 @@ export class BankQueryClient {
         return result.data.amount.amount;
     }
 
-    async queryBalance(address: string, denom: string): Promise<string> {
+    async queryTokenBalance(address: string, denom: string): Promise<Token> {
 
         const path = `/cosmos/bank/v1beta1/balances/${address}/${denom}`;
 
         const result = await this.axios.get(path);
-        return result.data.balance.amount;
+        return result.data.balance;
+    }
+
+    async queryBalanceList(address: string): Promise<Token[]> {
+
+        const path = `/cosmos/bank/v1beta1/balances/${address}`;
+
+        const result = await this.axios.get(path);
+        return result.data.balances;
+    }
+
+    async queryBalance(address: string, denom: string): Promise<Token> {
+
+        const path = `/cosmos/bank/v1beta1/balances/${address}/${denom}`;
+
+        const result = await this.axios.get(path);
+        return result.data.balance;
     }
 }
