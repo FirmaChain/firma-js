@@ -35,7 +35,7 @@ export class NftQueryClient {
     }
 
     async queryNftItem(nftId: string): Promise<NftItemType> {
-        const path = `/firmachain/firmachain/nft/nftItem/${nftId}`;
+        const path = "/firmachain/firmachain/nft/nftItem/" + nftId;
         const result = await this.axios.get(path);
 
         return result.data.NftItem;
