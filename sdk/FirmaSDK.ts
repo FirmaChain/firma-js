@@ -4,6 +4,7 @@ import { FirmaFeeGrantService } from "./FirmaFeeGrantService";
 import { FirmaStakingService } from "./FirmaStakingService";
 import { FirmaDistributionService } from "./FirmaDistributionService";
 import { NftService } from "./FirmaNftService";
+import { TokenService } from "./FirmaTokenService";
 import { ContractService } from "./FirmaContractService";
 import { IpfsService } from "./FirmaIpfsService";
 import { FirmaWalletService } from "./FirmaWalletService";
@@ -21,6 +22,7 @@ export class FirmaSDK {
         public Distribution: FirmaDistributionService = new FirmaDistributionService(Config),
         public Gov: FirmaGovService = new FirmaGovService(Config),
         public Nft: NftService = new NftService(Config),
+        public Token: TokenService = new TokenService(Config),
         public Contract: ContractService = new ContractService(Config),
         public Ipfs: IpfsService = new IpfsService(Config),
         public BlockChain: ChainService = new ChainService(Config),
