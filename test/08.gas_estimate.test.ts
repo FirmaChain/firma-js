@@ -1,10 +1,7 @@
-import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { aliceMnemonic, bobMnemonic, validatorMnemonic, TestChainConfig } from './config_test';
 import { VotingOption } from '../sdk/firmachain/common';
-
-import Long from "long";
 
 describe.skip('[08. Gas Estimation Test]', () => {
 
@@ -329,5 +326,55 @@ describe.skip('[08. Gas Estimation Test]', () => {
 		console.log("estimateGas : " + gas);
 	});
 
+	it("8-1. Token createToken gas estimation", async () => {
 
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+
+		const tokenName = "KOMX TOKEN";
+		const symbol = "KOMX63232";
+		const tokenURI = "https://naver.com";
+		const totalSupply = 10000;
+		const decimal = 6;
+		const mintable = true;
+		const burnable = true;
+
+		const gas = await firma.Token.getGasEstimationCreateToken(wallet, tokenName, symbol, tokenURI, totalSupply, decimal, mintable, burnable);
+		console.log("estimateGas : " + gas);
+	});
+
+	it("8-2. Token mint gas estimation", async () => {
+
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const bobAddress = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
+
+		const tokenID = "ukomx6";
+		const amount = 10000;
+		const decimal = 6;
+
+		const gas = await firma.Token.getGasEstimationMint(wallet, tokenID, amount, decimal, bobAddress);
+		console.log("estimateGas : " + gas);
+	});
+
+	it("8-3. Token burn gas estimation", async () => {
+
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+
+		const tokenID = "ukomx6";
+		const amount = 10;
+		const decimal = 6;
+
+		const gas = await firma.Token.getGasEstimationBurn(wallet, tokenID, amount, decimal);
+		console.log("estimateGas : " + gas);
+	});
+
+	it("8-4. Token updateTokenURI gas estimation", async () => {
+
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+
+		const tokenID = "ukomx6";
+		const tokenURI = "https://firmachain.org";
+
+		const gas = await firma.Token.getGasEstimationUpdateTokenURI(wallet, tokenID, tokenURI);
+		console.log("estimateGas : " + gas);
+	});
 });
