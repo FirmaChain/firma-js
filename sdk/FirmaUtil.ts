@@ -13,31 +13,60 @@ export class FirmaUtil {
 
     static config: FirmaConfig;
 
+    static readonly FctDecimal: number = 6;
+
     constructor(firmaConfig: FirmaConfig) {
         FirmaUtil.config = firmaConfig;
     }
 
-    static getUFCTStringFromFCTStr(fctAmount: string): string {
-        const fct = Number.parseFloat(fctAmount);
-        const big = fct * 1000000;
+    static getUTokenStringFromTokenStr(tokenAmount: string, decimal: number): string {
+        const fct = Number.parseFloat(tokenAmount);
+        const decimalMutiplyer = Math.pow(10, decimal);
+        const big = fct * decimalMutiplyer;
 
         return big.toString();
+    }
+
+    static getTokenStringFromUTokenStr(uTokenAmount: string, decimal: number): string {
+        const ufct = Number.parseInt(uTokenAmount);
+        const decimalMutiplyer = Math.pow(10, decimal);
+
+        return (ufct / decimalMutiplyer).toString();
+    }
+
+    static getUTokenStringFromToken(tokenAmount: number, decimal: number): string {
+        const decimalMutiplyer = Math.pow(10, decimal);
+        const big = tokenAmount * decimalMutiplyer;
+
+        return big.toString();
+    }
+
+    static getUTokenFromToken(tokenAmount: number, decimal: number): number {
+        const decimalMutiplyer = Math.pow(10, decimal);
+        const big = tokenAmount * decimalMutiplyer;
+
+        return big;
+    }
+
+    static getTokenStringFromUToken(uTokenAmount: number, decimal: number): string {
+        const decimalMutiplyer = Math.pow(10, decimal);
+        return (uTokenAmount / decimalMutiplyer).toString();
+    }
+
+    static getUFCTStringFromFCTStr(fctAmount: string): string {
+        return this.getUTokenStringFromTokenStr(fctAmount, this.FctDecimal);
     }
 
     static getFCTStringFromUFCTStr(uFctAmount: string): string {
-        const ufct = Number.parseInt(uFctAmount);
-        return (ufct / 1000000).toString();
+        return this.getTokenStringFromUTokenStr(uFctAmount, this.FctDecimal);
     }
 
     static getUFCTStringFromFCT(fctAmount: number): string {
-        const big = fctAmount * 1000000;
-
-        return big.toString();
+        return this.getUTokenStringFromToken(fctAmount, this.FctDecimal);
     }
 
     static getFCTStringFromUFCT(uFctAmount: number): string {
-        const number = uFctAmount;
-        return (number / 1000000).toString();
+        return this.getTokenStringFromUToken(uFctAmount, this.FctDecimal);
     }
 
     static async getFileHash(filePath: string): Promise<string> {

@@ -88,4 +88,65 @@ describe('[18. util Test]', () => {
 
 		expect(fct).to.be.equal("1230000");
 	})
+
+
+	it('getTokenFromUTokenString test', async () => {
+
+		const decimal = 6;
+
+		let amountUToken = 1000000;
+		let token = FirmaUtil.getTokenStringFromUToken(amountUToken, decimal);
+
+		expect(token).to.be.equal("1");
+
+		amountUToken = 1234000;
+		token = FirmaUtil.getTokenStringFromUToken(amountUToken, decimal);
+
+		expect(token).to.be.equal("1.234");
+	})
+
+	it('getUTokenStringFromToken test', async () => {
+
+		const decimal = 6;
+
+		let amountUToken = 1;
+		let token = FirmaUtil.getUTokenStringFromToken(amountUToken, decimal);
+
+		expect(token).to.be.equal("1000000");
+
+		amountUToken = 1.23;
+		token = FirmaUtil.getUTokenStringFromToken(amountUToken, decimal);
+
+		expect(token).to.be.equal("1230000");
+	})
+
+	it('getTokenFromUTokenString test', async () => {
+
+		const decimal = 6;
+
+		let amountUToken = "1000000";
+		let token = FirmaUtil.getTokenStringFromUTokenStr(amountUToken, decimal);
+
+		expect(token).to.be.equal("1");
+
+		amountUToken = "1234000";
+		token = FirmaUtil.getTokenStringFromUTokenStr(amountUToken, decimal);
+
+		expect(token).to.be.equal("1.234");
+	})
+
+	it('getUTokenStringFromToken test', async () => {
+
+		const decimal = 6;
+
+		let amountUToken = "1";
+		let token = FirmaUtil.getUTokenStringFromTokenStr(amountUToken, decimal);
+
+		expect(token).to.be.equal("1000000");
+
+		amountUToken = "1.23";
+		token = FirmaUtil.getUFCTStringFromFCTStr(amountUToken);
+
+		expect(token).to.be.equal("1230000");
+	})
 });
