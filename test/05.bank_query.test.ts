@@ -21,7 +21,7 @@ describe('[05. Bank test]', () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		var result = await firma.Bank.getBalance(await wallet.getAddress());
-		
+
 		//expect(result).to.be.equal("0");
 	});
 
@@ -33,8 +33,8 @@ describe('[05. Bank test]', () => {
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		var result = await firma.Bank.getTokenBalance(await wallet.getAddress(), tokenID);
 
-		console.log(result);
-		
+		//console.log(result);
+
 		//expect(result).to.be.equal("0");
 	});
 
@@ -57,7 +57,7 @@ describe('[05. Bank test]', () => {
 		// for wallet application
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		var result = await firma.Bank.getTokenBalanceList(await wallet.getAddress());
-		
+
 		//console.log(result);
 		//result[0].denom
 		//result[0].amount
