@@ -1,6 +1,6 @@
 import Axios, { AxiosInstance } from "axios";
 
-export interface Token{
+export interface Token {
     denom: string;
     amount: string;
 }
@@ -27,7 +27,8 @@ export class BankQueryClient {
 
     async queryTokenBalance(address: string, denom: string): Promise<Token> {
 
-        const path = `/cosmos/bank/v1beta1/balances/${address}/${denom}`;
+        // changed by cosmos sdk 0.44.5
+        const path = `/cosmos/bank/v1beta1/balances/${address}/by_denom?denom=${denom}`;
 
         const result = await this.axios.get(path);
         return result.data.balance;
@@ -43,7 +44,8 @@ export class BankQueryClient {
 
     async queryBalance(address: string, denom: string): Promise<Token> {
 
-        const path = `/cosmos/bank/v1beta1/balances/${address}/${denom}`;
+        // changed by cosmos sdk 0.44.5
+        const path = `/cosmos/bank/v1beta1/balances/${address}/by_denom?denom=${denom}`;
 
         const result = await this.axios.get(path);
         return result.data.balance;
