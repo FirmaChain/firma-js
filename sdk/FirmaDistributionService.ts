@@ -4,7 +4,8 @@ import {
     TxMisc,
     DefaultTxMisc,
     getSignAndBroadcastOption,
-    TotalRewardInfo
+    TotalRewardInfo,
+    MsgWithdrawDelegatorRewardEncodeObject
 } from "./firmachain/distribution";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
@@ -13,14 +14,15 @@ import { FirmaConfig } from "./FirmaConfig";
 import { FirmaUtil } from "./FirmaUtil";
 import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
+import { DelegationInfo } from "./firmachain/staking";
 
 export class FirmaDistributionService {
 
-    constructor(private readonly config: FirmaConfig) {}
-    
+    constructor(private readonly config: FirmaConfig) { }
+
     async getGasEstimationSetWithdrawAddress(wallet: FirmaWalletService,
-            withdrawAddress: string,
-            txMisc: TxMisc = DefaultTxMisc):
+        withdrawAddress: string,
+        txMisc: TxMisc = DefaultTxMisc):
         Promise<number> {
 
         try {
@@ -34,8 +36,8 @@ export class FirmaDistributionService {
     }
 
     async getGasEstimationFundCommunityPool(wallet: FirmaWalletService,
-            amount: number,
-            txMisc: TxMisc = DefaultTxMisc):
+        amount: number,
+        txMisc: TxMisc = DefaultTxMisc):
         Promise<number> {
 
         try {
@@ -49,8 +51,8 @@ export class FirmaDistributionService {
     }
 
     async getGasEstimationWithdrawValidatorCommission(wallet: FirmaWalletService,
-            validatorAddress: string,
-            txMisc: TxMisc = DefaultTxMisc):
+        validatorAddress: string,
+        txMisc: TxMisc = DefaultTxMisc):
         Promise<number> {
 
         try {
@@ -63,9 +65,22 @@ export class FirmaDistributionService {
         }
     }
 
+    async getGasEstimationWithdrawAllRewardsFromAllValidator(wallet: FirmaWalletService, delegationList: DelegationInfo[], txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+
+        try {
+            const txRaw = await this.getSignedTxwithdrawAllRewardsFromAllValidator(wallet, delegationList, txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+
     async getGasEstimationWithdrawAllRewards(wallet: FirmaWalletService,
-            validatorAddress: string,
-            txMisc: TxMisc = DefaultTxMisc):
+        validatorAddress: string,
+        txMisc: TxMisc = DefaultTxMisc):
         Promise<number> {
 
         try {
@@ -86,8 +101,7 @@ export class FirmaDistributionService {
             const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
 
             const address = await wallet.getAddress();
-            const message =
-                txClient.msgWithdrawDelegatorReward({ delegatorAddress: address, validatorAddress: validatorAddress });
+            const message = txClient.msgWithdrawDelegatorReward({ delegatorAddress: address, validatorAddress: validatorAddress });
 
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
@@ -180,11 +194,57 @@ export class FirmaDistributionService {
         }
     }
 
+
+
     async withdrawValidatorCommission(wallet: FirmaWalletService,
         validatorAddres: string,
         txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
         try {
             const txRaw = await this.getSignedTxWithdrawValidatorCommission(wallet, validatorAddres, txMisc);
+
+            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            return await txClient.broadcast(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    private async getSignedTxwithdrawAllRewardsFromAllValidator(wallet: FirmaWalletService,
+        delegationList: DelegationInfo[],
+        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+
+        try {
+
+            const address = await wallet.getAddress();
+
+            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+
+            let messageList: MsgWithdrawDelegatorRewardEncodeObject[] = [];
+
+            for (let i = 0; i < delegationList.length; i++) {
+
+                const validatorAddress = delegationList[i].delegation.validator_address;
+                const message = txClient.msgWithdrawDelegatorReward({ delegatorAddress: address, validatorAddress: validatorAddress });
+
+                messageList.push(message);
+            }
+
+            return await txClient.sign(messageList, getSignAndBroadcastOption(this.config.denom, txMisc));
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+
+    async withdrawAllRewardsFromAllValidator(wallet: FirmaWalletService, delegationList: DelegationInfo[], txMisc: TxMisc = DefaultTxMisc):
+        Promise<BroadcastTxResponse> {
+        try {
+
+            const txRaw = await this.getSignedTxwithdrawAllRewardsFromAllValidator(wallet, delegationList, txMisc);
 
             const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
