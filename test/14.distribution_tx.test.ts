@@ -17,16 +17,14 @@ describe('[14. Distribution Tx Test]', () => {
 		expect(result.code).to.equal(0);
 	});
 
-	it.only('withdrawAllRewards for All Validators', async () => {
+	it('withdrawAllRewards for All Validators', async () => {
 
-		const aliceMnemonic1 = "ancient frog exhaust return wife action toy bundle member nuclear erosion call twin youth notice warm quality chronic brisk range word virtual dish exile";
-
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic1);
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const delegationList = await firma.Staking.getTotalDelegationInfo(await wallet.getAddress());
 
-		console.log(delegationList);
+		// console.log(delegationList);
 
-		var gasEstimation = await firma.Distribution.getGasEstimationWithdrawAllRewardsFromAllValidator(wallet, delegationList, { gas: 5000000, fee: 5000000 });
+		var gasEstimation = await firma.Distribution.getGasEstimationWithdrawAllRewardsFromAllValidator(wallet, delegationList);
 		console.log("gasEstimation: " + gasEstimation);
 
 		var result = await firma.Distribution.withdrawAllRewardsFromAllValidator(wallet, delegationList, { gas: gasEstimation, fee: gasEstimation });
