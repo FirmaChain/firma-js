@@ -5,7 +5,6 @@ import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { FirmaUtil } from "./FirmaUtil";
 import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
-import { TokenQueryClient } from "./firmachain/token";
 
 export class FirmaBankService {
 
@@ -32,7 +31,7 @@ export class FirmaBankService {
 
             const txRaw = await this.getSignedTxSend(wallet, targetAddress, tokenID, FirmaUtil.getUTokenStringFromToken(amount, decimal), txMisc);
 
-            const bankTxClient = new BankTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const bankTxClient = new BankTxClient(wallet, this.config.rpcAddress);
             return await bankTxClient.broadcast(txRaw);
 
         } catch (error) {
@@ -46,7 +45,7 @@ export class FirmaBankService {
         try {
             const txRaw = await this.getSignedTxSend(wallet, targetAddress, this.config.denom, FirmaUtil.getUFCTStringFromFCT(amount), txMisc);
 
-            const bankTxClient = new BankTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const bankTxClient = new BankTxClient(wallet, this.config.rpcAddress);
             return await bankTxClient.broadcast(txRaw);
 
         } catch (error) {
@@ -111,10 +110,11 @@ export class FirmaBankService {
         amount: string,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
         try {
-            const bankTxClient = new BankTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const bankTxClient = new BankTxClient(wallet, this.config.rpcAddress);
 
             const address = await wallet.getAddress();
             const sendAmount = { denom: denom, amount: amount };
+
             const message = bankTxClient.msgSend({ fromAddress: address, toAddress: targetAddress, amount: [sendAmount] });
 
             return await bankTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));

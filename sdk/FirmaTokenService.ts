@@ -69,7 +69,7 @@ export class TokenService {
         try {
             const address = await wallet.getAddress();
 
-            const txClient = new TokenTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
 
             const message = txClient.msgUpdateTokenURI({
                 owner: address,
@@ -91,7 +91,7 @@ export class TokenService {
         try {
             const address = await wallet.getAddress();
 
-            const txClient = new TokenTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
 
             const message = txClient.msgBurn({
                 owner: address,
@@ -113,7 +113,7 @@ export class TokenService {
         try {
             const address = await wallet.getAddress();
 
-            const txClient = new TokenTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
 
             const message = txClient.msgMint({
                 owner: address,
@@ -136,7 +136,7 @@ export class TokenService {
         try {
             const address = await wallet.getAddress();
 
-            const txClient = new TokenTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
 
             const message = txClient.msgCreateToken({
                 owner: address,
@@ -167,7 +167,7 @@ export class TokenService {
             const newTotalSupply = FirmaUtil.getUTokenFromToken(totalSupply, decimal);
             const txRaw = await this.getSignedTxCreateToken(wallet, tokenName, tokenSymbol, tokenURI, newTotalSupply, decimal, isMintable, isBurnable, txMisc);
 
-            const nftTxClient = new TokenTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const nftTxClient = new TokenTxClient(wallet, this.config.rpcAddress);
             return await nftTxClient.broadcast(txRaw);
 
         } catch (error) {
@@ -183,7 +183,7 @@ export class TokenService {
             const newAmount = FirmaUtil.getUTokenFromToken(amount, decimal);
             const txRaw = await this.getSignedTxMint(wallet, tokenID, newAmount, toAddress, txMisc);
 
-            const nftTxClient = new TokenTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const nftTxClient = new TokenTxClient(wallet, this.config.rpcAddress);
             return await nftTxClient.broadcast(txRaw);
 
         } catch (error) {
@@ -199,7 +199,7 @@ export class TokenService {
             const newAmount = FirmaUtil.getUTokenFromToken(amount, decimal);
             const txRaw = await this.getSignedTxBurn(wallet, tokenID, newAmount, txMisc);
 
-            const nftTxClient = new TokenTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const nftTxClient = new TokenTxClient(wallet, this.config.rpcAddress);
             return await nftTxClient.broadcast(txRaw);
 
         } catch (error) {
@@ -214,7 +214,7 @@ export class TokenService {
         try {
             const txRaw = await this.getSignedTxUpdateTokenURI(wallet, tokenID, tokenURI, txMisc);
 
-            const nftTxClient = new TokenTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const nftTxClient = new TokenTxClient(wallet, this.config.rpcAddress);
             return await nftTxClient.broadcast(txRaw);
 
         } catch (error) {

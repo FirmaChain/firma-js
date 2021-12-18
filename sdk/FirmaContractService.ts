@@ -19,7 +19,7 @@ import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 
 export class ContractService {
 
-    constructor(private readonly config: FirmaConfig) {}
+    constructor(private readonly config: FirmaConfig) { }
 
     async getContractLogAll(paginationKey: string = ""):
         Promise<{ dataList: ContractLogType[], pagination: Pagination }> {
@@ -87,7 +87,7 @@ export class ContractService {
 
         try {
 
-            const contractTxClient = new ContractTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
 
             const txRaw = await contractTxClient.sign(txList, getSignAndBroadcastOption(this.config.denom, txMisc));
             return await FirmaUtil.estimateGas(txRaw);
@@ -128,7 +128,7 @@ export class ContractService {
 
         try {
             const address = await wallet.getAddress();
-            const contractTxClient = new ContractTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
 
             return contractTxClient.msgCreateContractFile({
                 creator: address,
@@ -153,7 +153,7 @@ export class ContractService {
         try {
             const address = await wallet.getAddress();
 
-            const contractTxClient = new ContractTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
 
             const message = contractTxClient.msgCreateContractFile({
                 creator: address,
@@ -184,7 +184,7 @@ export class ContractService {
                 metaDataJsonString,
                 txMisc);
 
-            const contractTxClient = new ContractTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
             return await contractTxClient.broadcast(txRaw);
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -227,7 +227,7 @@ export class ContractService {
         try {
             const address = await wallet.getAddress();
 
-            const contractTxClient = new ContractTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
 
             const message = contractTxClient.msgAddContractLog({
                 creator: address,
@@ -262,7 +262,7 @@ export class ContractService {
                 jsonString,
                 txMisc);
 
-            const contractTxClient = new ContractTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
             return await contractTxClient.broadcast(txRaw);
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -280,7 +280,7 @@ export class ContractService {
         try {
             const address = await wallet.getAddress();
 
-            const contractTxClient = new ContractTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
 
             return contractTxClient.msgAddContractLog({
                 creator: address,
@@ -300,7 +300,7 @@ export class ContractService {
     async signAndBroadcast(wallet: FirmaWalletService, msgList: EncodeObject[], txMisc: TxMisc = DefaultTxMisc):
         Promise<BroadcastTxResponse> {
         try {
-            const contractTxClient = new ContractTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
             return await contractTxClient.signAndBroadcast(msgList,
                 getSignAndBroadcastOption(this.config.denom, txMisc));
         } catch (error) {
