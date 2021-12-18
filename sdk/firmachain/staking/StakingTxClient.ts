@@ -7,6 +7,7 @@ import {
     MsgEditValidator,
     MsgUndelegate,
 } from "cosmjs-types/cosmos/staking/v1beta1/tx";
+import { FirmaWalletService } from "../../FirmaWalletService";
 
 import { ITxClient } from "../common/ITxClient";
 
@@ -47,7 +48,7 @@ export interface MsgCreateValidatorEncodeObject extends EncodeObject {
 
 export class StakingTxClient extends ITxClient {
 
-    constructor(wallet: OfflineDirectSigner, serverUrl: string) {
+    constructor(wallet: FirmaWalletService, serverUrl: string) {
         super(wallet, serverUrl, registry);
     }
 

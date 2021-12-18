@@ -1,6 +1,7 @@
 import { Registry, EncodeObject, OfflineDirectSigner } from "@cosmjs/proto-signing";
 import { MsgCreateContractFile, MsgAddContractLog } from "./ContractTxTypes";
 import { ITxClient } from "../common/ITxClient";
+import { FirmaWalletService } from "../../FirmaWalletService";
 
 const types = [
     ["/firmachain.firmachain.contract.MsgCreateContractFile", MsgCreateContractFile],
@@ -21,7 +22,7 @@ export interface MsgCreateContractFileEncodeObject extends EncodeObject {
 
 export class ContractTxClient extends ITxClient {
 
-    constructor(wallet: OfflineDirectSigner, serverUrl: string) {
+    constructor(wallet: FirmaWalletService, serverUrl: string) {
         super(wallet, serverUrl, registry);
     }
 

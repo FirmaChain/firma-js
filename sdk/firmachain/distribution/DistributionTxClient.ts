@@ -6,6 +6,7 @@ import {
     MsgWithdrawDelegatorReward,
     MsgWithdrawValidatorCommission,
 } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
+import { FirmaWalletService } from "../../FirmaWalletService";
 
 import { ITxClient } from "../common/ITxClient";
 
@@ -40,7 +41,7 @@ export interface MsgWithdrawValidatorCommissionEncodeObject extends EncodeObject
 
 export class DistributionTxClient extends ITxClient {
 
-    constructor(wallet: OfflineDirectSigner, serverUrl: string) {
+    constructor(wallet: FirmaWalletService, serverUrl: string) {
         super(wallet, serverUrl, registry);
     }
 

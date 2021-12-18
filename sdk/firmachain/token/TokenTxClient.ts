@@ -1,6 +1,7 @@
 import { Registry, OfflineDirectSigner, EncodeObject } from "@cosmjs/proto-signing";
 import { MsgUpdateTokenURI, MsgMint, MsgBurn, MsgCreateToken } from "./TokenTxTypes";
 import { ITxClient } from "../common/ITxClient";
+import { FirmaWalletService } from "../../FirmaWalletService";
 
 const types = [
     ["/firmachain.firmachain.token.MsgCreateToken", MsgCreateToken],
@@ -33,7 +34,7 @@ export interface MsgBurnEncodeObject extends EncodeObject {
 
 export class TokenTxClient extends ITxClient {
 
-    constructor(wallet: OfflineDirectSigner, serverUrl: string) {
+    constructor(wallet: FirmaWalletService, serverUrl: string) {
         super(wallet, serverUrl, registry);
     }
 

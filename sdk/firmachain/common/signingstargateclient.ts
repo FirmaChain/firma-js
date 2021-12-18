@@ -1,4 +1,3 @@
-import { encodeSecp256k1Pubkey } from "@cosmjs/amino";
 import { fromBase64 } from "@cosmjs/encoding";
 import { Bech32 } from "@cosmjs/encoding";
 import { EncodeObject, encodePubkey, makeSignDoc, OfflineDirectSigner, Registry, TxBodyEncodeObject } from
@@ -16,6 +15,7 @@ import Axios from "axios";
 import { Int53 } from "@cosmjs/math";
 import { Any } from "../google/protobuf/any";
 import Long from "long";
+import { encodeSecp256k1Pubkey } from "../amino/encoding";
 
 export interface SignerData {
     readonly accountNumber: number;

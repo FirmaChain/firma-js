@@ -1,6 +1,7 @@
 import { Registry, OfflineDirectSigner, EncodeObject } from "@cosmjs/proto-signing";
 import { MsgGrantAllowance, MsgRevokeAllowance } from "./FeeGrantTxTypes";
 import { ITxClient } from "../common/ITxClient";
+import { FirmaWalletService } from "../../FirmaWalletService";
 
 const types = [
     ["/cosmos.feegrant.v1beta1.MsgGrantAllowance", MsgGrantAllowance],
@@ -21,7 +22,7 @@ export interface MsgRevokeAllowanceEncodeObject extends EncodeObject {
 
 export class FeeGrantTxClient extends ITxClient {
 
-    constructor(wallet: OfflineDirectSigner, serverUrl: string) {
+    constructor(wallet: FirmaWalletService, serverUrl: string) {
         super(wallet, serverUrl, registry);
     }
 

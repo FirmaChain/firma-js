@@ -1,6 +1,7 @@
 import { Registry, OfflineDirectSigner, EncodeObject } from "@cosmjs/proto-signing";
 import { MsgTransfer, MsgMint, MsgBurn } from "./NftTxTypes";
 import { ITxClient } from "../common/ITxClient";
+import { FirmaWalletService } from "../../FirmaWalletService";
 
 const types = [
     ["/firmachain.firmachain.nft.MsgTransfer", MsgTransfer],
@@ -27,7 +28,7 @@ export interface MsgBurnEncodeObject extends EncodeObject {
 
 export class NftTxClient extends ITxClient {
 
-    constructor(wallet: OfflineDirectSigner, serverUrl: string) {
+    constructor(wallet: FirmaWalletService, serverUrl: string) {
         super(wallet, serverUrl, registry);
     }
 
