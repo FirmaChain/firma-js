@@ -1,5 +1,6 @@
-import { Registry, EncodeObject, OfflineDirectSigner } from "@cosmjs/proto-signing";
+import { Registry, EncodeObject } from "@cosmjs/proto-signing";
 import { MsgSend, MsgMultiSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
+import { FirmaWalletService } from "../../FirmaWalletService";
 import { ITxClient } from "../common/ITxClient";
 
 const types = [
@@ -21,7 +22,7 @@ export interface MsgMultiSendEncodeObject extends EncodeObject {
 
 export class BankTxClient extends ITxClient {
 
-    constructor(wallet: OfflineDirectSigner, address: string) {
+    constructor(wallet: FirmaWalletService, address: string) {
         super(wallet, address, registry);
     }
 

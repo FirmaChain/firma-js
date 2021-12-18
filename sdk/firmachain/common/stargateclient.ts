@@ -97,8 +97,8 @@ export class StargateClient {
     ): Promise<BroadcastTxResponse> {
         let timedOut = false;
         const txPollTimeout = setTimeout(() => {
-                timedOut = true;
-            },
+            timedOut = true;
+        },
             timeoutMs);
 
         const pollForTx = async (txId: string): Promise<BroadcastTxResponse> => {
@@ -122,6 +122,8 @@ export class StargateClient {
                 }
                 : pollForTx(txId);
         };
+
+        let test = await this.forceGetTmClient().status();
 
         const broadcasted = await this.forceGetTmClient().broadcastTxSync({ tx });
         if (broadcasted.code) {
