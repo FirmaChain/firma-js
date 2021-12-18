@@ -163,9 +163,11 @@ export const Any = {
     } else {
       message.typeUrl = "";
     }
+
     if (object.value !== undefined && object.value !== null) {
-      message.value = bytesFromBase64(object.value);
+      message.value = object.value;//bytesFromBase64(object.value);
     }
+
     return message;
   },
 
@@ -199,8 +201,10 @@ var globalThis: any = (() => {
 //const atob: (b64: string) => string =
 //  globalThis.atob ||
 //  ((b64) => globalThis.Buffer.from(b64, "base64").toString("binary"));
+
 function bytesFromBase64(b64: string): Uint8Array {
-  const bin = globalThis.Buffer.from(b64, "base64").toString("binary");
+  //const bin = globalThis.Buffer.from(b64, "base64").toString("binary");
+  const bin = atob(b64);
   const arr = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; ++i) {
     arr[i] = bin.charCodeAt(i);
