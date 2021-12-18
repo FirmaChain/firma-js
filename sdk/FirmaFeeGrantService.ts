@@ -19,7 +19,7 @@ import { Any } from "./firmachain/google/protobuf/any";
 
 export class FirmaFeeGrantService {
 
-    constructor(private readonly config: FirmaConfig) {}
+    constructor(private readonly config: FirmaConfig) { }
 
     async getGasEstimationRevokeAllowance(wallet: FirmaWalletService,
         granteeAddress: string,
@@ -45,7 +45,7 @@ export class FirmaFeeGrantService {
         try {
             const address = await wallet.getAddress();
 
-            const feeGrantTxClient = new FeeGrantTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const feeGrantTxClient = new FeeGrantTxClient(wallet, this.config.rpcAddress);
             const message = feeGrantTxClient.msgRevokeAllowance({ granter: address, grantee: granteeAddress });
 
             return await feeGrantTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
@@ -62,7 +62,7 @@ export class FirmaFeeGrantService {
         try {
             const txRaw = await this.getSignedTxRevokeAllowance(wallet, granteeAddress, txMisc);
 
-            const feeGrantTxClient = new FeeGrantTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const feeGrantTxClient = new FeeGrantTxClient(wallet, this.config.rpcAddress);
             return await feeGrantTxClient.broadcast(txRaw);
 
         } catch (error) {
@@ -105,7 +105,7 @@ export class FirmaFeeGrantService {
         try {
             const address = await wallet.getAddress();
 
-            const feeGrantTxClient = new FeeGrantTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const feeGrantTxClient = new FeeGrantTxClient(wallet, this.config.rpcAddress);
 
             const periodicAllowanceData = {
                 basic: {
@@ -163,7 +163,7 @@ export class FirmaFeeGrantService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const feeGrantTxClient = new FeeGrantTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const feeGrantTxClient = new FeeGrantTxClient(wallet, this.config.rpcAddress);
 
             const address = await wallet.getAddress();
 
@@ -178,6 +178,11 @@ export class FirmaFeeGrantService {
                 typeUrl: "/cosmos.feegrant.v1beta1.BasicAllowance",
                 value: bytes
             };
+
+
+            //console.log('Any.fromJSON(allowanceAnyData)');
+            //console.log(Any.fromJSON(allowanceAnyData));
+            //console.log('Any.fromJSON(allowanceAnyData)---');
 
             const message = feeGrantTxClient.msgGrantAllowance({
                 granter: address,
@@ -201,7 +206,7 @@ export class FirmaFeeGrantService {
         try {
             const txRaw = await this.getSignedTxGrantPeriodicAllowance(wallet, granteeAddress, feegrantOption, txMisc);
 
-            const feeGrantTxClient = new FeeGrantTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const feeGrantTxClient = new FeeGrantTxClient(wallet, this.config.rpcAddress);
             return await feeGrantTxClient.broadcast(txRaw);
 
         } catch (error) {
@@ -218,7 +223,7 @@ export class FirmaFeeGrantService {
         try {
             const txRaw = await this.getSignedTxGrantBasicAllowance(wallet, granteeAddress, feegrantOption, txMisc);
 
-            const feeGrantTxClient = new FeeGrantTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const feeGrantTxClient = new FeeGrantTxClient(wallet, this.config.rpcAddress);
             return await feeGrantTxClient.broadcast(txRaw);
 
         } catch (error) {

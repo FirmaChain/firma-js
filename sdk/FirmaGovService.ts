@@ -168,7 +168,7 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const txClient = new GovTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
 
             const sendAmount = { denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT) };
 
@@ -200,7 +200,7 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const txClient = new GovTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
 
             const initialDepositAmount = {
                 denom: this.config.denom,
@@ -240,7 +240,7 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const txClient = new GovTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
 
             const initialDepositAmount = {
                 denom: this.config.denom,
@@ -280,7 +280,7 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const txClient = new GovTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
 
             const initialDepositAmount = {
                 denom: this.config.denom,
@@ -321,7 +321,7 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const txClient = new GovTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
 
             const initialDepositAmount = {
                 denom: this.config.denom,
@@ -365,7 +365,7 @@ export class FirmaGovService {
             const txRaw =
                 await this.getSignedTxSubmitCancelSoftwareUpgradeProposal(wallet, title, description, initialDeposit, txMisc);
 
-            const txClient = new GovTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
@@ -396,7 +396,7 @@ export class FirmaGovService {
             const txRaw =
                 await this.getSignedTxSubmitSoftwareUpgradeProposal(wallet, title, description, initialDeposit, plan, txMisc);
 
-            const txClient = new GovTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
@@ -424,7 +424,7 @@ export class FirmaGovService {
             const txRaw =
                 await this.getSignedTxSubmitSoftwareUpgradeProposal(wallet, title, description, initialDeposit, plan, txMisc);
 
-            const txClient = new GovTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
@@ -450,7 +450,7 @@ export class FirmaGovService {
                     paramList,
                     txMisc);
 
-            const txClient = new GovTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
@@ -476,7 +476,7 @@ export class FirmaGovService {
                 recipient,
                 txMisc);
 
-            const txClient = new GovTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
@@ -495,7 +495,7 @@ export class FirmaGovService {
 
             const txRaw = await this.getSignedTxSubmitTextProposal(wallet, title, description, initialDeposit, txMisc);
 
-            const txClient = new GovTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
@@ -511,7 +511,7 @@ export class FirmaGovService {
 
         try {
             const voter = await wallet.getAddress();
-            const txClient = new GovTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
 
             const message = txClient.msgVote({ proposalId: proposalId, voter: voter, option: option as number });
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
@@ -529,7 +529,7 @@ export class FirmaGovService {
             const longId = Long.fromInt(proposalId);
             const txRaw = await this.getSignedTxVote(wallet, longId, option, txMisc);
 
-            const txClient = new GovTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
@@ -545,7 +545,7 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const txClient = new GovTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
 
             const depositor = await wallet.getAddress();
             const sendAmount = { denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amount) };
@@ -566,7 +566,7 @@ export class FirmaGovService {
             const longId = Long.fromInt(proposalId);
             const txRaw = await this.getSignedTxDeposit(wallet, longId, amount, txMisc);
 
-            const txClient = new GovTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {

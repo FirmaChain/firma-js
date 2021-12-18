@@ -22,7 +22,7 @@ import { MsgCreateValidator } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 
 export class FirmaStakingService {
 
-    constructor(private readonly config: FirmaConfig) {}
+    constructor(private readonly config: FirmaConfig) { }
 
     async getGasEstimationDelegate(wallet: FirmaWalletService,
         validatorAddres: string,
@@ -76,7 +76,7 @@ export class FirmaStakingService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const txClient = new StakingTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new StakingTxClient(wallet, this.config.rpcAddress);
 
             const address = await wallet.getAddress();
             const sendAmount = { denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amount) };
@@ -101,7 +101,7 @@ export class FirmaStakingService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const txClient = new StakingTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new StakingTxClient(wallet, this.config.rpcAddress);
 
             const address = await wallet.getAddress();
             const sendAmount = { denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amount) };
@@ -127,7 +127,7 @@ export class FirmaStakingService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const txClient = new StakingTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new StakingTxClient(wallet, this.config.rpcAddress);
 
             const address = await wallet.getAddress();
             const sendAmount = { denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amount) };
@@ -152,7 +152,7 @@ export class FirmaStakingService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const txClient = new StakingTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new StakingTxClient(wallet, this.config.rpcAddress);
 
             const message = txClient.msgCreateValidator({
                 description: validatorInfo.description,
@@ -180,7 +180,7 @@ export class FirmaStakingService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const txClient = new StakingTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new StakingTxClient(wallet, this.config.rpcAddress);
 
             const message = txClient.msgEditValidator({
                 validatorAddress: validatorAddress,
@@ -204,7 +204,7 @@ export class FirmaStakingService {
         try {
             const txRaw = await this.getSignedTxCreateValidator(wallet, validatorInfo, txMisc);
 
-            const txClient = new StakingTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new StakingTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
@@ -228,7 +228,7 @@ export class FirmaStakingService {
                 minSelfDelegation,
                 txMisc);
 
-            const txClient = new StakingTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new StakingTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
@@ -248,7 +248,7 @@ export class FirmaStakingService {
             const txRaw =
                 await this.getSignedTxRedelegate(wallet, validatorSrcAddress, validatorDstAddress, amount, txMisc);
 
-            const txClient = new StakingTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new StakingTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
@@ -263,7 +263,7 @@ export class FirmaStakingService {
         try {
             const txRaw = await this.getSignedTxUndelegate(wallet, targetAddress, amount, txMisc);
 
-            const txClient = new StakingTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new StakingTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
@@ -278,7 +278,7 @@ export class FirmaStakingService {
         try {
             const txRaw = await this.getSignedTxDelegate(wallet, targetAddress, amount, txMisc);
 
-            const txClient = new StakingTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new StakingTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {

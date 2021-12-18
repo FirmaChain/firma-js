@@ -8,7 +8,7 @@ import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 
 export class NftService {
 
-    constructor(private readonly config: FirmaConfig) {}
+    constructor(private readonly config: FirmaConfig) { }
 
     async getNftItemAll(paginationKey: string = ""): Promise<{ dataList: NftItemType[], pagination: Pagination }> {
         try {
@@ -130,7 +130,7 @@ export class NftService {
         try {
             const address = await wallet.getAddress();
 
-            const nftTxClient = new NftTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
             const message = nftTxClient.msgTransfer({ owner: address, toAddress: toAddress, nftId: parseInt(nftID) });
             return await nftTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
@@ -146,7 +146,7 @@ export class NftService {
         try {
             const txRaw = await this.getSignedTxTransfer(wallet, toAddress, nftID, txMisc);
 
-            const nftTxClient = new NftTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
             return await nftTxClient.broadcast(txRaw);
 
         } catch (error) {
@@ -173,7 +173,7 @@ export class NftService {
 
         try {
             const address = await wallet.getAddress();
-            const nftTxClient = new NftTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
 
             const message = nftTxClient.msgBurn({ owner: address, nftId: parseInt(nftID) });
             return await nftTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
@@ -191,7 +191,7 @@ export class NftService {
         try {
             const txRaw = await this.getSignedTxBurn(wallet, nftID, txMisc);
 
-            const nftTxClient = new NftTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
             return await nftTxClient.broadcast(txRaw);
 
         } catch (error) {
@@ -219,7 +219,7 @@ export class NftService {
         try {
             const address = await wallet.getAddress();
 
-            const nftTxClient = new NftTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
 
             const message = nftTxClient.msgMint({ owner: address, tokenURI: tokenURI });
             return await nftTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
@@ -236,7 +236,7 @@ export class NftService {
         try {
             const txRaw = await this.getSignedTxMint(wallet, tokenURI, txMisc);
 
-            const nftTxClient = new NftTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
             return await nftTxClient.broadcast(txRaw);
 
         } catch (error) {

@@ -98,7 +98,7 @@ export class FirmaDistributionService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
 
             const address = await wallet.getAddress();
             const message = txClient.msgWithdrawDelegatorReward({ delegatorAddress: address, validatorAddress: validatorAddress });
@@ -115,7 +115,7 @@ export class FirmaDistributionService {
         withdrawAddress: string,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
         try {
-            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
 
             const address = await wallet.getAddress();
             const message =
@@ -134,7 +134,7 @@ export class FirmaDistributionService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
 
             const address = await wallet.getAddress();
             const sendAmount = { denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amount) };
@@ -154,7 +154,7 @@ export class FirmaDistributionService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
 
             const message = txClient.msgWithdrawValidatorCommission({ validatorAddress: validatorAddres });
 
@@ -171,7 +171,7 @@ export class FirmaDistributionService {
         try {
             const txRaw = await this.getSignedTxSetWithdrawAddress(wallet, withdrawAddress, txMisc);
 
-            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
@@ -185,7 +185,7 @@ export class FirmaDistributionService {
         try {
             const txRaw = await this.getSignedTxFundCommunityPool(wallet, amount, txMisc);
 
-            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
@@ -202,7 +202,7 @@ export class FirmaDistributionService {
         try {
             const txRaw = await this.getSignedTxWithdrawValidatorCommission(wallet, validatorAddres, txMisc);
 
-            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
@@ -219,7 +219,7 @@ export class FirmaDistributionService {
 
             const address = await wallet.getAddress();
 
-            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
 
             let messageList: MsgWithdrawDelegatorRewardEncodeObject[] = [];
 
@@ -246,7 +246,7 @@ export class FirmaDistributionService {
 
             const txRaw = await this.getSignedTxwithdrawAllRewardsFromAllValidator(wallet, delegationList, txMisc);
 
-            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
@@ -260,7 +260,7 @@ export class FirmaDistributionService {
         try {
             const txRaw = await this.getSignedTxWithdrawAllRewards(wallet, validatorAddress, txMisc);
 
-            const txClient = new DistributionTxClient(wallet.getRawWallet(), this.config.rpcAddress);
+            const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
         } catch (error) {
