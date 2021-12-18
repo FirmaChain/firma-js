@@ -25,12 +25,12 @@ describe('[14. Distribution Tx Test]', () => {
 		// console.log(delegationList);
 
 		var gasEstimation = await firma.Distribution.getGasEstimationWithdrawAllRewardsFromAllValidator(wallet, delegationList);
-		console.log("gasEstimation: " + gasEstimation);
+		//console.log("gasEstimation: " + gasEstimation);
 
 		var result = await firma.Distribution.withdrawAllRewardsFromAllValidator(wallet, delegationList, { gas: gasEstimation, fee: gasEstimation });
 		expect(result.code).to.equal(0);
 
-		console.log(result);
+		//console.log(result);
 
 	});
 
