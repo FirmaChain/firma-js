@@ -3,11 +3,12 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { TendermintQueryClient } from "./firmachain/common/TendermintQueryClient";
 import { FirmaConfig } from "./FirmaConfig";
 
+import { Bech32 } from "@cosmjs/encoding";
+import { LedgerSigningStargateClient, SignerData } from "./firmachain/common/LedgerSigningStargateClient";
+
 const CryptoJS = require("crypto-js");
 const sha256 = require("crypto-js/sha256");
 const encHex = require("crypto-js/enc-hex");
-
-import { Bech32 } from "@cosmjs/encoding";
 
 export class FirmaUtil {
 
@@ -79,7 +80,8 @@ export class FirmaUtil {
     static isValidAddress(address: string): boolean {
 
         try {
-            const data = Bech32.decode(address).data;
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+            Bech32.decode(address).data;
             return true;
         }
         catch (e) {
@@ -99,11 +101,46 @@ export class FirmaUtil {
         return Bech32.encode(FirmaUtil.config.prefix, data);
     }
 
+    static async getSignerDataForLedger(address: string): Promise<SignerData> {
+
+        try {
+
+            let signingClient = await LedgerSigningStargateClient.connectWithSigner(FirmaUtil.config.rpcAddress);
+            let sequence = await signingClient.getSignerData(address);
+
+            return sequence;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     static async estimateGas(txRaw: TxRaw): Promise<number> {
 
         try {
             const encodedTx = Uint8Array.from(TxRaw.encode(txRaw).finish());
             const hexTx = `0x${Buffer.from(encodedTx).toString("hex")}`;
+
+            const queryClient = new TendermintQueryClient(FirmaUtil.config.rpcAddress);
+            const gas = await queryClient.queryEstimateGas(hexTx);
+
+            const multiplier = 1.25;
+
+            return Math.ceil(gas * multiplier);
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    static async estimateGasRaw(txRaw: Uint8Array): Promise<number> {
+
+        try {
+            const encodedTx = Uint8Array.from(txRaw);
+            const hexTx = `0x${Buffer.from(encodedTx).toString("hex")}`;
+
+            console.log("hexTx:" + hexTx);
 
             const queryClient = new TendermintQueryClient(FirmaUtil.config.rpcAddress);
             const gas = await queryClient.queryEstimateGas(hexTx);
