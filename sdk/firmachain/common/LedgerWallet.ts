@@ -25,6 +25,8 @@ export interface LedgerWalletInterface {
     getAddress(): Promise<string>;
     sign(message: string): Promise<Uint8Array>;
     getPublicKey(): Promise<Uint8Array>;
+    getAddressAndPublicKey(): Promise<{ address: string, publicKey: Uint8Array }>;
+    showAddressOnDevice(): Promise<void>;
 }
 
 function makeSignerInfos(
@@ -62,9 +64,9 @@ function makeAuthInfoBytes(
 
 export async function signFromLedger(ledger: LedgerWalletInterface, messages: EncodeObject[], option: SignAndBroadcastOptions, registry: Registry): Promise<TxRaw> {
 
-    let address = await ledger.getAddress();
+    let { address, publicKey } = await ledger.getAddressAndPublicKey();
+
     let signerData = await FirmaUtil.getSignerDataForLedger(address);
-    let publicKey = await ledger.getPublicKey();
 
     const pubkey = encodePubkey(encodeSecp256k1Pubkey(publicKey));
 

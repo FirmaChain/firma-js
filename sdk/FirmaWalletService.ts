@@ -6,16 +6,10 @@ import { FirmaConfig } from "./FirmaConfig";
 import { FirmaUtil } from "./FirmaUtil";
 
 import { SignAndBroadcastOptions } from "./firmachain/common";
-import { signFromLedger } from "./firmachain/common/LedgerWallet";
+import { LedgerWalletInterface, signFromLedger } from "./firmachain/common/LedgerWallet";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 const CryptoJS = require("crypto-js");
-
-export interface LedgerWalletInterface {
-    getAddress(): Promise<string>;
-    sign(message: string): Promise<Uint8Array>;
-    getPublicKey(): Promise<Uint8Array>;
-}
 
 export class FirmaWalletService {
 
