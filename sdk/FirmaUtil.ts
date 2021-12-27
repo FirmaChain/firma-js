@@ -77,6 +77,11 @@ export class FirmaUtil {
         return sha256(data).toString(encHex);
     }
 
+    static async getFileHashFromBuffer(buffer: Uint8Array): Promise<string> {
+        const data = CryptoJS.lib.WordArray.create(buffer);
+        return sha256(data).toString(encHex);
+    }
+
     static isValidAddress(address: string): boolean {
 
         try {
