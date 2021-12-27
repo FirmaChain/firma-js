@@ -149,4 +149,16 @@ describe('[18. util Test]', () => {
 
 		expect(token).to.be.equal("1230000");
 	})
+
+	it('getFileHashFromBuffer test', async () => {
+
+		let testString = "hello world";
+		let enc = new TextEncoder();
+		let buffer = enc.encode(testString);
+
+		let hash = await FirmaUtil.getFileHashFromBuffer(buffer);
+
+		// hash from sha256 online
+		expect(hash).to.be.equal("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
+	})
 });
