@@ -42,36 +42,18 @@ export class NftService {
     }> {
 
         try {
-            const nftTotal = await this.getBalanceOf(ownerAddress);
-            const totalPerPage = 100;
+
+            let result = await this.getNftIdListOfOwner(ownerAddress, paginationKey)
 
             const nftItemList: NftItemType[] = [];
             const nftQueryClient = new NftQueryClient(this.config.restApiAddress);
 
-            let current = 0;
-            let nextTarget = nftTotal;
-            let nextKey = "";
-
-            if (nftTotal > totalPerPage) {
-
-                if (paginationKey !== "")
-                    current = Number.parseInt(paginationKey);
-
-                nextTarget = current + totalPerPage;
-
-                if (nextTarget >= nftTotal)
-                    nextTarget = nftTotal;
-                else
-                    nextKey = nextTarget.toString();
-            }
-
-            for (let i = current; i < nextTarget; i++) {
-                const nftId = await nftQueryClient.queryTokenOfOwnerByIndex(ownerAddress, i.toString());
-                const nftItem = await nftQueryClient.queryNftItem(nftId);
+            for (let i = 0; i < result.nftIdList.length; i++) {
+                const nftItem = await nftQueryClient.queryNftItem(result.nftIdList[i]);
                 nftItemList.push(nftItem);
             }
 
-            return { dataList: nftItemList, pagination: { next_key: nextKey, total: (current === 0 ? nftTotal : 0) } };
+            return { dataList: nftItemList, pagination: { next_key: result.pagination.next_key, total: result.pagination.total} };
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -80,13 +62,14 @@ export class NftService {
 
     }
 
-    async getTokenOfOwnerByIndex(ownerAddress: string, index: number): Promise<NftItemType> {
+    async getNftIdListOfOwner(ownerAddress: string, paginationKey: string = ""): Promise<{
+        nftIdList: string[],
+        pagination: Pagination;
+    }> {
 
         try {
             const nftQueryClient = new NftQueryClient(this.config.restApiAddress);
-            const nftID = await nftQueryClient.queryTokenOfOwnerByIndex(ownerAddress, index.toString());
-
-            return await nftQueryClient.queryNftItem(nftID);
+            return await nftQueryClient.queryNftIdListOfOwner(ownerAddress, paginationKey);
 
         } catch (error) {
             FirmaUtil.printLog(error);
