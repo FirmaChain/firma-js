@@ -59,6 +59,17 @@ export class ContractService {
         }
     }
 
+    async getContractListFromHash(contractHash: string): Promise<string[]> {
+        try {
+            const contractQueryClient = new ContractQueryClient(this.config.restApiAddress);
+            return await contractQueryClient.queryGetContractListFromHash(contractHash);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     async isContractOwner(fileHash: string, ownerAddress: string): Promise<boolean> {
         try {
             const contractQueryClient = new ContractQueryClient(this.config.restApiAddress);
