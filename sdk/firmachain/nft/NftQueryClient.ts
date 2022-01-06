@@ -27,11 +27,16 @@ export class NftQueryClient {
         return result.data.total;
     }
 
-    async queryTokenOfOwnerByIndex(ownerAddress: string, index: string): Promise<string> {
-        const path = "/firmachain/firmachain/nft/tokenOfOwnerByIndex";
-        const result = await this.axios.get(path, { params: { ownerAddress: ownerAddress, index: index } });
+    async queryNftIdListOfOwner(ownerAddress: string, paginationKey: string): Promise<{ nftIdList: string[], pagination: Pagination }> {
+        const path = "/firmachain/firmachain/nft/nftIdListOfOwner";
+        const result = await this.axios.get(path, { params: { ownerAddress: ownerAddress, "pagination.key": paginationKey } });
 
-        return result.data.tokenId;
+        const convertPagination: Pagination = {
+            next_key: result.data.pagination.next_key,
+            total: Number.parseInt(result.data.pagination.total)
+        };
+
+        return { nftIdList: result.data.nftIdList, pagination: convertPagination };
     }
 
     async queryNftItem(nftId: string): Promise<NftItemType> {
