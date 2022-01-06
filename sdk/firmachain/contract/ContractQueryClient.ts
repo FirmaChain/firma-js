@@ -31,6 +31,13 @@ export class ContractQueryClient {
         });
     }
 
+    async queryGetContractListFromHash(contractHash: string): Promise<string[]> {
+        const path = "/firmachain/firmachain/contract/ContractListFromHash" + "/" + contractHash;
+        const result = await this.axios.get(path);
+
+        return result.data.idList;
+    }
+
     async queryIsContractOwner(fileHash: string, ownerAddress: string): Promise<boolean> {
         const path = "/firmachain/firmachain/contract/isContractOwner";
         const result = await this.axios.get(path, { params: { fileHash: fileHash, ownerAddress: ownerAddress } });
