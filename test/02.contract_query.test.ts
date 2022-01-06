@@ -99,6 +99,19 @@ describe('[02. Contract Query Test]', () => {
 		expect(contractFile.fileHash).to.be.equal(contractFileHash);
 	});
 
+	it('Contract getContractListFromHash', async () => {
+
+		const contractHash = "0xsalkdjfasldkjf2";
+		var idList = await firma.Contract.getContractListFromHash(contractHash);
+
+		for (let i = 0; i < idList.length; i++) {
+			var data = await firma.Contract.getContractLog(idList[i]);
+			//console.log(data);
+		}
+
+		expect(idList.length).to.be.greaterThan(0);
+	});
+
 	it.skip('Contract isContractOwner', async () => {
 
 		const contractFileHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b85531231asddaqwqe";

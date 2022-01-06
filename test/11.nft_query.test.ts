@@ -16,13 +16,13 @@ describe('[11. NFT Query Test]', () => {
 		expect(totalNft).to.be.greaterThan(0);
 	});
 
-	it('NFT getTokenOfOwnerByIndex', async () => {
+	it('NFT getNftIdListOfOwner', async () => {
 
 		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
-		var nftItem = await firma.Nft.getTokenOfOwnerByIndex(await wallet.getAddress(), 0);
-		//expect(totalNft).to.be.greaterThan(0);
-		expect(nftItem.id).not.equal("");
+		var result = await firma.Nft.getNftIdListOfOwner(await wallet.getAddress());
+
+		expect(result.nftIdList.length).to.be.greaterThan(0);
 	});
 
 	it('NFT getNftItemAllFromAddress-Pagination', async () => {
@@ -33,35 +33,21 @@ describe('[11. NFT Query Test]', () => {
 		var result = await firma.Nft.getNftItemAllFromAddress(address);
 		const total = result.pagination.total;
 
-		var totalItemList: NftItemType[] = [];
-		var index = 0;
+		var current = result.dataList.length;
 
-		while (result.pagination.next_key != "") {
-
-			for (var i = 0; i < result.dataList.length; i++) {
-				totalItemList[index++] = result.dataList[i];
-			}
-
+		while (result.pagination.next_key != "" && result.pagination.next_key != null) {
 			result = await firma.Nft.getNftItemAllFromAddress(address, result.pagination.next_key);
+			current += result.dataList.length;
 		}
 
-		for (var i = 0; i < result.dataList.length; i++) {
-			totalItemList[index++] = result.dataList[i];
-		}
-
-		expect(totalItemList.length).to.be.equal(total);
+		expect(current).to.be.equal(total);
 	});
-
 
 	it('NFT getNftItemAllFromAddress', async () => {
 
 		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-
 		var nftItemList = await firma.Nft.getNftItemAllFromAddress(await wallet.getAddress());
 
-		expect(nftItemList.dataList.length).to.be.equal(nftItemList.dataList.length);
-
-		//expect(nftItemList.dataList.length).to.be.equal(100);
 		expect(nftItemList.dataList.length).to.be.greaterThan(0);
 	});
 
@@ -83,7 +69,6 @@ describe('[11. NFT Query Test]', () => {
 			result = await firma.Nft.getNftItemAll(result.pagination.next_key);
 		}
 
-		//expect(totalItemList.dataList.length).to.be.equal(100);
 		for (var i = 0; i < result.dataList.length; i++) {
 			totalItemList[index++] = result.dataList[i];
 		}
