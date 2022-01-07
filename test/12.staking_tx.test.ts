@@ -56,7 +56,7 @@ describe('[12. Staking Tx Test]', () => {
 
 		// NOTICE: there's a case for use more than 200000 gas here.
 		let result1 = await firma.Staking.redelegate(wallet, srcValidatorAddress, dstValidatorAddress, amount,
-			{ gas: 300000, fee: 3000 });
+			{ gas: 300000, fee: 30000 });
 
 		expect(result1.code).to.equal(0);
 	});

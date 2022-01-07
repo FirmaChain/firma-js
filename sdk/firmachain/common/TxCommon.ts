@@ -35,9 +35,9 @@ export function getSignAndBroadcastOption(denom: string, txMisc: TxMisc = Defaul
     if (txMisc.memo == null)
         txMisc.memo = "";
     if (txMisc.fee == null)
-        txMisc.fee = 200000;
+        txMisc.fee = DefaultTxMisc.fee;
     if (txMisc.gas == null)
-        txMisc.gas = 200000;
+        txMisc.gas = DefaultTxMisc.gas;
     if (txMisc.feeGranter == null)
         txMisc.feeGranter = "";
 
@@ -47,7 +47,7 @@ export function getSignAndBroadcastOption(denom: string, txMisc: TxMisc = Defaul
     return { fee: defaultFee, memo: txMisc.memo! };
 }
 
-export const DefaultTxMisc = { memo: "", fee: 200000, gas: 200000, feeGranter: "" };
+export const DefaultTxMisc = { memo: "", fee: 20000, gas: 200000, feeGranter: "" };
 
 export interface SignAndBroadcastOptions {
     fee: StdFee,
