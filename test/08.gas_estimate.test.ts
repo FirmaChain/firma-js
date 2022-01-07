@@ -180,7 +180,7 @@ describe.skip('[08. Gas Estimation Test]', () => {
 		// NOTICE: there's a case for use more than 200000 gas here.
 
 		const gas = await firma.Staking.getGasEstimationRedelegate(wallet, srcValidatorAddress, dstValidatorAddress, amount,
-			{ gas: 300000, fee: 3000 });
+			{ gas: 300000, fee: 30000 });
 
 		console.log("estimateGas : " + gas);
 	});

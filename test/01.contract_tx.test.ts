@@ -31,7 +31,7 @@ describe('[01. Contract Tx Test]', () => {
 		let ownerAddress = await wallet.getAddress();
 		let jsonString = "{}";
 
-		var result = await firma.Contract.addContractLog(wallet, contractHash, timeStamp, eventName, ownerAddress, jsonString, { memo: "", fee: 3000, gas: 200000 });
+		var result = await firma.Contract.addContractLog(wallet, contractHash, timeStamp, eventName, ownerAddress, jsonString);
 		expect(result.code).equal(0);
 	});
 

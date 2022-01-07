@@ -25,12 +25,12 @@ export class FirmaConfig {
 	}
 
 	static readonly TestNetConfig: FirmaConfig = {
-		chainID: "colosseum-1",
-		rpcAddress: "https://colosseum-lcd.firmachain.dev:26657",
-		restApiAddress: "https://colosseum-lcd.firmachain.dev:1317",
-		ipfsNodeAddress: "ipfs-api-firma-devnet.firmachain.org",
+		chainID: "imperium-3",
+		rpcAddress: "https://testnet-lcd.firmachain.dev:26657",
+		restApiAddress: "https://testnet-lcd.firmachain.dev:1317",
+		ipfsNodeAddress: "https://ipfs-testnet.firmachain.dev",
 		ipfsNodePort: 5001,
-		ipfsWebApiAddress: "https://ipfs-firma-devnet.firmachain.org",
+		ipfsWebApiAddress: "https://ipfs-testnet.firmachain.dev",
 		hdPath: "m/44'/7777777'/",
 		prefix: "firma",
 		denom: "ufct",
