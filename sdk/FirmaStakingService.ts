@@ -2,8 +2,6 @@ import {
     StakingTxClient,
     StakingQueryClient,
     TxMisc,
-    DefaultTxMisc,
-    getSignAndBroadcastOption,
     ValidatorDataType,
     PoolDataType,
     ParamsDataType,
@@ -15,7 +13,7 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
-import { FirmaUtil } from "./FirmaUtil";
+import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 import { Description } from "cosmjs-types/cosmos/staking/v1beta1/staking";
 import { MsgCreateValidator } from "cosmjs-types/cosmos/staking/v1beta1/tx";

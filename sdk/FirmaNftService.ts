@@ -1,8 +1,8 @@
-import { NftTxClient, NftQueryClient, NftItemType, Pagination, TxMisc, DefaultTxMisc, getSignAndBroadcastOption } from
+import { NftTxClient, NftQueryClient, NftItemType, Pagination, TxMisc } from
     "./firmachain/nft";
 import { FirmaConfig } from "./FirmaConfig";
 import { FirmaWalletService } from "./FirmaWalletService";
-import { FirmaUtil } from "./FirmaUtil";
+import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 

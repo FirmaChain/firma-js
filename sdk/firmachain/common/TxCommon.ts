@@ -30,25 +30,6 @@ export interface TxMisc {
     feeGranter?: string;
 }
 
-export function getSignAndBroadcastOption(denom: string, txMisc: TxMisc = DefaultTxMisc): SignAndBroadcastOptions {
-
-    if (txMisc.memo == null)
-        txMisc.memo = "";
-    if (txMisc.fee == null)
-        txMisc.fee = DefaultTxMisc.fee;
-    if (txMisc.gas == null)
-        txMisc.gas = DefaultTxMisc.gas;
-    if (txMisc.feeGranter == null)
-        txMisc.feeGranter = "";
-
-    const gasFeeAmount = { denom: denom, amount: txMisc.fee!.toString() };
-    const defaultFee = { amount: [gasFeeAmount], gas: txMisc.gas!.toString(), granter: txMisc.feeGranter! };
-
-    return { fee: defaultFee, memo: txMisc.memo! };
-}
-
-export const DefaultTxMisc = { memo: "", fee: 20000, gas: 200000, feeGranter: "" };
-
 export interface SignAndBroadcastOptions {
     fee: StdFee,
     memo: string;

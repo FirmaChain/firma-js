@@ -8,45 +8,53 @@ export class FirmaConfig {
 		public hdPath: string,
 		public prefix: string,
 		public denom: string,
+		public defaultFee: number,
+		public defaultGas: number,
 		public isShowLog: boolean) {
 	}
 
 	static readonly DevNetConfig: FirmaConfig = {
-		chainID: "imperium-2",
-		rpcAddress: "https://imperium-node1.firmachain.org:26657",
-		restApiAddress: "https://imperium-node1.firmachain.org:1317",
-		ipfsNodeAddress: "ipfs-api-firma-devnet.firmachain.org",
+		chainID: "roma-1",
+		rpcAddress: "http://192.168.20.113:26657",
+		restApiAddress: "http://192.168.20.113:1317",
+		ipfsNodeAddress: "http://192.168.20.120",
 		ipfsNodePort: 5001,
-		ipfsWebApiAddress: "https://ipfs-firma-devnet.firmachain.org",
+		ipfsWebApiAddress: "http://192.168.20.120:8080",
 		hdPath: "m/44'/7777777'/",
 		prefix: "firma",
 		denom: "ufct",
+		defaultFee: 20000,
+		defaultGas: 200000,
 		isShowLog: true,
-	}
+	  }
 
 	static readonly TestNetConfig: FirmaConfig = {
 		chainID: "imperium-3",
-		rpcAddress: "https://testnet-lcd.firmachain.dev:26657",
-		restApiAddress: "https://testnet-lcd.firmachain.dev:1317",
-		ipfsNodeAddress: "https://ipfs-testnet.firmachain.dev",
+		rpcAddress: "https://lcd-testnet.firmachain.dev:26657",
+		restApiAddress: "https://lcd-testnet.firmachain.dev:1317",
+		ipfsNodeAddress: "https://ipfs-dev.firmachain.dev",
 		ipfsNodePort: 5001,
-		ipfsWebApiAddress: "https://ipfs-testnet.firmachain.dev",
+		ipfsWebApiAddress: "https://ipfs-dev.firmachain.dev",
 		hdPath: "m/44'/7777777'/",
 		prefix: "firma",
 		denom: "ufct",
+		defaultFee: 20000,
+		defaultGas: 200000,
 		isShowLog: true,
 	}
 
 	static readonly MainNetConfig: FirmaConfig = {
-		chainID: "augutus-2",
-		rpcAddress: "https://imperium-node1.firmachain.org:26657",
-		restApiAddress: "https://imperium-node1.firmachain.org:1317",
-		ipfsNodeAddress: "ipfs-api-firma-devnet.firmachain.org",
+		chainID: "colosseum-1",
+		rpcAddress: "https://lcd-mainnet.firmachain.org:26657",
+		restApiAddress: "https://lcd-mainnet.firmachain.org:1317",
+		ipfsNodeAddress: "https://ipfs-dev.firmachain.dev",
 		ipfsNodePort: 5001,
-		ipfsWebApiAddress: "https://ipfs-firma-devnet.firmachain.org",
+		ipfsWebApiAddress: "https://ipfs-dev.firmachain.dev",
 		hdPath: "m/44'/7777777'/",
 		prefix: "firma",
 		denom: "ufct",
+		defaultFee: 20000,
+		defaultGas: 200000,
 		isShowLog: false,
 	}
 }
