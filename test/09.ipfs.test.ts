@@ -15,11 +15,14 @@ describe('[09. IPFS Test]', () => {
 		var hash = await firma.Ipfs.addBuffer(ee);
 		var url = firma.Ipfs.getURLFromHash(hash);
 
-		expect(url).to.equal("https://ipfs-firma-devnet.firmachain.org/ipfs/QmVRqQTWMy2gNtNd8i9ugz8STaoZmFGYg6fn5YyEBHp9Be");
+		let srcUrl = firma.Config.ipfsWebApiAddress + "/ipfs/QmVRqQTWMy2gNtNd8i9ugz8STaoZmFGYg6fn5YyEBHp9Be";
+
+		expect(srcUrl).to.equal(url);
 
 		hash = await firma.Ipfs.addFile("./test/sample/test-bear.jpg");
 		url = firma.Ipfs.getURLFromHash(hash);
+		srcUrl = firma.Config.ipfsWebApiAddress + "/ipfs/QmYsezxzunake9EmyoU4HsWKEyHQLgE3syTEpTSQEhNChA";
 
-		expect(url).to.equal("https://ipfs-firma-devnet.firmachain.org/ipfs/QmYsezxzunake9EmyoU4HsWKEyHQLgE3syTEpTSQEhNChA");
+		expect(srcUrl).to.equal(url);
 	});
 });

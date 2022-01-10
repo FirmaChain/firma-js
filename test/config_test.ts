@@ -11,6 +11,8 @@ export let TestChainConfig: FirmaConfig = {
 	prefix: "firma",
 	denom: "ufct",
 	isShowLog: true,
+	defaultFee: 20000,
+	defaultGas: 200000
 }
 
 //TestChainConfig = FirmaConfig.DevNetConfig;
