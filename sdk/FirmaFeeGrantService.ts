@@ -1,15 +1,13 @@
 import {
     FeeGrantTxClient,
     TxMisc,
-    DefaultTxMisc,
-    getSignAndBroadcastOption,
     DefaultBasicFeeGrantOption,
     BasicFeeGrantOption,
     PeriodicFeeGrantOption
 } from "./firmachain/feegrant";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
-import { FirmaUtil } from "./FirmaUtil";
+import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { BasicAllowance, PeriodicAllowance } from "./firmachain/feegrant/FeeGrantTxTypes";
 import { FeeAllowanceType, FeeAllowanceType1, FeeGrantQueryClient } from "./firmachain/feegrant/FeeGrantQueryClient";

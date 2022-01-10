@@ -5,6 +5,7 @@ import { FirmaConfig } from "./FirmaConfig";
 
 import { Bech32 } from "@cosmjs/encoding";
 import { LedgerSigningStargateClient, SignerData } from "./firmachain/common/LedgerSigningStargateClient";
+import { SignAndBroadcastOptions, TxMisc } from "./firmachain/common";
 
 const CryptoJS = require("crypto-js");
 const sha256 = require("crypto-js/sha256");
@@ -18,6 +19,26 @@ export class FirmaUtil {
 
     constructor(firmaConfig: FirmaConfig) {
         FirmaUtil.config = firmaConfig;
+    }
+
+    static getSignAndBroadcastOption(denom: string, txMisc: TxMisc): SignAndBroadcastOptions {
+
+        if (txMisc.memo == null)
+            txMisc.memo = "";
+
+        // INFO: if fee or gas data is not set default, those value will be null. So we have to double check it.
+
+        if (txMisc.fee == 0 || txMisc.fee == null)
+            txMisc.fee = FirmaUtil.config.defaultFee;
+        if (txMisc.gas == 0 || txMisc.gas == null)
+            txMisc.gas = FirmaUtil.config.defaultGas;
+        if (txMisc.feeGranter == null)
+            txMisc.feeGranter = "";
+    
+        const gasFeeAmount = { denom: denom, amount: txMisc.fee!.toString() };
+        const defaultFee = { amount: [gasFeeAmount], gas: txMisc.gas!.toString(), granter: txMisc.feeGranter! };
+    
+        return { fee: defaultFee, memo: txMisc.memo! };
     }
 
     static getUTokenStringFromTokenStr(tokenAmount: string, decimal: number): string {
@@ -166,3 +187,6 @@ export class FirmaUtil {
         console.log(`[FirmaSDK] ${log}`);
     }
 }
+
+export const DefaultTxMisc = { memo: "", fee: 0, gas: 0, feeGranter: "" };
+export const getSignAndBroadcastOption = FirmaUtil.getSignAndBroadcastOption;

@@ -2,8 +2,6 @@ import {
     DistributionTxClient,
     DistributionQueryClient,
     TxMisc,
-    DefaultTxMisc,
-    getSignAndBroadcastOption,
     TotalRewardInfo,
     MsgWithdrawDelegatorRewardEncodeObject
 } from "./firmachain/distribution";
@@ -11,7 +9,7 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
-import { FirmaUtil } from "./FirmaUtil";
+import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { DelegationInfo } from "./firmachain/staking";

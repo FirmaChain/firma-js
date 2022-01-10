@@ -5,8 +5,6 @@ import {
     ContractFileType,
     Pagination,
     TxMisc,
-    DefaultTxMisc,
-    getSignAndBroadcastOption
 } from "./firmachain/contract";
 
 import { EncodeObject } from "@cosmjs/proto-signing";
@@ -14,7 +12,7 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { FirmaConfig } from "./FirmaConfig";
 import { FirmaWalletService } from "./FirmaWalletService";
-import { FirmaUtil } from "./FirmaUtil";
+import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 
 export class ContractService {

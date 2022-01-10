@@ -2,8 +2,6 @@ import {
     GovTxClient,
     GovQueryClient,
     TxMisc,
-    DefaultTxMisc,
-    getSignAndBroadcastOption,
     ParamChangeOption,
     SoftwareUpgradePlan,
     VotingOption,
@@ -16,7 +14,7 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
-import { FirmaUtil } from "./FirmaUtil";
+import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 import { Any } from "./firmachain/google/protobuf/any";
 import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";

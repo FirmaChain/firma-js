@@ -1,9 +1,9 @@
-import { BankTxClient, BankQueryClient, TxMisc, DefaultTxMisc, getSignAndBroadcastOption, Token } from "./firmachain/bank";
+import { BankTxClient, BankQueryClient, TxMisc, Token } from "./firmachain/bank";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
-import { FirmaUtil } from "./FirmaUtil";
+import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 
 export class FirmaBankService {
