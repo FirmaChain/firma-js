@@ -45,8 +45,8 @@ export class FirmaConfig {
 
 	static readonly MainNetConfig: FirmaConfig = {
 		chainID: "colosseum-1",
-		rpcAddress: "https://lcd-mainnet.firmachain.org:26657",
-		restApiAddress: "https://lcd-mainnet.firmachain.org:1317",
+		rpcAddress: "https://lcd-mainnet.firmachain.dev:26657",
+		restApiAddress: "https://lcd-mainnet.firmachain.dev:1317",
 		ipfsNodeAddress: "https://ipfs-dev.firmachain.dev",
 		ipfsNodePort: 5001,
 		ipfsWebApiAddress: "https://ipfs-dev.firmachain.dev",
