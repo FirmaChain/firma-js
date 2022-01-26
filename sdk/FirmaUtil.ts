@@ -8,6 +8,7 @@ import { LedgerSigningStargateClient, SignerData } from "./firmachain/common/Led
 import { SignAndBroadcastOptions, TxMisc } from "./firmachain/common";
 
 const CryptoJS = require("crypto-js");
+const sha1 = require("crypto-js/sha1");
 const sha256 = require("crypto-js/sha256");
 const encHex = require("crypto-js/enc-hex");
 
@@ -98,10 +99,21 @@ export class FirmaUtil {
         return sha256(data).toString(encHex);
     }
 
-    static async getFileHashFromBuffer(buffer: Uint8Array): Promise<string> {
+    static getFileHashFromBuffer(buffer: Uint8Array): string {
         const data = CryptoJS.lib.WordArray.create(buffer);
         return sha256(data).toString(encHex);
     }
+
+    static getSha1HashFromString(text: string): string {
+        const data = CryptoJS.lib.WordArray.create(text);
+        return sha1(data).toString(encHex);
+    }
+
+    static getHashFromString(text: string): string {
+        const data = CryptoJS.lib.WordArray.create(text);
+        return sha256(data).toString(encHex);
+    }
+
 
     static isValidAddress(address: string): boolean {
 
