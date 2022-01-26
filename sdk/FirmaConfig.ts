@@ -53,8 +53,8 @@ export class FirmaConfig {
 		hdPath: "m/44'/7777777'/",
 		prefix: "firma",
 		denom: "ufct",
-		defaultFee: 20000,
-		defaultGas: 200000,
+		defaultFee: 30000,
+		defaultGas: 300000,
 		isShowLog: false,
 	}
 }
