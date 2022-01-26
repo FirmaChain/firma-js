@@ -3,6 +3,26 @@ import { FirmaUtil } from '..';
 
 describe('[18. util Test]', () => {
 
+	// getHashFromString
+
+	it('getSha1HashFromString test', async () => {
+
+		const contractName = "testContract1234";
+
+		let result = FirmaUtil.getSha1HashFromString(contractName);
+
+		expect(result).to.be.equal("c88753a797d1310b36673e3494005bc7485746b7");
+	})
+
+	it('getHashFromString test', async () => {
+
+		const contractName = "testContract1234";
+
+		let result = FirmaUtil.getHashFromString(contractName);
+
+		expect(result).to.be.equal("95e55f6b55ccf6b3988a6f9ee6d9c3c0011ea93a2489e7f05d10cada2613c17f");
+	})
+
 	it('isValidAddress test', async () => {
 
 		const validAddress = "firma134pp6s2nv7pl4mxu58aeufdd6fv5s2zujrrmsa";
@@ -156,7 +176,7 @@ describe('[18. util Test]', () => {
 		let enc = new TextEncoder();
 		let buffer = enc.encode(testString);
 
-		let hash = await FirmaUtil.getFileHashFromBuffer(buffer);
+		let hash = FirmaUtil.getFileHashFromBuffer(buffer);
 
 		// hash from sha256 online
 		expect(hash).to.be.equal("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
