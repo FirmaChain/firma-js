@@ -36,21 +36,27 @@ npm i @firmachain/firma-js
 import { FirmaSDK } from "@firmachain/firma-js"
 import { FirmaConfig } from "@firmachain/firma-js"
 
-// use preset config
+// use preset config : testnet
 const firma = new FirmaSDK(FirmaConfig.TestNetConfig);
 
+// use preset config : mainnet
+const firma = new FirmaSDK(FirmaConfig.MainNetConfig);
+
 // or use custom set
+
 let chainConfig = {
-    chainID: "imperium-2",
-    rpcAddress: "http://127.0.0.1:26657",
-    restApiAddress: "http://127.0.0.1:1317",
-    ipfsNodeAddress: "ipfs-api-firma-devnet.firmachain.org",
-    ipfsNodePort: 5001,
-    ipfsWebApiAddress: "https://ipfs-firma-devnet.firmachain.org",
-    hdPath: "m/44'/7777777'/",
-    prefix: "firma",
-    denom: "ufct",
-    isShowLog: true,
+   chainID: "colosseum-1",
+   rpcAddress: "https://lcd-mainnet.firmachain.dev:26657",
+   restApiAddress: "https://lcd-mainnet.firmachain.dev:1317",
+   ipfsNodeAddress: "https://ipfs-dev.firmachain.dev",
+   ipfsNodePort: 5001,
+   ipfsWebApiAddress: "https://ipfs-dev.firmachain.dev",
+   hdPath: "m/44'/7777777'/",
+   prefix: "firma",
+   denom: "ufct",
+   defaultFee: 30000,
+   defaultGas: 300000,
+   isShowLog: false,
 }
 
 const firma = new FirmaSDK(chainConfig);
@@ -106,7 +112,7 @@ let result = await firma.Bank.send(wallet, address, fctAmount);
 ### Bank send - extended version
 ```js
 const fctAmount = 10;
-let result = await firma.Bank.send(wallet, address, fctAmount, { memo: "", fee: 3000, gas: 200000 });
+let result = await firma.Bank.send(wallet, address, fctAmount, { memo: "", fee: 30000, gas: 300000 });
 ```
 
 ### Calculate gas
