@@ -13,8 +13,33 @@ describe.skip('[08. Gas Estimation Test]', () => {
 		const targetWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 		const amount = 1;
 
-		const gas = await firma.Bank.getGasEstimationSend(wallet, await targetWallet.getAddress(), amount);
-		console.log("estimateGas : " + gas);
+		try {
+			const gas = await firma.Bank.getGasEstimationSend(wallet, await targetWallet.getAddress(), amount);
+			console.log("estimateGas : " + gas);
+			
+		} catch (error) {
+			console.log(error);
+		}
+		
+	});
+
+	it("1-2. bank sendToken gas estimation", async () => {
+
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const targetWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		const amount = 1;
+		
+		const tokenID = "ukomx";
+		const decimal = 6;
+		
+		try {
+			const gas = await firma.Bank.getGasEstimationSendToken(wallet, await targetWallet.getAddress(), tokenID, amount, decimal);
+			console.log("estimateGas : " + gas);
+			
+		} catch (error) {
+			console.log(error);
+		}
+		
 	});
 
 	it("2-1. Contract addContractLog getGasEstimationFromUnSignedTxList gas estimation", async () => {
@@ -166,7 +191,9 @@ describe.skip('[08. Gas Estimation Test]', () => {
 
 	it("5-3. Staking redelegate gas estimation", async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		let alice = "address nerve kid future spin october hip lonely smooth episode tattoo month invest away castle luxury sauce junk husband uncle bullet orbit this dismiss";
+
+		const wallet = await firma.Wallet.fromMnemonic(alice);
 		const validatorList = await firma.Staking.getValidatorList();
 
 		if (validatorList.length < 2)
@@ -179,10 +206,18 @@ describe.skip('[08. Gas Estimation Test]', () => {
 
 		// NOTICE: there's a case for use more than 200000 gas here.
 
-		const gas = await firma.Staking.getGasEstimationRedelegate(wallet, srcValidatorAddress, dstValidatorAddress, amount,
-			{ gas: 300000, fee: 30000 });
+		try {
+			const gas = await firma.Staking.getGasEstimationRedelegate(wallet, srcValidatorAddress, dstValidatorAddress, amount,
+				{ gas: 300000, fee: 30000 });
+	
+			console.log("estimateGas : " + gas);
+			
+		} catch (error) {
+			console.log(error);
+		}
 
-		console.log("estimateGas : " + gas);
+
+		
 	});
 
 	it("6-1. Distribution withdrawAllRewards gas estimation", async () => {
