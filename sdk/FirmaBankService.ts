@@ -25,6 +25,18 @@ export class FirmaBankService {
         }
     }
 
+    async getGasEstimationSendToken(wallet: FirmaWalletService, targetAddress: string, tokenID: string, amount: number, decimal: number, txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+
+        try {
+            const txRaw = await this.getSignedTxSend(wallet, targetAddress, tokenID, FirmaUtil.getUTokenStringFromToken(amount, decimal), txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     async sendToken(wallet: FirmaWalletService, targetAddress: string, tokenID: string, amount: number, decimal: number, txMisc: TxMisc = DefaultTxMisc):
         Promise<BroadcastTxResponse> {
         try {
