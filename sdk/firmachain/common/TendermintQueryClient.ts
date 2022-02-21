@@ -57,6 +57,11 @@ export class TendermintQueryClient {
         const result = await this.axios.get(path, { params: { data: hexTx } });
 
         const data = result.data.result.response.value;
+        
+        if (result.data.result.response.code != 0) {
+            throw result.data.result.response.log;
+        }
+
         const jsonString = Buffer.from(data, "base64").toString("utf8");
 
         const jsonData = JSON.parse(jsonString);

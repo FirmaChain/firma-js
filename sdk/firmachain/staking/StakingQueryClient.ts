@@ -29,7 +29,7 @@ export interface RedelegationInfo {
             initial_balance: string,
             shares_dst: string;
         },
-        balances: string;
+        balance: string;
     }[];
 }
 
