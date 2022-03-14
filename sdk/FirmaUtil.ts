@@ -47,7 +47,7 @@ export class FirmaUtil {
         const decimalMutiplyer = Math.pow(10, decimal);
         const big = fct * decimalMutiplyer;
 
-        return big.toString();
+        return big.toFixed(0);
     }
 
     static getTokenStringFromUTokenStr(uTokenAmount: string, decimal: number): string {
@@ -61,14 +61,15 @@ export class FirmaUtil {
         const decimalMutiplyer = Math.pow(10, decimal);
         const big = tokenAmount * decimalMutiplyer;
 
-        return big.toString();
+        return big.toFixed(0);
     }
 
     static getUTokenFromToken(tokenAmount: number, decimal: number): number {
         const decimalMutiplyer = Math.pow(10, decimal);
         const big = tokenAmount * decimalMutiplyer;
+        const newBig = big.toFixed(0);
 
-        return big;
+        return Number.parseInt(newBig);
     }
 
     static getTokenStringFromUToken(uTokenAmount: number, decimal: number): string {
