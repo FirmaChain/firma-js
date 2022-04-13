@@ -140,6 +140,20 @@ describe('[18. util Test]', () => {
 		expect(token).to.be.equal("1230000");
 	})
 
+	it('cutting the ufct decimal point test', async () => {
+
+		const decimal = 6;
+		
+		const testUTokenValue = 533.827284;
+		const testUTokenValueStr = "533.827284";
+
+		const testTokenValueStr = "0.000533";
+
+		expect(FirmaUtil.getTokenStringFromUTokenStr(testUTokenValueStr, decimal)).to.be.equal(testTokenValueStr);
+		expect(FirmaUtil.getTokenStringFromUToken(testUTokenValue, decimal)).to.be.equal(testTokenValueStr);
+	})
+
+
 	it('cutting the decimal point test', async () => {
 
 		const decimal = 6;

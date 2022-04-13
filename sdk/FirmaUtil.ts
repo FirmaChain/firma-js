@@ -73,8 +73,11 @@ export class FirmaUtil {
     }
 
     static getTokenStringFromUToken(uTokenAmount: number, decimal: number): string {
+
+        const fixedUTokenAmount = Math.floor(uTokenAmount);
+
         const decimalMutiplyer = Math.pow(10, decimal);
-        return (uTokenAmount / decimalMutiplyer).toString();
+        return (fixedUTokenAmount / decimalMutiplyer).toString();
     }
 
     static getUFCTStringFromFCTStr(fctAmount: string): string {
