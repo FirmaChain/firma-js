@@ -11,6 +11,7 @@ import { FirmaUtil } from "./FirmaUtil";
 import { FirmaGovService } from "./FirmaGovService";
 import { ChainService } from "./FirmaChainService";
 import { SlashingService } from "./FirmaSlashingService";
+import { FirmaAuthzService } from "./FirmaAuthzService";
 
 export class FirmaMobileSDK {
     constructor(public Config: FirmaConfig,
@@ -24,7 +25,8 @@ export class FirmaMobileSDK {
         public Token: TokenService = new TokenService(Config),
         public Contract: ContractService = new ContractService(Config),
         public BlockChain: ChainService = new ChainService(Config),
-        public Slashing: SlashingService = new SlashingService(Config)) {
+        public Slashing: SlashingService = new SlashingService(Config),
+        public Authz: FirmaAuthzService = new FirmaAuthzService(Config)) {
 
         FirmaUtil.config = Config;
     }
