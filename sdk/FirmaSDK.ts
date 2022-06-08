@@ -12,6 +12,7 @@ import { FirmaUtil } from "./FirmaUtil";
 import { FirmaGovService } from "./FirmaGovService";
 import { ChainService } from "./FirmaChainService";
 import { SlashingService } from "./FirmaSlashingService";
+import { FirmaAuthzService } from "./FirmaAuthzService";
 
 export class FirmaSDK {
     constructor(public Config: FirmaConfig,
@@ -26,7 +27,8 @@ export class FirmaSDK {
         public Contract: ContractService = new ContractService(Config),
         public Ipfs: IpfsService = new IpfsService(Config),
         public BlockChain: ChainService = new ChainService(Config),
-        public Slashing: SlashingService = new SlashingService(Config)) {
+        public Slashing: SlashingService = new SlashingService(Config),
+        public Authz: FirmaAuthzService = new FirmaAuthzService(Config),) {
 
         FirmaUtil.config = Config;
     }
