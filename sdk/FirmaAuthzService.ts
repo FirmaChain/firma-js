@@ -113,6 +113,28 @@ export class FirmaAuthzService {
         }
     }
 
+    // executeAllowance
+    private async getSignedTxExecuteAllowance(wallet: FirmaWalletService,
+        msgs: Any[],
+        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+
+        try {
+            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
+            const address = await wallet.getAddress();
+
+            const message = authzTxClient.msgExecAllowance({
+                grantee: address,
+                msgs: msgs
+            });
+
+            return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     async grantStakeAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
         validatorAddress: string,
@@ -198,4 +220,21 @@ export class FirmaAuthzService {
             throw error;
         }
     }
+
+    async executeAllowance(wallet: FirmaWalletService,
+        msgs: Any[],
+        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        try {
+            const txRaw = await this.getSignedTxExecuteAllowance(wallet, msgs, txMisc);
+
+            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
+            return await authzTxClient.broadcast(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+
 }
