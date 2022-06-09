@@ -7,6 +7,8 @@ import { SigningStargateClient } from "./signingstargateclient";
 import { BroadcastTxResponse } from "./stargateclient";
 import { FirmaWalletService } from "../../FirmaWalletService";
 
+import { Any } from "cosmjs-types/google/protobuf/any";
+
 export class ITxClient {
 
     private rawWallet: DirectSecp256k1Wallet;
@@ -17,6 +19,17 @@ export class ITxClient {
 
         this.rawWallet = wallet.getRawWallet();
     }
+
+    public getAnyData(message: EncodeObject) : Any {
+        const anyData = Any.fromPartial({
+			typeUrl: message.typeUrl,
+			value: this.getRegistry().encode(message)
+		});
+
+        return anyData;
+    }
+
+    public getRegistry(): Registry { return this.registry; }
 
     async sign(msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions): Promise<TxRaw> {
 
