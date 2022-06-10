@@ -28,7 +28,7 @@ export class FirmaAuthzService {
                 typeUrl: "/cosmos.staking.v1beta1.StakeAuthorization",
                 value: Uint8Array.from(StakeAuthorization.encode(StakeAuthorization.fromPartial({
                     allowList: { address: [validatorAddress] },
-                    maxTokens: { denom: this.config.denom, amount: maxTokens },
+                    maxTokens: (maxTokens === "0") ? undefined : { denom: this.config.denom, amount: maxTokens },
                     authorizationType: type
                 })).finish()),
             });
@@ -139,8 +139,8 @@ export class FirmaAuthzService {
         granteeAddress: string,
         validatorAddress: string,
         type: AuthorizationType,
-        maxTokens: number,
         expirationDate: Date,
+        maxTokens: number = 0,        
         txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
         try {
             const txRaw = await this.getSignedTxGrantStakeAutorization(wallet, granteeAddress, validatorAddress, type, FirmaUtil.getUFCTStringFromFCT(maxTokens), expirationDate, txMisc);
