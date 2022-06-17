@@ -380,6 +380,30 @@ export const StakeAuthorization_Validators = {
 };
 
 
+export interface SendAuthorization {
+  spendLimit: Coin[];
+}
+
+function createBaseSendAuthorization(): SendAuthorization {
+  return { spendLimit: [] };
+}
+
+export const SendAuthorization = {
+  encode(message: SendAuthorization, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.spendLimit) {
+      Coin.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  fromPartial(object : DeepPartial<SendAuthorization>) : SendAuthorization {
+    const message = createBaseSendAuthorization();
+    message.spendLimit = object.spendLimit?.map((e) => Coin.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined | Long;
 export type DeepPartial<T> = T extends Builtin
     ? T
