@@ -5,11 +5,50 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 import { Any } from "./firmachain/google/protobuf/any";
 import { AuthzTxClient, TxMisc } from "./firmachain/authz";
-import { AuthorizationType, GenericAuthorization, StakeAuthorization } from "./firmachain/authz/AuthzTxTypes";
+import { AuthorizationType, SendAuthorization, GenericAuthorization, StakeAuthorization } from "./firmachain/authz/AuthzTxTypes";
 import { Timestamp } from "./firmachain/google/protobuf/timestamp";
 
 export class FirmaAuthzService {
     constructor(private readonly config: FirmaConfig) { }
+
+    private async getSignedTxGrantSendAutorization(wallet: FirmaWalletService,
+        granteeAddress: string,
+        maxTokens: string,
+        expirationDate: Date,
+        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+
+        try {
+            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
+
+            const address = await wallet.getAddress();
+
+            const authorization = Any.fromPartial({
+                typeUrl: "/cosmos.bank.v1beta1.SendAuthorization",
+                value: Uint8Array.from(SendAuthorization.encode(SendAuthorization.fromPartial({
+                    spendLimit: [{ denom: this.config.denom, amount: maxTokens }],
+                })).finish()),
+            });
+
+            const timestamp = Timestamp.fromPartial({ seconds: expirationDate.getTime() / 1000 });
+
+            const message = authzTxClient.msgGrantAllowance({
+                granter: address,
+                grantee: granteeAddress,
+                grant: {
+                    authorization: authorization,
+                    expiration: timestamp
+                }
+            });
+
+            return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+
 
     private async getSignedTxGrantStakeAutorization(wallet: FirmaWalletService,
         granteeAddress: string,
@@ -135,12 +174,29 @@ export class FirmaAuthzService {
         }
     }
 
+    async grantSendAuthorization(wallet: FirmaWalletService,
+        granteeAddress: string,
+        expirationDate: Date,
+        maxTokens: number,
+        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        try {
+            const txRaw = await this.getSignedTxGrantSendAutorization(wallet, granteeAddress, FirmaUtil.getUFCTStringFromFCT(maxTokens), expirationDate, txMisc);
+
+            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
+            return await authzTxClient.broadcast(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     async grantStakeAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
         validatorAddress: string,
         type: AuthorizationType,
         expirationDate: Date,
-        maxTokens: number = 0,        
+        maxTokens: number = 0,
         txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
         try {
             const txRaw = await this.getSignedTxGrantStakeAutorization(wallet, granteeAddress, validatorAddress, type, FirmaUtil.getUFCTStringFromFCT(maxTokens), expirationDate, txMisc);
@@ -186,6 +242,21 @@ export class FirmaAuthzService {
             throw error;
         }
     }
+
+    async revokeSendAuthorization(wallet: FirmaWalletService,
+        granteeAddress: string,
+        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        try {
+
+            const msgType = "/cosmos.bank.v1beta1.MsgSend";
+            return await this.revokeGenericAuthorization(wallet, granteeAddress, msgType, txMisc);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
 
     async revokeStakeAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
