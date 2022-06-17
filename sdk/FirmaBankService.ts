@@ -10,6 +10,10 @@ export class FirmaBankService {
 
     constructor(private readonly config: FirmaConfig) { }
 
+    public GetTxClient(wallet: FirmaWalletService) : BankTxClient {
+        return new BankTxClient(wallet, this.config.rpcAddress);
+    }
+
     async getGasEstimationSend(wallet: FirmaWalletService,
         targetAddress: string,
         amount: number,

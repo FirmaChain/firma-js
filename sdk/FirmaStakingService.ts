@@ -22,6 +22,10 @@ export class FirmaStakingService {
 
     constructor(private readonly config: FirmaConfig) { }
 
+    public GetTxClient(wallet: FirmaWalletService) : StakingTxClient {
+        return new StakingTxClient(wallet, this.config.rpcAddress);
+    }
+
     async getGasEstimationDelegate(wallet: FirmaWalletService,
         validatorAddres: string,
         amount: number,

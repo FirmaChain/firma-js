@@ -18,6 +18,10 @@ export class FirmaDistributionService {
 
     constructor(private readonly config: FirmaConfig) { }
 
+    public GetTxClient(wallet: FirmaWalletService) : DistributionTxClient {
+        return new DistributionTxClient(wallet, this.config.rpcAddress);
+    }
+
     async getGasEstimationSetWithdrawAddress(wallet: FirmaWalletService,
         withdrawAddress: string,
         txMisc: TxMisc = DefaultTxMisc):
