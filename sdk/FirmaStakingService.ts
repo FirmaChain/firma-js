@@ -22,7 +22,7 @@ export class FirmaStakingService {
 
     constructor(private readonly config: FirmaConfig) { }
 
-    public GetTxClient(wallet: FirmaWalletService) : StakingTxClient {
+    public getTxClient(wallet: FirmaWalletService) : StakingTxClient {
         return new StakingTxClient(wallet, this.config.rpcAddress);
     }
 

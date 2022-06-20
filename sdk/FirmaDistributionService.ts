@@ -18,7 +18,7 @@ export class FirmaDistributionService {
 
     constructor(private readonly config: FirmaConfig) { }
 
-    public GetTxClient(wallet: FirmaWalletService) : DistributionTxClient {
+    public getTxClient(wallet: FirmaWalletService) : DistributionTxClient {
         return new DistributionTxClient(wallet, this.config.rpcAddress);
     }
 

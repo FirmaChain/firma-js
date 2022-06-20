@@ -84,6 +84,10 @@ export class FirmaUtil {
         return this.getUTokenStringFromTokenStr(fctAmount, this.FctDecimal);
     }
 
+    static getUFCTFromFCT(fctAmount: number): number {
+        return this.getUTokenFromToken(fctAmount, this.FctDecimal);
+    }
+
     static getFCTStringFromUFCTStr(uFctAmount: string): string {
         return this.getTokenStringFromUTokenStr(uFctAmount, this.FctDecimal);
     }

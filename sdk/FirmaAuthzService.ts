@@ -47,9 +47,7 @@ export class FirmaAuthzService {
             throw error;
         }
     }
-
-
-
+        
     private async getSignedTxGrantStakeAutorization(wallet: FirmaWalletService,
         granteeAddress: string,
         validatorAddress: string,
@@ -174,6 +172,21 @@ export class FirmaAuthzService {
         }
     }
 
+    async getGasEstimationGrantSendAuthorization(wallet: FirmaWalletService,
+        granteeAddress: string,
+        expirationDate: Date,
+        maxTokens: number,
+        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+        try {
+            const txRaw = await this.getSignedTxGrantSendAutorization(wallet, granteeAddress, FirmaUtil.getUFCTStringFromFCT(maxTokens), expirationDate, txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     async grantSendAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
         expirationDate: Date,
@@ -184,6 +197,23 @@ export class FirmaAuthzService {
 
             const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
             return await authzTxClient.broadcast(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getGasEstimationGrantStakeAuthorization(wallet: FirmaWalletService,
+        granteeAddress: string,
+        validatorAddress: string,
+        type: AuthorizationType,
+        expirationDate: Date,
+        maxTokens: number = 0,
+        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+        try {
+            const txRaw = await this.getSignedTxGrantStakeAutorization(wallet, granteeAddress, validatorAddress, type, FirmaUtil.getUFCTStringFromFCT(maxTokens), expirationDate, txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -210,6 +240,21 @@ export class FirmaAuthzService {
         }
     }
 
+    async getGasEstimationGrantGenericAuthorization(wallet: FirmaWalletService,
+        granteeAddress: string,
+        msg: string,
+        expirationDate: Date,
+        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+        try {
+            const txRaw = await this.getSignedTxGrantGenericAuthorization(wallet, granteeAddress, msg, expirationDate, txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     async grantGenericAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
         msg: string,
@@ -220,6 +265,20 @@ export class FirmaAuthzService {
 
             const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
             return await authzTxClient.broadcast(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getGasEstimationRevokeGenericAuthorization(wallet: FirmaWalletService,
+        granteeAddress: string,
+        msgType: string,
+        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+        try {
+            const txRaw = await this.getSignedTxRevokeGenericAuthorization(wallet, granteeAddress, msgType, txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -243,6 +302,21 @@ export class FirmaAuthzService {
         }
     }
 
+    async getGasEstimationRevokeSendAuthorization(wallet: FirmaWalletService,
+        granteeAddress: string,
+        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+        try {
+            const msgType = "/cosmos.bank.v1beta1.MsgSend";
+
+            const txRaw = await this.getSignedTxRevokeGenericAuthorization(wallet, granteeAddress, msgType, txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     async revokeSendAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
         txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
@@ -257,6 +331,36 @@ export class FirmaAuthzService {
         }
     }
 
+    async getGasEstimationRevokeStakeAuthorization(wallet: FirmaWalletService,
+        granteeAddress: string,
+        type: AuthorizationType,
+        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+        try {
+            let msgType = "";
+
+            switch (type) {
+                case AuthorizationType.AUTHORIZATION_TYPE_DELEGATE:
+                    msgType = "/cosmos.staking.v1beta1.MsgDelegate";
+                    break;
+                case AuthorizationType.AUTHORIZATION_TYPE_UNDELEGATE:
+                    msgType = "/cosmos.staking.v1beta1.MsgUndelegate";
+                    break;
+                case AuthorizationType.AUTHORIZATION_TYPE_REDELEGATE:
+                    msgType = "/cosmos.staking.v1beta1.MsgBeginRedelegate";
+                    break;
+
+                default:
+                    throw "AuthorizationType Error : " + type;
+            }
+
+            const txRaw = await this.getSignedTxRevokeGenericAuthorization(wallet, granteeAddress, msgType, txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
 
     async revokeStakeAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
@@ -292,6 +396,19 @@ export class FirmaAuthzService {
         }
     }
 
+    async getGasEstimationExecuteAllowance(wallet: FirmaWalletService,
+        msgs: Any[],
+        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+        try {
+            const txRaw = await this.getSignedTxExecuteAllowance(wallet, msgs, txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     async executeAllowance(wallet: FirmaWalletService,
         msgs: Any[],
         txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
@@ -306,6 +423,4 @@ export class FirmaAuthzService {
             throw error;
         }
     }
-
-
 }
