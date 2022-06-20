@@ -38,7 +38,7 @@ describe('[23. Authz Tx Test]', () => {
 		const toAddress = await bobWallet.getAddress();
 		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
 
-		const bankTxClient = firma.Bank.GetTxClient(aliceWallet);
+		const bankTxClient = firma.Bank.getTxClient(aliceWallet);
 
 		let msgSend = bankTxClient.msgSend({
 			fromAddress: address,
@@ -101,7 +101,7 @@ describe('[23. Authz Tx Test]', () => {
 		const address = await aliceWallet.getAddress();
 		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
 
-		const stakingTxClient = firma.Staking.GetTxClient(aliceWallet);
+		const stakingTxClient = firma.Staking.getTxClient(aliceWallet);
 
 		let msgDelegate = stakingTxClient.msgDelegate({
 			delegatorAddress: address,
@@ -160,7 +160,7 @@ describe('[23. Authz Tx Test]', () => {
 		const address = await aliceWallet.getAddress();
 		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
 
-		const stakingTxClient = firma.Staking.GetTxClient(aliceWallet);
+		const stakingTxClient = firma.Staking.getTxClient(aliceWallet);
 
 		let msgUndelegate = stakingTxClient.msgUndelegate({
 			delegatorAddress: address,
@@ -224,7 +224,7 @@ describe('[23. Authz Tx Test]', () => {
 		const address = await aliceWallet.getAddress();
 		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
 
-		const stakingTxClient = firma.Staking.GetTxClient(aliceWallet);
+		const stakingTxClient = firma.Staking.getTxClient(aliceWallet);
 
 		let msgRedelegate = stakingTxClient.msgRedelegate({
 			delegatorAddress: address,
@@ -283,7 +283,7 @@ describe('[23. Authz Tx Test]', () => {
 		const address = await aliceWallet.getAddress();
 		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
 
-		const distributionTxClient = firma.Distribution.GetTxClient(aliceWallet);
+		const distributionTxClient = firma.Distribution.getTxClient(aliceWallet);
 
 		let msgWithdrawDelegatorReward = distributionTxClient.msgWithdrawDelegatorReward({
 			delegatorAddress: address,

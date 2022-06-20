@@ -10,7 +10,7 @@ export class FirmaBankService {
 
     constructor(private readonly config: FirmaConfig) { }
 
-    public GetTxClient(wallet: FirmaWalletService) : BankTxClient {
+    public getTxClient(wallet: FirmaWalletService) : BankTxClient {
         return new BankTxClient(wallet, this.config.rpcAddress);
     }
 
