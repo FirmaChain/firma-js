@@ -4,7 +4,7 @@ import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 import { Any } from "./firmachain/google/protobuf/any";
-import { AuthzTxClient, TxMisc } from "./firmachain/authz";
+import { AuthzQueryClient, AuthzTxClient, GrantGenericData, GrantSendData, GrantStakingData, TxMisc } from "./firmachain/authz";
 import { AuthorizationType, SendAuthorization, GenericAuthorization, StakeAuthorization } from "./firmachain/authz/AuthzTxTypes";
 import { Timestamp } from "./firmachain/google/protobuf/timestamp";
 
@@ -417,6 +417,47 @@ export class FirmaAuthzService {
 
             const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
             return await authzTxClient.broadcast(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    // query
+
+    async getSendGrantData(granterAddress: string, granteeAddress: string): Promise<GrantSendData[]> {
+        try {
+            const queryClient = new AuthzQueryClient(this.config.restApiAddress);
+            const result = await queryClient.getSendGrantData(granterAddress, granteeAddress);
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getGenericGrantData(granterAddress: string, granteeAddress: string, msgType: string): Promise<GrantGenericData[]> {
+        try {
+            const queryClient = new AuthzQueryClient(this.config.restApiAddress);
+            const result = await queryClient.getGenericGrantData(granterAddress, granteeAddress, msgType);
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getStakingGrantData(granterAddress: string, granteeAddress: string, msgType: AuthorizationType): Promise<GrantStakingData[]> {
+        try {
+            const queryClient = new AuthzQueryClient(this.config.restApiAddress);
+            const result = await queryClient.getStakingGrantData(granterAddress, granteeAddress, msgType);
+
+            return result;
 
         } catch (error) {
             FirmaUtil.printLog(error);
