@@ -7,7 +7,7 @@ import fs from "fs";
 import { Coin } from '@cosmjs/proto-signing';
 import { AccessConfig, AccessType } from 'cosmjs-types/cosmwasm/wasm/v1/types';
 
-describe.only('[25. CosmWasm Tx Test]', () => {
+describe('[25. CosmWasm Tx Test]', () => {
 
 	const firma = new FirmaSDK(TestChainConfig);
 
@@ -54,7 +54,7 @@ describe.only('[25. CosmWasm Tx Test]', () => {
 
 		var result = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, funds, { gas: gas, fee: fee });
 		var data = JSON.parse(result.rawLog!);
-		
+
 		contractAddress = data[0]["events"][0]["attributes"][0]["value"];
 
 		//console.log(result);
