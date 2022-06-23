@@ -337,7 +337,7 @@ export class FirmaCosmWasmService {
         }
     }
 
-    async getContractRawQueryData(contractAddress: string, hexString: string): Promise<ContractHistoryInfo[]> {
+    async getContractRawQueryData(contractAddress: string, hexString: string): Promise<string> {
         try {
             const queryClient = new CosmWasmQueryClient(this.config.restApiAddress);
             const result = await queryClient.getContractRawQueryData(contractAddress, hexString);

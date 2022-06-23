@@ -66,7 +66,6 @@ describe('[23. Authz Tx Test]', () => {
 		expect(result.code).to.be.equal(0);
 	});
 
-
 	it('Authz Grant Delegate', async () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobAddress = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
@@ -78,7 +77,8 @@ describe('[23. Authz Tx Test]', () => {
 		var expirationDate = new Date();
 		expirationDate.setFullYear(expirationDate.getFullYear() + 1);
 
-		const maxFCT = 10;
+		// if set zero, unlimited delegation enabled.
+		const maxFCT = 100;
 
 		var result = await firma.Authz.grantStakeAuthorization(aliceWallet, bobAddress, validatorAddress, AuthorizationType.AUTHORIZATION_TYPE_DELEGATE, expirationDate, maxFCT);
 

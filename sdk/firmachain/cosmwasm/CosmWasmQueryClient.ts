@@ -103,7 +103,7 @@ export class CosmWasmQueryClient {
         return result.data.entries;
     }
 
-    async getContractRawQueryData(contractAddress: string, hexString: string): Promise<ContractHistoryInfo[]> {
+    async getContractRawQueryData(contractAddress: string, hexString: string): Promise<string> {
 
         //curl -X GET "http://0.0.0.0:1317/cosmwasm/wasm/v1/contract/firma1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrqawnxf2/raw/ewogICJyZXNvbHZlX3JlY29yZCI6IHsKICAgICJuYW1lIjogImZyZWQiCiAgfQp9" -H  "accept: application/json"
 
