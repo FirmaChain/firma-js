@@ -55,7 +55,7 @@ describe('[23. Authz Tx Test]', () => {
 		expect(result.code).to.be.equal(0);
 	});
 
-	it('Authz Revoke Send', async () => {
+	it.skip('Authz Revoke Send', async () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobAddress = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
@@ -118,7 +118,7 @@ describe('[23. Authz Tx Test]', () => {
 		expect(result.code).to.be.equal(0);
 	});
 
-	it('Authz Revoke Delegate', async () => {
+	it.skip('Authz Revoke Delegate', async () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobAddress = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
@@ -178,7 +178,7 @@ describe('[23. Authz Tx Test]', () => {
 	});
 
 
-	it('Authz Revoke UnDelegate', async () => {
+	it.skip('Authz Revoke UnDelegate', async () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobAddress = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
@@ -242,8 +242,7 @@ describe('[23. Authz Tx Test]', () => {
 		expect(result.code).to.be.equal(0);
 	});
 
-
-	it('Authz Revoke ReDelegate', async () => {
+	it.skip('Authz Revoke ReDelegate', async () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobAddress = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
@@ -299,8 +298,7 @@ describe('[23. Authz Tx Test]', () => {
 		expect(result.code).to.be.equal(0);
 	});
 
-
-	it('Authz Revoke-GenericAuthorization MsgWithdrawDelegatorReward', async () => {
+	it.skip('Authz Revoke-GenericAuthorization MsgWithdrawDelegatorReward', async () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobAddress = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
@@ -311,6 +309,4 @@ describe('[23. Authz Tx Test]', () => {
 
 		expect(result.code).to.be.equal(0);
 	});
-
-	
 });
