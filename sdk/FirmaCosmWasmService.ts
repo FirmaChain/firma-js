@@ -1,4 +1,4 @@
-import { CosmWasmTxClient, CosmWasmQueryClient, TxMisc } from "./firmachain/cosmwasm";
+import { CosmWasmTxClient, CosmWasmQueryClient, TxMisc, CodeInfo, CodeData, ContractInfo, ContractHistoryInfo, ContractStateInfo } from "./firmachain/cosmwasm";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { toUtf8 } from "@cosmjs/encoding";
@@ -264,6 +264,124 @@ export class FirmaCosmWasmService {
             const message = txClient.msgStoreCode({ sender: address, wasmByteCode: compressed, instantiatePermission: accessConfig });
 
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    // query
+    async getCodeList(): Promise<CodeInfo[]> {
+        try {
+            const queryClient = new CosmWasmQueryClient(this.config.restApiAddress);
+            const result = await queryClient.getCodeInfoList();
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getCodeData(codeId: string): Promise<CodeData> {
+        try {
+            const queryClient = new CosmWasmQueryClient(this.config.restApiAddress);
+            const result = await queryClient.getCodeData(codeId);
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getContractListFromCodeId(codeId: string): Promise<string[]> {
+        try {
+            const queryClient = new CosmWasmQueryClient(this.config.restApiAddress);
+            const result = await queryClient.getContractListFromCodeId(codeId);
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getContractInfo(codeId: string): Promise<ContractInfo> {
+        try {
+            const queryClient = new CosmWasmQueryClient(this.config.restApiAddress);
+            const result = await queryClient.getContractInfo(codeId);
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getContractHistory(codeId: string): Promise<ContractHistoryInfo[]> {
+        try {
+            const queryClient = new CosmWasmQueryClient(this.config.restApiAddress);
+            const result = await queryClient.getContractHistory(codeId);
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getContractRawQueryData(contractAddress: string, hexString: string): Promise<ContractHistoryInfo[]> {
+        try {
+            const queryClient = new CosmWasmQueryClient(this.config.restApiAddress);
+            const result = await queryClient.getContractRawQueryData(contractAddress, hexString);
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getContractSmartQueryData(contractAddress: string, query: string): Promise<string> {
+        try {
+            const queryClient = new CosmWasmQueryClient(this.config.restApiAddress);
+            const result = await queryClient.getContractSmartQueryData(contractAddress, query);
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getContractState(codeId: string): Promise<ContractStateInfo[]> {
+        try {
+            const queryClient = new CosmWasmQueryClient(this.config.restApiAddress);
+            const result = await queryClient.getContractState(codeId);
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getPinnedCodeList(): Promise<string[]> {
+        try {
+            const queryClient = new CosmWasmQueryClient(this.config.restApiAddress);
+            const result = await queryClient.getPinnedCodeList();
+
+            return result;
 
         } catch (error) {
             FirmaUtil.printLog(error);
