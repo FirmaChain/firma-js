@@ -10,7 +10,14 @@ import { SignAndBroadcastOptions, TxMisc } from "./firmachain/common";
 const CryptoJS = require("crypto-js");
 const sha1 = require("crypto-js/sha1");
 const sha256 = require("crypto-js/sha256");
+
 const encHex = require("crypto-js/enc-hex");
+
+import { StdTx } from "@cosmjs/launchpad/build/tx";
+
+import { SigningAminoStargateClient } from "./firmachain/common/signingaminostargateclient";
+import { Registry } from "@cosmjs/proto-signing";
+import { FirmaWalletService } from "./FirmaWalletService";
 
 export class FirmaUtil {
 
@@ -35,10 +42,10 @@ export class FirmaUtil {
             txMisc.gas = FirmaUtil.config.defaultGas;
         if (txMisc.feeGranter == null)
             txMisc.feeGranter = "";
-    
+
         const gasFeeAmount = { denom: denom, amount: txMisc.fee!.toString() };
         const defaultFee = { amount: [gasFeeAmount], gas: txMisc.gas!.toString(), granter: txMisc.feeGranter! };
-    
+
         return { fee: defaultFee, memo: txMisc.memo! };
     }
 
@@ -205,6 +212,30 @@ export class FirmaUtil {
             return;
 
         console.log(`[FirmaSDK] ${log}`);
+    }
+
+    static async experimentalAdr36Sign(wallet: FirmaWalletService, data: Uint8Array | Uint8Array[]): Promise<StdTx> {
+
+        try {
+            const registry = new Registry();
+            const aliceClient = await SigningAminoStargateClient.connectWithSigner(FirmaUtil.config.rpcAddress, wallet.getRawAminoWallet(), registry);
+
+            const address = await wallet.getAddress();
+
+            return await aliceClient.experimentalAdr36Sign(address, data);
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    static async experimentalAdr36Verify(signedTx: StdTx): Promise<boolean> {
+        try {
+            return await SigningAminoStargateClient.experimentalAdr36Verify(signedTx);
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
     }
 }
 

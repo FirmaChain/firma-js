@@ -1,4 +1,5 @@
 import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet, Registry } from "@cosmjs/proto-signing";
+
 import { stringToPath, Slip10, HdPath, Slip10Curve, Bip39, EnglishMnemonic } from "@cosmjs/crypto";
 import { EncodeObject } from "@cosmjs/proto-signing";
 
@@ -8,6 +9,7 @@ import { FirmaUtil } from "./FirmaUtil";
 import { SignAndBroadcastOptions } from "./firmachain/common";
 import { LedgerWalletInterface, signFromLedger } from "./firmachain/common/LedgerWallet";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { Secp256k1Wallet } from "@cosmjs/amino";
 
 const CryptoJS = require("crypto-js");
 
@@ -17,6 +19,7 @@ export class FirmaWalletService {
     private privateKey: string;
     private accountIndex: number;
 
+    private aminoWallet!: Secp256k1Wallet;
     private wallet!: DirectSecp256k1Wallet;
     private ledger!: LedgerWalletInterface;
 
@@ -30,6 +33,10 @@ export class FirmaWalletService {
 
     getRawWallet(): DirectSecp256k1Wallet {
         return this.wallet;
+    }
+
+    getRawAminoWallet(): Secp256k1Wallet {
+        return this.aminoWallet;
     }
 
     getPrivateKey(): string {
@@ -115,7 +122,7 @@ export class FirmaWalletService {
             const mnemonicChecked = new EnglishMnemonic(mnemonic);
             const seed = await Bip39.mnemonicToSeed(mnemonicChecked);
 
-            const hdpath = FirmaWalletService.getHdPath(this.getHdPath(), this.accountIndex);
+            const hdpath = FirmaWalletService.getHdPath(this.getHdPath(), accountIndex);
 
             const { privkey } = Slip10.derivePath(Slip10Curve.Secp256k1, seed, hdpath[0]);
 
@@ -132,6 +139,8 @@ export class FirmaWalletService {
         try {
             const tempPrivateKey = Buffer.from(privateKey.replace("0x", ""), "hex");
             this.wallet = await DirectSecp256k1Wallet.fromKey(tempPrivateKey, this.getPrefix());
+            this.aminoWallet = await Secp256k1Wallet.fromKey(tempPrivateKey, this.getPrefix());
+            
             this.privateKey = privateKey;
         } catch (error) {
             FirmaUtil.printLog(error);
