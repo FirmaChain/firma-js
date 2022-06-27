@@ -1,7 +1,10 @@
+import { decodeSignature } from '@cosmjs/amino';
 import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { FirmaUtil } from '../sdk/FirmaUtil';
-import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
+import { aliceMnemonic, TestChainConfig } from './config_test';
+
+import { ArbitraryVerifyData } from '../sdk/firmachain/common/signingaminostargateclient';
 
 describe('[27. arbitary sign]', () => {
 
@@ -14,27 +17,26 @@ describe('[27. arbitary sign]', () => {
 	it('arbitary sign & verify basic test', async () => {
 
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		let aliceAddress = await aliceWallet.getAddress();
+		let testMsg = "3936a4db-1d18-4cb6-8274-bccb1541f021";
 
-		const rawCertificate = "3936a4db-1d18-4cb6-8274-bccb1541f021";
-		let certificateData = "The signature requested by exchange.\n\nProceed to confirm your own ownership of Kepler's wallet.\nPlease proceed after checking the registered wallet address at the time of deposit and withdrawal.\n\nAddress:\n" + aliceAddress + "\nCertificate:\n" + rawCertificate;
-
-		let dataBuffer = Buffer.from(certificateData);
-		//console.log(dataBuffer);
-
-		let signatureResult = await FirmaUtil.experimentalAdr36Sign(aliceWallet, dataBuffer);
-		/*console.log(signatureResult);
-
-		console.log("signer: " + signatureResult.msg[0].value.signer);
-		console.log("data: " + signatureResult.msg[0].value.data);
-		console.log("[source start]=============================");
-		console.log(atob(signatureResult.msg[0].value.data))
-		console.log("[source end]=============================");
-		*/
+		// create json to send (with sign)
+		let signatureResult = await FirmaUtil.experimentalAdr36Sign(aliceWallet, testMsg);
 		
-		let signatureResul2t = await FirmaUtil.experimentalAdr36Verify(signatureResult);
-		//console.log(signatureResul2t);
+		// send jsonstring to other client.
+		let jsonString = JSON.stringify(signatureResult);
 
-		expect(signatureResul2t).to.be.equal(true);
+		let finalData: ArbitraryVerifyData = JSON.parse(jsonString);
+		//console.log(finalData);
+
+		// error case
+		// finalData.signer += "1";
+		// finalData.data += "1";
+		// finalData.type += "1";
+		// testMsg += "1";
+		
+		let isMatch = await FirmaUtil.experimentalAdr36Verify(finalData, testMsg);
+		//console.log(isMatch);
+
+		expect(isMatch).to.be.equal(true);
 	});
 });
