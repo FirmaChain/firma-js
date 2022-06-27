@@ -1,14 +1,14 @@
 import { Registry } from "@cosmjs/proto-signing";
 
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
-import { StdFee } from ".";
+//import { StdFee } from ".";
 import { Account, accountFromAny } from "./accounts";
 
 import { StargateClient } from "./stargateclient";
 import Axios from "axios";
 import { Any } from "../google/protobuf/any";
 import { Bech32, toBase64 } from "@cosmjs/encoding";
-import { AminoMsg, makeSignDoc as makeSignDocAmino } from "@cosmjs/amino";
+import { AminoMsg, decodeSignature, encodeSecp256k1Signature, makeSignDoc as makeSignDocAmino, StdFee } from "@cosmjs/amino";
 import equals from "fast-deep-equal";
 import { isNonNullObject } from "@cosmjs/utils";
 
@@ -22,6 +22,7 @@ import { arrayContentEquals } from "@cosmjs/utils";
 
 import { fromBase64 } from "@cosmjs/encoding";
 import { rawSecp256k1PubkeyToRawAddress } from "@cosmjs/amino";
+import { FirmaUtil } from "../../FirmaUtil";
 
 export interface SignerData {
     readonly accountNumber: number;
@@ -32,6 +33,14 @@ export interface SignerData {
 export interface SequenceResponse {
     readonly accountNumber: number;
     readonly sequence: number;
+}
+
+export interface ArbitraryVerifyData{
+    type: string
+    signer: string;
+    data: string;
+    pubkey: string;
+    signature: string;
 }
 
 /**
@@ -56,7 +65,6 @@ export function isMsgSignData(msg: AminoMsg): msg is MsgSignData {
     return true;
 }
 
-
 export class SigningAminoStargateClient extends StargateClient {
 
     private readonly signer: OfflineAminoSigner;
@@ -76,14 +84,14 @@ export class SigningAminoStargateClient extends StargateClient {
         this.signer = signer;
     }
 
-    public async experimentalAdr36Sign(signerAddress: string, data: Uint8Array | Uint8Array[]): Promise<StdTx> {
+    public async experimentalAdr36Sign(signerAddress: string, data: Uint8Array | Uint8Array[]): Promise<ArbitraryVerifyData> {
         const accountNumber = 0;
         const sequence = 0;
         const chainId = "";
         const fee: StdFee = {
             gas: "0",
             amount: [],
-            granter: "" // added by DH
+            //granter: "" // added by DH
         };
         const memo = "";
 
@@ -116,10 +124,37 @@ export class SigningAminoStargateClient extends StargateClient {
             );
         }
 
-        return makeStdTx(signDoc, signature);
+        let signatureResult =  makeStdTx(signDoc, signature);
+
+        let decodeData = decodeSignature(signatureResult.signatures[0]);
+
+		let jsonData = {
+			type: "sign/MsgSignData",
+            signer: signatureResult.msg[0].value.signer,
+            data: signatureResult.msg[0].value.data,
+			pubkey: FirmaUtil.arrayBufferToBase64(decodeData.pubkey),
+			signature: FirmaUtil.arrayBufferToBase64(decodeData.signature)
+		}
+
+		return jsonData;
     }
 
-    static async experimentalAdr36Verify(signed: StdTx): Promise<boolean> {
+    static async experimentalAdr36Verify(data: ArbitraryVerifyData, checkMsg: string): Promise<boolean> {
+
+        let newSignature = encodeSecp256k1Signature(FirmaUtil.base64ToArrayBuffer(data.pubkey), FirmaUtil.base64ToArrayBuffer(data.signature));
+
+        let signed: StdTx = {
+			fee: {
+				gas: "0",
+				amount: [],
+			},
+			msg: [{
+				type: data.type,
+				value: {signer: data.signer, data: data.data}
+			}],
+			signatures: [newSignature],
+			memo: ""
+		}
 
         // Restrictions from ADR-036
         if (signed.memo !== "") throw new Error("Memo must be empty.");
@@ -137,6 +172,14 @@ export class SigningAminoStargateClient extends StargateClient {
         }
         if (signedMessages.length === 0) {
             throw new Error("No message found. Without messages we cannot determine the signer address.");
+        }
+
+        // msg error check.
+
+        const sourceMsg = Buffer.from(signedMessages[0].value.data, 'base64').toString();
+
+        if (sourceMsg !== checkMsg) {
+            throw new Error("Different Msg error. source:" + sourceMsg + ", target:" + checkMsg);
         }
 
         // TODO: restrict number of messages?

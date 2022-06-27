@@ -13,9 +13,8 @@ const sha256 = require("crypto-js/sha256");
 
 const encHex = require("crypto-js/enc-hex");
 
-import { StdTx } from "@cosmjs/launchpad/build/tx";
 
-import { SigningAminoStargateClient } from "./firmachain/common/signingaminostargateclient";
+import { ArbitraryVerifyData, SigningAminoStargateClient } from "./firmachain/common/signingaminostargateclient";
 import { Registry } from "@cosmjs/proto-signing";
 import { FirmaWalletService } from "./FirmaWalletService";
 
@@ -78,6 +77,26 @@ export class FirmaUtil {
 
         return Number.parseInt(newBig);
     }
+
+    static arrayBufferToBase64( buffer: Uint8Array ): string {
+		var binary = '';
+		var bytes = new Uint8Array( buffer );
+		var len = bytes.byteLength;
+		for (var i = 0; i < len; i++) {
+			binary += String.fromCharCode( bytes[ i ] );
+		}
+		return btoa( binary );
+	}
+
+    static base64ToArrayBuffer(base64: string): Uint8Array {
+		var binary_string =  atob(base64);
+		var len = binary_string.length;
+		var bytes = new Uint8Array( len );
+		for (var i = 0; i < len; i++)        {
+			bytes[i] = binary_string.charCodeAt(i);
+		}
+		return bytes;
+	}
 
     static getTokenStringFromUToken(uTokenAmount: number, decimal: number): string {
 
@@ -214,7 +233,7 @@ export class FirmaUtil {
         console.log(`[FirmaSDK] ${log}`);
     }
 
-    static async experimentalAdr36Sign(wallet: FirmaWalletService, data: Uint8Array | Uint8Array[]): Promise<StdTx> {
+    static async experimentalAdr36Sign(wallet: FirmaWalletService, data: string): Promise<ArbitraryVerifyData> {
 
         try {
             const registry = new Registry();
@@ -222,16 +241,18 @@ export class FirmaUtil {
 
             const address = await wallet.getAddress();
 
-            return await aliceClient.experimentalAdr36Sign(address, data);
+    		let userData: Uint8Array | Uint8Array[] = Buffer.from(data);
+
+            return await aliceClient.experimentalAdr36Sign(address, userData);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
         }
     }
 
-    static async experimentalAdr36Verify(signedTx: StdTx): Promise<boolean> {
+    static async experimentalAdr36Verify(data: ArbitraryVerifyData, checkMsg: string): Promise<boolean> {
         try {
-            return await SigningAminoStargateClient.experimentalAdr36Verify(signedTx);
+            return await SigningAminoStargateClient.experimentalAdr36Verify(data, checkMsg);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
