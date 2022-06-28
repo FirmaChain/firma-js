@@ -4,7 +4,7 @@ import { Timestamp } from '../sdk/firmachain/google/protobuf/timestamp';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
-describe.only('[24. Authz query Test]', () => {
+describe('[24. Authz query Test]', () => {
 
 	const firma = new FirmaSDK(TestChainConfig);
 
