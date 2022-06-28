@@ -1,4 +1,5 @@
 import Axios, { AxiosInstance } from "axios";
+import { Pagination } from "../common";
 
 export interface ParamsDataType {
     unbonding_time: string;
@@ -137,28 +138,44 @@ export class StakingQueryClient {
         return result.data.redelegation_responses;
     }
 
-    async queryGetUndelegationListFromValidator(address: string): Promise<UndelegationInfo[]> {
+    async queryGetUndelegationListFromValidator(valoperAddress: string, paginationKey: string = ""): Promise<{ dataList: UndelegationInfo[], pagination: Pagination }> {
 
-        const path = `/cosmos/staking/v1beta1/validators/${address}/unbonding_delegations`;
-        const result = await this.axios.get(path);
+        const path = `/cosmos/staking/v1beta1/validators/${valoperAddress}/unbonding_delegations`;
+        const result = await this.axios.get(path, { params: { "pagination.key": paginationKey } });
 
-        return result.data.unbonding_responses;
+        const convertPagination: Pagination = {
+            next_key: result.data.pagination.next_key,
+            total: Number.parseInt(result.data.pagination.total)
+        };
+
+        return { dataList: result.data.unbonding_responses, pagination: convertPagination };
+        
     }
 
-    async queryGetDelegateListFromValidator(address: string): Promise<DelegationInfo[]> {
+    async queryGetDelegateListFromValidator(valoperAddress: string, paginationKey: string = ""): Promise<{ dataList: DelegationInfo[], pagination: Pagination }> {
 
-        const path = `/cosmos/staking/v1beta1/validators/${address}/delegations`;
-        const result = await this.axios.get(path);
+        const path = `/cosmos/staking/v1beta1/validators/${valoperAddress}/delegations`;
+        const result = await this.axios.get(path, { params: { "pagination.key": paginationKey } });
 
-        return result.data.delegation_responses;
+        const convertPagination: Pagination = {
+            next_key: result.data.pagination.next_key,
+            total: Number.parseInt(result.data.pagination.total)
+        };
+
+        return { dataList: result.data.delegation_responses, pagination: convertPagination };
     }
 
-    async queryGetTotalDelegationInfo(address: string): Promise<DelegationInfo[]> {
+    async queryGetTotalDelegationInfo(address: string, paginationKey: string = ""): Promise<{ dataList: DelegationInfo[], pagination: Pagination }> {
 
         const path = `/cosmos/staking/v1beta1/delegations/${address}`;
-        const result = await this.axios.get(path);
+        const result = await this.axios.get(path, { params: { "pagination.key": paginationKey } });
 
-        return result.data.delegation_responses;
+        const convertPagination: Pagination = {
+            next_key: result.data.pagination.next_key,
+            total: Number.parseInt(result.data.pagination.total)
+        };
+
+        return { dataList: result.data.delegation_responses, pagination: convertPagination };
     }
 
     async queryGetParams(): Promise<ParamsDataType> {
@@ -185,11 +202,16 @@ export class StakingQueryClient {
         return result.data.validator;
     }
 
-    async queryValidators(): Promise<ValidatorDataType[]> {
+
+    async queryValidators(paginationKey: string = ""): Promise<{ dataList: ValidatorDataType[], pagination: Pagination }> {
 
         const path = "/cosmos/staking/v1beta1/validators";
-        const result = await this.axios.get(path);
+        const result = await this.axios.get(path, { params: { "pagination.key": paginationKey } });
 
-        return result.data.validators;
+        const convertPagination: Pagination = {
+            next_key: result.data.pagination.next_key,
+            total: Number.parseInt(result.data.pagination.total)
+        };
+        return { dataList: result.data.validators, pagination: convertPagination };
     }
 }

@@ -14,24 +14,24 @@ describe('[13. Staking Query Test]', () => {
 
 	it('2.get validator data', async () => {
 
-		var validatorList = await firma.Staking.getValidatorList();
+		var validatorList = (await firma.Staking.getValidatorList()).dataList;
 		var result = await firma.Staking.getValidator(validatorList[0].operator_address);
 		//console.log(result);
 	})
 
 	it('3.get getDelegationListFromValidator', async () => {
 
-		var validatorList = await firma.Staking.getValidatorList();
+		var validatorList = (await firma.Staking.getValidatorList()).dataList;
 		var result = await firma.Staking.getDelegationListFromValidator(validatorList[0].operator_address);
-		//console.log(result);
+		console.log(result);
 	})
 
 	it('4.get getUndelegationListFromValidator', async () => {
 
-		var validatorList = await firma.Staking.getValidatorList();
+		var validatorList = (await firma.Staking.getValidatorList()).dataList;
 		var result = await firma.Staking.getUndelegationListFromValidator(validatorList[0].operator_address);
 
-		//console.log(result);
+		console.log(result);
 	})
 
 	// param side
@@ -77,7 +77,7 @@ describe('[13. Staking Query Test]', () => {
 
 	it('10.get userside getDelegationInfoFromValidator', async () => {
 
-		var validatorList = await firma.Staking.getValidatorList();
+		var validatorList = (await firma.Staking.getValidatorList()).dataList;
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		var result = await firma.Staking.getDelegationInfoFromValidator(await wallet.getAddress(), validatorList[0].operator_address);
@@ -88,7 +88,7 @@ describe('[13. Staking Query Test]', () => {
 
 	it('11.get userside getUndelegationInfoFromValidator', async () => {
 
-		var validatorList = await firma.Staking.getValidatorList();
+		var validatorList = (await firma.Staking.getValidatorList()).dataList;
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
 		var result = await firma.Staking.getUndelegationInfoFromValidator(await wallet.getAddress(), validatorList[0].operator_address);

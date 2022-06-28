@@ -70,7 +70,7 @@ describe('[23. Authz Tx Test]', () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobAddress = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
-		const delegationInfo = await firma.Staking.getTotalDelegationInfo(await aliceWallet.getAddress());
+		const delegationInfo = (await firma.Staking.getTotalDelegationInfo(await aliceWallet.getAddress())).dataList;
 		const validatorAddress = delegationInfo[0].delegation.validator_address;
 
 		// add a year expiration to test.
@@ -94,7 +94,7 @@ describe('[23. Authz Tx Test]', () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		let bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
-		const delegationInfo = await firma.Staking.getTotalDelegationInfo(await aliceWallet.getAddress());
+		const delegationInfo = (await firma.Staking.getTotalDelegationInfo(await aliceWallet.getAddress())).dataList;
 		const validatorAddress = delegationInfo[0].delegation.validator_address;
 
 		const amountFCT = 9;
@@ -133,7 +133,7 @@ describe('[23. Authz Tx Test]', () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobAddress = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
-		const delegationInfo = await firma.Staking.getTotalDelegationInfo(await aliceWallet.getAddress());
+		const delegationInfo = (await firma.Staking.getTotalDelegationInfo(await aliceWallet.getAddress())).dataList;
 		const validatorAddress = delegationInfo[0].delegation.validator_address;
 
 		// add a year expiration to test.
@@ -153,7 +153,7 @@ describe('[23. Authz Tx Test]', () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		let bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
-		const delegationInfo = await firma.Staking.getTotalDelegationInfo(await aliceWallet.getAddress());
+		const delegationInfo = (await firma.Staking.getTotalDelegationInfo(await aliceWallet.getAddress())).dataList;
 		const validatorAddress = delegationInfo[0].delegation.validator_address;
 
 		const amountFCT = 9;
@@ -193,7 +193,7 @@ describe('[23. Authz Tx Test]', () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobAddress = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
-		const delegationInfo = await firma.Staking.getTotalDelegationInfo(await aliceWallet.getAddress());
+		const delegationInfo = (await firma.Staking.getTotalDelegationInfo(await aliceWallet.getAddress())).dataList;
 		const validatorAddress = delegationInfo[0].delegation.validator_address;
 
 		var expirationDate = new Date();
@@ -212,7 +212,7 @@ describe('[23. Authz Tx Test]', () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		let bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
-		const delegationInfo = await firma.Staking.getTotalDelegationInfo(await aliceWallet.getAddress());
+		const delegationInfo = (await firma.Staking.getTotalDelegationInfo(await aliceWallet.getAddress())).dataList;
 		const validatorSrcAddress = delegationInfo[0].delegation.validator_address;
 
 		// INFO: add a year expiration to test.		
@@ -275,7 +275,7 @@ describe('[23. Authz Tx Test]', () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		let bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
-		const delegationInfo = await firma.Staking.getTotalDelegationInfo(await aliceWallet.getAddress());
+		const delegationInfo = (await firma.Staking.getTotalDelegationInfo(await aliceWallet.getAddress())).dataList;
 		const validatorAddress = delegationInfo[0].delegation.validator_address;
 
 		const amountFCT = 10;

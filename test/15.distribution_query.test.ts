@@ -15,7 +15,7 @@ describe('[15. Distribution Query Test]', () => {
 
 	it('get validator commission', async () => {
 
-		let validatorList = await firma.Staking.getValidatorList();
+		let validatorList = (await firma.Staking.getValidatorList()).dataList;
 		let validatorAddress = validatorList[0].operator_address;
 
 		var result = await firma.Distribution.getValidatorCommission(validatorAddress);
@@ -24,7 +24,7 @@ describe('[15. Distribution Query Test]', () => {
 
 	it('get validator outstanding_rewards', async () => {
 
-		let validatorList = await firma.Staking.getValidatorList();
+		let validatorList = (await firma.Staking.getValidatorList()).dataList;
 		let validatorAddress = validatorList[0].operator_address;
 
 		var result = await firma.Distribution.getValidatorOutStandingReward(validatorAddress);
@@ -33,7 +33,7 @@ describe('[15. Distribution Query Test]', () => {
 
 	it('get validator self delegator\'s reward', async () => {
 
-		let validatorList = await firma.Staking.getValidatorList();
+		let validatorList = (await firma.Staking.getValidatorList()).dataList;
 		let validatorAddress = validatorList[0].operator_address;
 
 		let address = FirmaUtil.getAccAddressFromValOperAddress(validatorAddress);
@@ -46,7 +46,7 @@ describe('[15. Distribution Query Test]', () => {
 
 	it('get commission from self delegator', async () => {
 
-		let validatorList = await firma.Staking.getValidatorList();
+		let validatorList = (await firma.Staking.getValidatorList()).dataList;
 		let validatorAddress = validatorList[0].operator_address;
 
 		let address = FirmaUtil.getAccAddressFromValOperAddress(validatorAddress);

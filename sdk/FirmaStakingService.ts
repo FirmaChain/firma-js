@@ -7,7 +7,8 @@ import {
     ParamsDataType,
     DelegationInfo,
     RedelegationInfo,
-    UndelegationInfo
+    UndelegationInfo,
+    Pagination
 } from "./firmachain/staking";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
@@ -343,10 +344,10 @@ export class FirmaStakingService {
         }
     }
 
-    async getUndelegationListFromValidator(valoperAddress: string): Promise<UndelegationInfo[]> {
+    async getUndelegationListFromValidator(valoperAddress: string, paginationKey: string = ""): Promise<{ dataList: UndelegationInfo[], pagination: Pagination }> {
         try {
             const queryClient = new StakingQueryClient(this.config.restApiAddress);
-            const result = await queryClient.queryGetUndelegationListFromValidator(valoperAddress);
+            const result = await queryClient.queryGetUndelegationListFromValidator(valoperAddress, paginationKey);
 
             return result;
 
@@ -356,10 +357,10 @@ export class FirmaStakingService {
         }
     }
 
-    async getDelegationListFromValidator(valoperAddress: string): Promise<DelegationInfo[]> {
+    async getDelegationListFromValidator(valoperAddress: string, paginationKey: string = ""): Promise<{ dataList: DelegationInfo[], pagination: Pagination }> {
         try {
             const queryClient = new StakingQueryClient(this.config.restApiAddress);
-            const result = await queryClient.queryGetDelegateListFromValidator(valoperAddress);
+            const result = await queryClient.queryGetDelegateListFromValidator(valoperAddress, paginationKey);
 
             return result;
 
@@ -369,10 +370,10 @@ export class FirmaStakingService {
         }
     }
 
-    async getTotalDelegationInfo(address: string): Promise<DelegationInfo[]> {
+    async getTotalDelegationInfo(address: string, paginationKey: string = ""): Promise<{ dataList: DelegationInfo[], pagination: Pagination }> {
         try {
             const queryClient = new StakingQueryClient(this.config.restApiAddress);
-            const result = await queryClient.queryGetTotalDelegationInfo(address);
+            const result = await queryClient.queryGetTotalDelegationInfo(address, paginationKey);
 
             return result;
 
@@ -421,10 +422,10 @@ export class FirmaStakingService {
         }
     }
 
-    async getValidatorList(): Promise<ValidatorDataType[]> {
+    async getValidatorList(paginationKey: string = ""): Promise<{ dataList: ValidatorDataType[], pagination: Pagination }> {
         try {
             const queryClient = new StakingQueryClient(this.config.restApiAddress);
-            const result = await queryClient.queryValidators();
+            const result = await queryClient.queryValidators(paginationKey);
 
             return result;
 
@@ -433,5 +434,4 @@ export class FirmaStakingService {
             throw error;
         }
     }
-
 }

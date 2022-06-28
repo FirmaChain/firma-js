@@ -4,7 +4,7 @@ import { Timestamp } from '../sdk/firmachain/google/protobuf/timestamp';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
-describe('[24. Authz query Test]', () => {
+describe.only('[24. Authz query Test]', () => {
 
 	const firma = new FirmaSDK(TestChainConfig);
 
@@ -15,11 +15,13 @@ describe('[24. Authz query Test]', () => {
 
 		let result = await firma.Authz.getSendGrantData(granter, grantee);
 
-		/*console.log(result[0].authorization['@type']);
-		console.log(result[0].authorization.spend_limit[0].denom);
-		console.log(result[0].authorization.spend_limit[0].amount);
+		//console.log(result);
 
-		let timeDate = Date.parse(result[0].expiration);
+		/*console.log(result.dataList[0].authorization['@type']);
+		console.log(result.dataList[0].authorization.spend_limit[0].denom);
+		console.log(result.dataList[0].authorization.spend_limit[0].amount);
+
+		let timeDate = Date.parse(result.dataList[0].expiration);
 		console.log(timeDate);*/
 	});
 
@@ -30,7 +32,7 @@ describe('[24. Authz query Test]', () => {
 
 		const msg = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward";
 
-		let result = await firma.Authz.getGenericGrantData(granter, grantee, msg);
+		let result = (await firma.Authz.getGenericGrantData(granter, grantee, msg)).dataList;
 
 		/*console.log(result[0].authorization['@type']);
 		console.log(result[0].authorization.msg);
@@ -44,7 +46,7 @@ describe('[24. Authz query Test]', () => {
 		const granter = await (await firma.Wallet.fromMnemonic(aliceMnemonic)).getAddress();
 		const grantee = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
-		let result = await firma.Authz.getStakingGrantData(granter, grantee, AuthorizationType.AUTHORIZATION_TYPE_DELEGATE);
+		let result = (await firma.Authz.getStakingGrantData(granter, grantee, AuthorizationType.AUTHORIZATION_TYPE_DELEGATE)).dataList;
 
 		/*console.log(result[0].authorization['@type']);
 		console.log(result[0].authorization.allow_list.address[0]);
@@ -62,7 +64,7 @@ describe('[24. Authz query Test]', () => {
 		const granter = await (await firma.Wallet.fromMnemonic(aliceMnemonic)).getAddress();
 		const grantee = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
-		let result = await firma.Authz.getStakingGrantData(granter, grantee, AuthorizationType.AUTHORIZATION_TYPE_REDELEGATE);
+		let result = (await firma.Authz.getStakingGrantData(granter, grantee, AuthorizationType.AUTHORIZATION_TYPE_REDELEGATE)).dataList;
 
 		/*console.log(result[0].authorization['@type']);
 		console.log(result[0].authorization.allow_list.address[0]);
@@ -80,7 +82,7 @@ describe('[24. Authz query Test]', () => {
 		const granter = await (await firma.Wallet.fromMnemonic(aliceMnemonic)).getAddress();
 		const grantee = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
-		let result = await firma.Authz.getStakingGrantData(granter, grantee, AuthorizationType.AUTHORIZATION_TYPE_UNDELEGATE);
+		let result = (await firma.Authz.getStakingGrantData(granter, grantee, AuthorizationType.AUTHORIZATION_TYPE_UNDELEGATE)).dataList;
 
 		/*console.log(result[0].authorization['@type']);
 		console.log(result[0].authorization.allow_list.address[0]);
