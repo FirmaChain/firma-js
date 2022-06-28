@@ -10,7 +10,7 @@ describe('[14. Distribution Tx Test]', () => {
 	it('withdrawAllRewards for delegator side', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const delegationList = await firma.Staking.getTotalDelegationInfo(await wallet.getAddress());
+		const delegationList = (await firma.Staking.getTotalDelegationInfo(await wallet.getAddress())).dataList;
 		const validatorAddress = delegationList[0].delegation.validator_address;
 
 		var result = await firma.Distribution.withdrawAllRewards(wallet, validatorAddress);
@@ -20,7 +20,7 @@ describe('[14. Distribution Tx Test]', () => {
 	it('withdrawAllRewards for All Validators', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const delegationList = await firma.Staking.getTotalDelegationInfo(await wallet.getAddress());
+		const delegationList = (await firma.Staking.getTotalDelegationInfo(await wallet.getAddress())).dataList;
 
 		// console.log(delegationList);
 

@@ -194,7 +194,7 @@ describe.skip('[08. Gas Estimation Test]', () => {
 		let alice = "address nerve kid future spin october hip lonely smooth episode tattoo month invest away castle luxury sauce junk husband uncle bullet orbit this dismiss";
 
 		const wallet = await firma.Wallet.fromMnemonic(alice);
-		const validatorList = await firma.Staking.getValidatorList();
+		const validatorList = (await firma.Staking.getValidatorList()).dataList;
 
 		if (validatorList.length < 2)
 			return;
@@ -223,7 +223,7 @@ describe.skip('[08. Gas Estimation Test]', () => {
 	it("6-1. Distribution withdrawAllRewards gas estimation", async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const delegationList = await firma.Staking.getTotalDelegationInfo(await wallet.getAddress());
+		const delegationList = (await (await firma.Staking.getTotalDelegationInfo(await wallet.getAddress())).dataList);
 		const validatorAddress = delegationList[0].delegation.validator_address;
 
 		const gas = await firma.Distribution.getGasEstimationWithdrawAllRewards(wallet, validatorAddress);

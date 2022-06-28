@@ -4,7 +4,7 @@ import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 import { Any } from "./firmachain/google/protobuf/any";
-import { AuthzQueryClient, AuthzTxClient, GrantGenericData, GrantSendData, GrantStakingData, TxMisc } from "./firmachain/authz";
+import { AuthzQueryClient, AuthzTxClient, GrantGenericData, GrantSendData, GrantStakingData, Pagination, TxMisc } from "./firmachain/authz";
 import { AuthorizationType, SendAuthorization, GenericAuthorization, StakeAuthorization } from "./firmachain/authz/AuthzTxTypes";
 import { Timestamp } from "./firmachain/google/protobuf/timestamp";
 
@@ -425,11 +425,10 @@ export class FirmaAuthzService {
     }
 
     // query
-
-    async getSendGrantData(granterAddress: string, granteeAddress: string): Promise<GrantSendData[]> {
+    async getSendGrantData(granterAddress: string, granteeAddress: string, paginationKey: string = ""): Promise<{ dataList:GrantSendData[], pagination: Pagination }> {
         try {
             const queryClient = new AuthzQueryClient(this.config.restApiAddress);
-            const result = await queryClient.getSendGrantData(granterAddress, granteeAddress);
+            const result = await queryClient.getSendGrantData(granterAddress, granteeAddress, paginationKey);
 
             return result;
 
@@ -439,10 +438,10 @@ export class FirmaAuthzService {
         }
     }
 
-    async getGenericGrantData(granterAddress: string, granteeAddress: string, msgType: string): Promise<GrantGenericData[]> {
+    async getGenericGrantData(granterAddress: string, granteeAddress: string, msgType: string, paginationKey: string = ""): Promise<{ dataList:GrantGenericData[], pagination: Pagination }> {
         try {
             const queryClient = new AuthzQueryClient(this.config.restApiAddress);
-            const result = await queryClient.getGenericGrantData(granterAddress, granteeAddress, msgType);
+            const result = await queryClient.getGenericGrantData(granterAddress, granteeAddress, msgType, paginationKey);
 
             return result;
 
@@ -452,10 +451,10 @@ export class FirmaAuthzService {
         }
     }
 
-    async getStakingGrantData(granterAddress: string, granteeAddress: string, msgType: AuthorizationType): Promise<GrantStakingData[]> {
+    async getStakingGrantData(granterAddress: string, granteeAddress: string, msgType: AuthorizationType, paginationKey: string = ""): Promise<{ dataList:GrantStakingData[], pagination: Pagination }> {
         try {
             const queryClient = new AuthzQueryClient(this.config.restApiAddress);
-            const result = await queryClient.getStakingGrantData(granterAddress, granteeAddress, msgType);
+            const result = await queryClient.getStakingGrantData(granterAddress, granteeAddress, msgType, paginationKey);
 
             return result;
 
