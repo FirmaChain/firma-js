@@ -14,7 +14,7 @@ import { ChainService } from "./FirmaChainService";
 import { SlashingService } from "./FirmaSlashingService";
 import { FirmaAuthzService } from "./FirmaAuthzService";
 import { FirmaCosmWasmService } from "./FirmaCosmWasmService";
-import { FirmaIbcService } from "./FirmaIBCService";
+import { FirmaIbcService } from "./FirmaIbcService";
 
 export class FirmaSDK {
     constructor(public Config: FirmaConfig,
