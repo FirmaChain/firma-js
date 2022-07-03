@@ -103,7 +103,7 @@ export class FirmaDistributionService {
             const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
 
             const address = await wallet.getAddress();
-            const message = txClient.msgWithdrawDelegatorReward({ delegatorAddress: address, validatorAddress: validatorAddress });
+            const message = DistributionTxClient.msgWithdrawDelegatorReward({ delegatorAddress: address, validatorAddress: validatorAddress });
 
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
@@ -120,8 +120,7 @@ export class FirmaDistributionService {
             const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
 
             const address = await wallet.getAddress();
-            const message =
-                txClient.msgSetWithdrawAddress({ delegatorAddress: address, withdrawAddress: withdrawAddress });
+            const message = DistributionTxClient.msgSetWithdrawAddress({ delegatorAddress: address, withdrawAddress: withdrawAddress });
 
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
@@ -141,7 +140,7 @@ export class FirmaDistributionService {
             const address = await wallet.getAddress();
             const sendAmount = { denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amount) };
 
-            const message = txClient.msgFundCommunityPool({ depositor: address, amount: [sendAmount] });
+            const message = DistributionTxClient.msgFundCommunityPool({ depositor: address, amount: [sendAmount] });
 
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
@@ -158,7 +157,7 @@ export class FirmaDistributionService {
         try {
             const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
 
-            const message = txClient.msgWithdrawValidatorCommission({ validatorAddress: validatorAddres });
+            const message = DistributionTxClient.msgWithdrawValidatorCommission({ validatorAddress: validatorAddres });
 
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
@@ -228,7 +227,7 @@ export class FirmaDistributionService {
             for (let i = 0; i < delegationList.length; i++) {
 
                 const validatorAddress = delegationList[i].delegation.validator_address;
-                const message = txClient.msgWithdrawDelegatorReward({ delegatorAddress: address, validatorAddress: validatorAddress });
+                const message = DistributionTxClient.msgWithdrawDelegatorReward({ delegatorAddress: address, validatorAddress: validatorAddress });
 
                 messageList.push(message);
             }

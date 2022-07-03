@@ -137,9 +137,8 @@ export class ContractService {
 
         try {
             const address = await wallet.getAddress();
-            const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
 
-            return contractTxClient.msgCreateContractFile({
+            return ContractTxClient.msgCreateContractFile({
                 creator: address,
                 fileHash: fileHash,
                 timeStamp: timeStamp,
@@ -161,10 +160,7 @@ export class ContractService {
 
         try {
             const address = await wallet.getAddress();
-
-            const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
-
-            const message = contractTxClient.msgCreateContractFile({
+            const message = ContractTxClient.msgCreateContractFile({
                 creator: address,
                 fileHash: fileHash,
                 timeStamp: timeStamp,
@@ -172,6 +168,7 @@ export class ContractService {
                 metaDataJsonString: metaDataJsonString
             });
 
+            const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
             return await contractTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -235,10 +232,7 @@ export class ContractService {
 
         try {
             const address = await wallet.getAddress();
-
-            const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
-
-            const message = contractTxClient.msgAddContractLog({
+            const message = ContractTxClient.msgAddContractLog({
                 creator: address,
                 contractHash: contractHash,
                 timeStamp: timeStamp,
@@ -247,6 +241,7 @@ export class ContractService {
                 jsonString: jsonString
             });
 
+            const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
             return await contractTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -289,9 +284,7 @@ export class ContractService {
         try {
             const address = await wallet.getAddress();
 
-            const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
-
-            return contractTxClient.msgAddContractLog({
+            return ContractTxClient.msgAddContractLog({
                 creator: address,
                 contractHash: contractHash,
                 timeStamp: timeStamp,

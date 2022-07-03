@@ -26,11 +26,15 @@ export class ContractTxClient extends ITxClient {
         super(wallet, serverUrl, registry);
     }
 
-    msgAddContractLog(data: MsgAddContractLog): MsgAddContractLogEncodeObject {
+    static getRegistry() : Registry {
+        return registry;
+    }
+
+    static msgAddContractLog(data: MsgAddContractLog): MsgAddContractLogEncodeObject {
         return { typeUrl: "/firmachain.firmachain.contract.MsgAddContractLog", value: data };
     }
 
-    msgCreateContractFile(data: MsgCreateContractFile): MsgCreateContractFileEncodeObject {
+    static msgCreateContractFile(data: MsgCreateContractFile): MsgCreateContractFileEncodeObject {
         return { typeUrl: "/firmachain.firmachain.contract.MsgCreateContractFile", value: data };
     }
 }

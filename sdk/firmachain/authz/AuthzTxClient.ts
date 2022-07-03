@@ -32,15 +32,19 @@ export class AuthzTxClient extends ITxClient {
         super(wallet, serverUrl, registry);
     }
 
-    msgExecAllowance(data: MsgExec): MsgExecAllowanceEncodeObject {
+    static getRegistry() : Registry {
+        return registry;
+    }
+
+    static msgExecAllowance(data: MsgExec): MsgExecAllowanceEncodeObject {
         return { typeUrl: "/cosmos.authz.v1beta1.MsgExec", value: data };
     }
 
-    msgGrantAllowance(data: MsgGrant): MsgGrantAllowanceEncodeObject {
+    static msgGrantAllowance(data: MsgGrant): MsgGrantAllowanceEncodeObject {
         return { typeUrl: "/cosmos.authz.v1beta1.MsgGrant", value: data };
     }
 
-    msgRevokeAllowance(data: MsgRevoke): MsgRevokeAllowanceEncodeObject {
+    static msgRevokeAllowance(data: MsgRevoke): MsgRevokeAllowanceEncodeObject {
         return { typeUrl: "/cosmos.authz.v1beta1.MsgRevoke", value: data };
     }
 }

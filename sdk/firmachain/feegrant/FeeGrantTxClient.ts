@@ -26,11 +26,15 @@ export class FeeGrantTxClient extends ITxClient {
         super(wallet, serverUrl, registry);
     }
 
-    msgGrantAllowance(data: MsgGrantAllowance): MsgGrantAllowanceEncodeObject {
+    static getRegistry() : Registry {
+        return registry;
+    }
+
+    static msgGrantAllowance(data: MsgGrantAllowance): MsgGrantAllowanceEncodeObject {
         return { typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance", value: data };
     }
 
-    msgRevokeAllowance(data: MsgRevokeAllowance): MsgRevokeAllowanceEncodeObject {
+    static msgRevokeAllowance(data: MsgRevokeAllowance): MsgRevokeAllowanceEncodeObject {
         return { typeUrl: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance", value: data };
     }
 }

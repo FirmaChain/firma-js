@@ -26,11 +26,15 @@ export class BankTxClient extends ITxClient {
         super(wallet, address, registry);
     }
 
-    msgSend(data: MsgSend): MsgSendEncodeObject {
+    static getRegistry() : Registry {
+        return registry;
+    }
+
+    static msgSend(data: MsgSend): MsgSendEncodeObject {
         return { typeUrl: "/cosmos.bank.v1beta1.MsgSend", value: data };
     }
 
-    msgMultiSend(data: MsgMultiSend): MsgMultiSendEncodeObject {
+    static msgMultiSend(data: MsgMultiSend): MsgMultiSendEncodeObject {
         return { typeUrl: "/cosmos.bank.v1beta1.MsgMultiSend", value: data };
     }
 }

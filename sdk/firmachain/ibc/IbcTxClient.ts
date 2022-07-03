@@ -20,7 +20,11 @@ export class IbcTxClient extends ITxClient {
         super(wallet, address, registry);
     }
 
-    msgTransfer(data: MsgTransfer): MsgTransferEncodeObject {
+    static getRegistry() : Registry {
+        return registry;
+    }
+
+    static msgTransfer(data: MsgTransfer): MsgTransferEncodeObject {
         return { typeUrl: "/ibc.applications.transfer.v1.MsgTransfer", value: data };
     }
 }

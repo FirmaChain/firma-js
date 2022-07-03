@@ -38,19 +38,23 @@ export class TokenTxClient extends ITxClient {
         super(wallet, serverUrl, registry);
     }
 
-    msgCreateToken(data: MsgCreateToken): MsgCreateTokenEncodeObject {
+    static getRegistry() : Registry {
+        return registry;
+    }
+
+    static msgCreateToken(data: MsgCreateToken): MsgCreateTokenEncodeObject {
         return { typeUrl: "/firmachain.firmachain.token.MsgCreateToken", value: data };
     }
 
-    msgUpdateTokenURI(data: MsgUpdateTokenURI): MsgUpdateTokenURIEncodeObject {
+    static msgUpdateTokenURI(data: MsgUpdateTokenURI): MsgUpdateTokenURIEncodeObject {
         return { typeUrl: "/firmachain.firmachain.token.MsgUpdateTokenURI", value: data };
     }
 
-    msgMint(data: MsgMint): MsgMintEncodeObject {
+    static msgMint(data: MsgMint): MsgMintEncodeObject {
         return { typeUrl: "/firmachain.firmachain.token.MsgMint", value: data };
     }
 
-    msgBurn(data: MsgBurn): MsgBurnEncodeObject {
+    static msgBurn(data: MsgBurn): MsgBurnEncodeObject {
         return { typeUrl: "/firmachain.firmachain.token.MsgBurn", value: data };
     }
 }

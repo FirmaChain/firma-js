@@ -1,5 +1,8 @@
 import { expect } from 'chai';
 import { AuthorizationType } from '../sdk/firmachain/authz/AuthzTxTypes';
+import { BankTxClient } from '../sdk/firmachain/bank';
+import { DistributionTxClient } from '../sdk/firmachain/distribution';
+import { StakingTxClient } from '../sdk/firmachain/staking';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
@@ -21,7 +24,6 @@ describe('[23. Authz Tx Test]', () => {
 
 		// spend-limit should be greater than zero
 		const maxFCT = 10;
-
 		var result = await firma.Authz.grantSendAuthorization(aliceWallet, bobAddress, expirationDate, maxFCT);
 
 		//console.log(result);
@@ -38,15 +40,13 @@ describe('[23. Authz Tx Test]', () => {
 		const toAddress = await bobWallet.getAddress();
 		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
 
-		const bankTxClient = firma.Bank.getTxClient(aliceWallet);
-
-		let msgSend = bankTxClient.msgSend({
+		let msgSend = BankTxClient.msgSend({
 			fromAddress: address,
 			toAddress: toAddress,
 			amount: [sendAmount]
 		});
 
-		const anyData = bankTxClient.getAnyData(msgSend)
+		const anyData = FirmaUtil.getAnyData(BankTxClient.getRegistry(), msgSend);
 
 		var result = await firma.Authz.executeAllowance(bobWallet, [anyData]);
 
@@ -101,15 +101,13 @@ describe('[23. Authz Tx Test]', () => {
 		const address = await aliceWallet.getAddress();
 		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
 
-		const stakingTxClient = firma.Staking.getTxClient(aliceWallet);
-
-		let msgDelegate = stakingTxClient.msgDelegate({
+		let msgDelegate = StakingTxClient.msgDelegate({
 			delegatorAddress: address,
 			validatorAddress: validatorAddress,
 			amount: sendAmount
 		});
 
-		const anyData = stakingTxClient.getAnyData(msgDelegate)
+		const anyData = FirmaUtil.getAnyData(StakingTxClient.getRegistry(), msgDelegate);
 
 		var result = await firma.Authz.executeAllowance(bobWallet, [anyData]);
 
@@ -160,15 +158,13 @@ describe('[23. Authz Tx Test]', () => {
 		const address = await aliceWallet.getAddress();
 		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
 
-		const stakingTxClient = firma.Staking.getTxClient(aliceWallet);
-
-		let msgUndelegate = stakingTxClient.msgUndelegate({
+		let msgUndelegate = StakingTxClient.msgUndelegate({
 			delegatorAddress: address,
 			validatorAddress: validatorAddress,
 			amount: sendAmount
 		});
 
-		const anyData = stakingTxClient.getAnyData(msgUndelegate)
+		const anyData = FirmaUtil.getAnyData(StakingTxClient.getRegistry(), msgUndelegate)
 
 		var result = await firma.Authz.executeAllowance(bobWallet, [anyData]);
 
@@ -224,16 +220,14 @@ describe('[23. Authz Tx Test]', () => {
 		const address = await aliceWallet.getAddress();
 		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
 
-		const stakingTxClient = firma.Staking.getTxClient(aliceWallet);
-
-		let msgRedelegate = stakingTxClient.msgRedelegate({
+		let msgRedelegate = StakingTxClient.msgRedelegate({
 			delegatorAddress: address,
 			validatorSrcAddress: validatorSrcAddress,
 			validatorDstAddress: validatorDstAddress,
 			amount: sendAmount
 		});
 
-		const anyData = stakingTxClient.getAnyData(msgRedelegate)
+		const anyData = FirmaUtil.getAnyData(StakingTxClient.getRegistry(),msgRedelegate)
 
 		var result = await firma.Authz.executeAllowance(bobWallet, [anyData]);
 
@@ -282,14 +276,12 @@ describe('[23. Authz Tx Test]', () => {
 		const address = await aliceWallet.getAddress();
 		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
 
-		const distributionTxClient = firma.Distribution.getTxClient(aliceWallet);
-
-		let msgWithdrawDelegatorReward = distributionTxClient.msgWithdrawDelegatorReward({
+		let msgWithdrawDelegatorReward = DistributionTxClient.msgWithdrawDelegatorReward({
 			delegatorAddress: address,
 			validatorAddress: validatorAddress,
 		});
 
-		const anyData = distributionTxClient.getAnyData(msgWithdrawDelegatorReward)
+		const anyData = FirmaUtil.getAnyData(DistributionTxClient.getRegistry(), msgWithdrawDelegatorReward)
 
 		var result = await firma.Authz.executeAllowance(bobWallet, [anyData]);
 

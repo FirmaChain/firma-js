@@ -84,7 +84,7 @@ export class FirmaStakingService {
             const address = await wallet.getAddress();
             const sendAmount = { denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amount) };
 
-            const message = txClient.msgDelegate({
+            const message = StakingTxClient.msgDelegate({
                 delegatorAddress: address,
                 validatorAddress: validatorAddres,
                 amount: sendAmount
@@ -109,7 +109,7 @@ export class FirmaStakingService {
             const address = await wallet.getAddress();
             const sendAmount = { denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amount) };
 
-            const message = txClient.msgUndelegate({
+            const message = StakingTxClient.msgUndelegate({
                 delegatorAddress: address,
                 validatorAddress: validatorAddres,
                 amount: sendAmount
@@ -135,7 +135,7 @@ export class FirmaStakingService {
             const address = await wallet.getAddress();
             const sendAmount = { denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amount) };
 
-            const message = txClient.msgRedelegate({
+            const message = StakingTxClient.msgRedelegate({
                 delegatorAddress: address,
                 validatorSrcAddress: validatorSrcAddress,
                 validatorDstAddress: validatorDstAddress,
@@ -157,7 +157,7 @@ export class FirmaStakingService {
         try {
             const txClient = new StakingTxClient(wallet, this.config.rpcAddress);
 
-            const message = txClient.msgCreateValidator({
+            const message = StakingTxClient.msgCreateValidator({
                 description: validatorInfo.description,
                 commission: validatorInfo.commission,
                 minSelfDelegation: validatorInfo.minSelfDelegation,
@@ -185,7 +185,7 @@ export class FirmaStakingService {
         try {
             const txClient = new StakingTxClient(wallet, this.config.rpcAddress);
 
-            const message = txClient.msgEditValidator({
+            const message = StakingTxClient.msgEditValidator({
                 validatorAddress: validatorAddress,
                 description: description,
                 commissionRate: commissionRate,

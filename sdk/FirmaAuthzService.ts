@@ -18,8 +18,6 @@ export class FirmaAuthzService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
-
             const address = await wallet.getAddress();
 
             const authorization = Any.fromPartial({
@@ -31,7 +29,7 @@ export class FirmaAuthzService {
 
             const timestamp = Timestamp.fromPartial({ seconds: expirationDate.getTime() / 1000 });
 
-            const message = authzTxClient.msgGrantAllowance({
+            const message = AuthzTxClient.msgGrantAllowance({
                 granter: address,
                 grantee: granteeAddress,
                 grant: {
@@ -40,6 +38,7 @@ export class FirmaAuthzService {
                 }
             });
 
+            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
             return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
         } catch (error) {
@@ -57,8 +56,6 @@ export class FirmaAuthzService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
-
             const address = await wallet.getAddress();
 
             const authorization = Any.fromPartial({
@@ -72,7 +69,7 @@ export class FirmaAuthzService {
 
             const timestamp = Timestamp.fromPartial({ seconds: expirationDate.getTime() / 1000 });
 
-            const message = authzTxClient.msgGrantAllowance({
+            const message = AuthzTxClient.msgGrantAllowance({
                 granter: address,
                 grantee: granteeAddress,
                 grant: {
@@ -81,6 +78,7 @@ export class FirmaAuthzService {
                 }
             });
 
+            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
             return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
         } catch (error) {
@@ -96,8 +94,6 @@ export class FirmaAuthzService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
-
             const address = await wallet.getAddress();
 
             const authorization = Any.fromPartial({
@@ -109,7 +105,7 @@ export class FirmaAuthzService {
 
             const timestamp = Timestamp.fromPartial({ seconds: expirationDate.getTime() / 1000 });
 
-            const message = authzTxClient.msgGrantAllowance({
+            const message = AuthzTxClient.msgGrantAllowance({
                 granter: address,
                 grantee: granteeAddress,
                 grant: {
@@ -118,6 +114,7 @@ export class FirmaAuthzService {
                 }
             });
 
+            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);        
             return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
         } catch (error) {
@@ -132,16 +129,15 @@ export class FirmaAuthzService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
-
             const address = await wallet.getAddress();
 
-            const message = authzTxClient.msgRevokeAllowance({
+            const message = AuthzTxClient.msgRevokeAllowance({
                 granter: address,
                 grantee: granteeAddress,
                 msgTypeUrl: msgType
             });
 
+            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
             return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
         } catch (error) {
@@ -156,14 +152,14 @@ export class FirmaAuthzService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
             const address = await wallet.getAddress();
 
-            const message = authzTxClient.msgExecAllowance({
+            const message = AuthzTxClient.msgExecAllowance({
                 grantee: address,
                 msgs: msgs
             });
 
+            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
             return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
         } catch (error) {
