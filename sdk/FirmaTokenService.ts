@@ -68,15 +68,13 @@ export class TokenService {
 
         try {
             const address = await wallet.getAddress();
-
-            const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
-
-            const message = txClient.msgUpdateTokenURI({
+            const message = TokenTxClient.msgUpdateTokenURI({
                 owner: address,
                 tokenID: tokenID,
                 tokenURI: tokenURI
             });
 
+            const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
         } catch (error) {
@@ -90,15 +88,13 @@ export class TokenService {
 
         try {
             const address = await wallet.getAddress();
-
-            const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
-
-            const message = txClient.msgBurn({
+            const message = TokenTxClient.msgBurn({
                 owner: address,
                 tokenID: tokenID,
                 amount: amount
             });
 
+            const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
         } catch (error) {
@@ -112,16 +108,14 @@ export class TokenService {
 
         try {
             const address = await wallet.getAddress();
-
-            const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
-
-            const message = txClient.msgMint({
+            const message = TokenTxClient.msgMint({
                 owner: address,
                 tokenID: tokenID,
                 amount: amount,
                 toAddress: toAddress
             });
 
+            const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
         } catch (error) {
@@ -135,10 +129,7 @@ export class TokenService {
 
         try {
             const address = await wallet.getAddress();
-
-            const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
-
-            const message = txClient.msgCreateToken({
+            const message = TokenTxClient.msgCreateToken({
                 owner: address,
                 name: tokenName,
                 symbol: tokenSymbol,
@@ -149,6 +140,7 @@ export class TokenService {
                 burnable: isBurnable
             });
 
+            const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
         } catch (error) {

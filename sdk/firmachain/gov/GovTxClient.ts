@@ -32,15 +32,19 @@ export class GovTxClient extends ITxClient {
         super(wallet, serverUrl, registry);
     }
 
-    msgDeposit(data: MsgDeposit): MsgDepositEncodeObject {
+    static getRegistry() : Registry {
+        return registry;
+    }
+
+    static msgDeposit(data: MsgDeposit): MsgDepositEncodeObject {
         return { typeUrl: "/cosmos.gov.v1beta1.MsgDeposit", value: data };
     }
 
-    msgSubmitProposal(data: MsgSubmitProposal): MsgSubmitProposalEncodeObject {
+    static msgSubmitProposal(data: MsgSubmitProposal): MsgSubmitProposalEncodeObject {
         return { typeUrl: "/cosmos.gov.v1beta1.MsgSubmitProposal", value: data };
     }
 
-    msgVote(data: MsgVote): MsgVoteEncodeObject {
+    static msgVote(data: MsgVote): MsgVoteEncodeObject {
         return { typeUrl: "/cosmos.gov.v1beta1.MsgVote", value: data };
     }
 

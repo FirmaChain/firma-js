@@ -45,19 +45,23 @@ export class DistributionTxClient extends ITxClient {
         super(wallet, serverUrl, registry);
     }
 
-    msgFundCommunityPool(data: MsgFundCommunityPool): MsgFundCommunityPoolEncodeObject {
+    static getRegistry() : Registry {
+        return registry;
+    }
+
+    static msgFundCommunityPool(data: MsgFundCommunityPool): MsgFundCommunityPoolEncodeObject {
         return { typeUrl: "/cosmos.distribution.v1beta1.MsgFundCommunityPool", value: data };
     }
 
-    msgSetWithdrawAddress(data: MsgSetWithdrawAddress): MsgSetWithdrawAddressEncodeObject {
+    static msgSetWithdrawAddress(data: MsgSetWithdrawAddress): MsgSetWithdrawAddressEncodeObject {
         return { typeUrl: "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress", value: data };
     }
 
-    msgWithdrawDelegatorReward(data: MsgWithdrawDelegatorReward): MsgWithdrawDelegatorRewardEncodeObject {
+    static msgWithdrawDelegatorReward(data: MsgWithdrawDelegatorReward): MsgWithdrawDelegatorRewardEncodeObject {
         return { typeUrl: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward", value: data };
     }
 
-    msgWithdrawValidatorCommission(data: MsgWithdrawValidatorCommission): MsgWithdrawValidatorCommissionEncodeObject {
+    static msgWithdrawValidatorCommission(data: MsgWithdrawValidatorCommission): MsgWithdrawValidatorCommissionEncodeObject {
         return { typeUrl: "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission", value: data };
     }
 

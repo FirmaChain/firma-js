@@ -44,7 +44,7 @@ export class FirmaFeeGrantService {
             const address = await wallet.getAddress();
 
             const feeGrantTxClient = new FeeGrantTxClient(wallet, this.config.rpcAddress);
-            const message = feeGrantTxClient.msgRevokeAllowance({ granter: address, grantee: granteeAddress });
+            const message = FeeGrantTxClient.msgRevokeAllowance({ granter: address, grantee: granteeAddress });
 
             return await feeGrantTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
@@ -123,7 +123,7 @@ export class FirmaFeeGrantService {
                 value: bytes
             };
 
-            const message = feeGrantTxClient.msgGrantAllowance({
+            const message = FeeGrantTxClient.msgGrantAllowance({
                 granter: address,
                 grantee: granteeAddress,
                 allowance: Any.fromJSON(allowanceAnyData)
@@ -182,7 +182,7 @@ export class FirmaFeeGrantService {
             //console.log(Any.fromJSON(allowanceAnyData));
             //console.log('Any.fromJSON(allowanceAnyData)---');
 
-            const message = feeGrantTxClient.msgGrantAllowance({
+            const message = FeeGrantTxClient.msgGrantAllowance({
                 granter: address,
                 grantee: granteeAddress,
                 allowance: Any.fromJSON(allowanceAnyData)

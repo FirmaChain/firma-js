@@ -112,9 +112,9 @@ export class NftService {
 
         try {
             const address = await wallet.getAddress();
+            const message = NftTxClient.msgTransfer({ owner: address, toAddress: toAddress, nftId: parseInt(nftID) });
 
             const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
-            const message = nftTxClient.msgTransfer({ owner: address, toAddress: toAddress, nftId: parseInt(nftID) });
             return await nftTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
         } catch (error) {
@@ -156,9 +156,9 @@ export class NftService {
 
         try {
             const address = await wallet.getAddress();
-            const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
+            const message = NftTxClient.msgBurn({ owner: address, nftId: parseInt(nftID) });
 
-            const message = nftTxClient.msgBurn({ owner: address, nftId: parseInt(nftID) });
+            const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
             return await nftTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
         } catch (error) {
@@ -201,10 +201,9 @@ export class NftService {
 
         try {
             const address = await wallet.getAddress();
+            const message = NftTxClient.msgMint({ owner: address, tokenURI: tokenURI });
 
             const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
-
-            const message = nftTxClient.msgMint({ owner: address, tokenURI: tokenURI });
             return await nftTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
         } catch (error) {

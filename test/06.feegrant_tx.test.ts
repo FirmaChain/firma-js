@@ -25,6 +25,7 @@ describe('[06. Feegrant Tx Test]', () => {
 		};
 
 		var result = await firma.FeeGrant.grantPeriodicAllowance(aliceWallet, await bobWallet.getAddress(), periodicAllowanceData);
+		//console.log(result);
 
 		expect(result.code).to.equal(0);
 	});

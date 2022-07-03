@@ -60,27 +60,31 @@ export class CosmWasmTxClient extends ITxClient {
         super(wallet, serverUrl, registry);
     }
 
-    msgStoreCode(data: MsgStoreCode): MsgStoreCodeEncodeObject {
+    static getRegistry() : Registry {
+        return registry;
+    }
+
+    static msgStoreCode(data: MsgStoreCode): MsgStoreCodeEncodeObject {
         return { typeUrl: "/cosmwasm.wasm.v1.MsgStoreCode", value: data };
     }
 
-    msgInstantiateContract(data: MsgInstantiateContract): MsgInstantiateContractEncodeObject {
+    static msgInstantiateContract(data: MsgInstantiateContract): MsgInstantiateContractEncodeObject {
         return { typeUrl: "/cosmwasm.wasm.v1.MsgInstantiateContract", value: data };
     }
 
-    msgExecuteContract(data: MsgExecuteContract): MsgExecuteContractEncodeObject {
+    static msgExecuteContract(data: MsgExecuteContract): MsgExecuteContractEncodeObject {
         return { typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract", value: data };
     }
 
-    msgUpdateAdmin(data: MsgUpdateAdmin): MsgUpdateAdminEncodeObject {
+    static msgUpdateAdmin(data: MsgUpdateAdmin): MsgUpdateAdminEncodeObject {
         return { typeUrl: "/cosmwasm.wasm.v1.MsgUpdateAdmin", value: data };
     }
 
-    msgClearAdmin(data: MsgClearAdmin): MsgClearAdminEncodeObject {
+    static msgClearAdmin(data: MsgClearAdmin): MsgClearAdminEncodeObject {
         return { typeUrl: "/cosmwasm.wasm.v1.MsgClearAdmin", value: data };
     }
 
-    msgMigrateContract(data: MsgMigrateContract): MsgMigrateContractEncodeObject {
+    static msgMigrateContract(data: MsgMigrateContract): MsgMigrateContractEncodeObject {
         return { typeUrl: "/cosmwasm.wasm.v1.MsgMigrateContract", value: data };
     }
 }

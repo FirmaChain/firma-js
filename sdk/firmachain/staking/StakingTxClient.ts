@@ -52,23 +52,27 @@ export class StakingTxClient extends ITxClient {
         super(wallet, serverUrl, registry);
     }
 
-    msgDelegate(data: MsgDelegate): MsgDelegateEncodeObject {
+    static getRegistry() : Registry {
+        return registry;
+    }
+
+    static msgDelegate(data: MsgDelegate): MsgDelegateEncodeObject {
         return { typeUrl: "/cosmos.staking.v1beta1.MsgDelegate", value: data };
     }
 
-    msgUndelegate(data: MsgUndelegate): MsgUndelegateEncodeObject {
+    static msgUndelegate(data: MsgUndelegate): MsgUndelegateEncodeObject {
         return { typeUrl: "/cosmos.staking.v1beta1.MsgUndelegate", value: data };
     }
 
-    msgRedelegate(data: MsgBeginRedelegate): MsgRedelegateEncodeObject {
+    static msgRedelegate(data: MsgBeginRedelegate): MsgRedelegateEncodeObject {
         return { typeUrl: "/cosmos.staking.v1beta1.MsgBeginRedelegate", value: data };
     }
 
-    msgEditValidator(data: MsgEditValidator): MsgEditValidatorEncodeObject {
+    static msgEditValidator(data: MsgEditValidator): MsgEditValidatorEncodeObject {
         return { typeUrl: "/cosmos.staking.v1beta1.MsgEditValidator", value: data };
     }
 
-    msgCreateValidator(data: MsgCreateValidator): MsgCreateValidatorEncodeObject {
+    static msgCreateValidator(data: MsgCreateValidator): MsgCreateValidatorEncodeObject {
         return { typeUrl: "/cosmos.staking.v1beta1.MsgCreateValidator", value: data };
     }
 }

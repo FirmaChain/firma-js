@@ -131,7 +131,7 @@ export class FirmaBankService {
             const address = await wallet.getAddress();
             const sendAmount = { denom: denom, amount: amount };
 
-            const message = bankTxClient.msgSend({ fromAddress: address, toAddress: targetAddress, amount: [sendAmount] });
+            const message = BankTxClient.msgSend({ fromAddress: address, toAddress: targetAddress, amount: [sendAmount] });
 
             return await bankTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 

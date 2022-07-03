@@ -66,13 +66,13 @@ export class FirmaIbcService {
         timeoutTimestamp: Long,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
         try {
-            const ibcTxClient = new IbcTxClient(wallet, this.config.rpcAddress);
             const address = await wallet.getAddress();
 
-            const message = ibcTxClient.msgTransfer({ sourcePort: sourcePort, sourceChannel: sourceChannel, sender: address, receiver: receiver, 
+            const message = IbcTxClient.msgTransfer({ sourcePort: sourcePort, sourceChannel: sourceChannel, sender: address, receiver: receiver, 
                 token: {denom: denom, amount: amount},
                 timeoutHeight: timeoutHeight, timeoutTimestamp: timeoutTimestamp });
 
+            const ibcTxClient = new IbcTxClient(wallet, this.config.rpcAddress);
             return await ibcTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
         } catch (error) {

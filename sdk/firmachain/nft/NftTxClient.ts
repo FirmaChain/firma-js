@@ -32,15 +32,19 @@ export class NftTxClient extends ITxClient {
         super(wallet, serverUrl, registry);
     }
 
-    msgTransfer(data: MsgTransfer): MsgTransferEncodeObject {
+    static getRegistry() : Registry {
+        return registry;
+    }
+
+    static msgTransfer(data: MsgTransfer): MsgTransferEncodeObject {
         return { typeUrl: "/firmachain.firmachain.nft.MsgTransfer", value: data };
     }
 
-    msgMint(data: MsgMint): MsgMintEncodeObject {
+    static msgMint(data: MsgMint): MsgMintEncodeObject {
         return { typeUrl: "/firmachain.firmachain.nft.MsgMint", value: data };
     }
 
-    msgBurn(data: MsgBurn): MsgBurnEncodeObject {
+    static msgBurn(data: MsgBurn): MsgBurnEncodeObject {
         return { typeUrl: "/firmachain.firmachain.nft.MsgBurn", value: data };
     }
 }
