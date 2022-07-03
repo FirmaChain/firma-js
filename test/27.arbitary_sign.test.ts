@@ -1,10 +1,11 @@
-import { decodeSignature } from '@cosmjs/amino';
 import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { FirmaUtil } from '../sdk/FirmaUtil';
-import { aliceMnemonic, TestChainConfig } from './config_test';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 import { ArbitraryVerifyData } from '../sdk/firmachain/common/signingaminostargateclient';
+import { BankTxClient } from '../sdk/firmachain/bank';
+import { ITxClient } from '../sdk/firmachain/common/ITxClient';
 
 describe('[27. arbitary sign]', () => {
 
@@ -21,22 +22,90 @@ describe('[27. arbitary sign]', () => {
 
 		// create json to send (with sign)
 		let signatureResult = await FirmaUtil.experimentalAdr36Sign(aliceWallet, testMsg);
-		
+
 		// send jsonstring to other client.
 		let jsonString = JSON.stringify(signatureResult);
 
 		let finalData: ArbitraryVerifyData = JSON.parse(jsonString);
-		//console.log(finalData);
 
 		// error case
 		// finalData.signer += "1";
 		// finalData.data += "1";
 		// finalData.type += "1";
 		// testMsg += "1";
-		
+
 		let isMatch = await FirmaUtil.experimentalAdr36Verify(finalData, testMsg);
 		//console.log(isMatch);
 
 		expect(isMatch).to.be.equal(true);
+	});
+
+
+	it('direct sign & verify basic test', async () => {
+
+		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		let bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+
+		const amountFCT = 9;
+		const aliceAddress = await aliceWallet.getAddress();
+		const bobAddress = await bobWallet.getAddress();
+		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
+
+		let msgSend = BankTxClient.msgSend({
+			fromAddress: aliceAddress,
+			toAddress: bobAddress,
+			amount: [sendAmount]
+		});
+
+		let stringSignDoc = await FirmaUtil.makeSignDocWithStringify(BankTxClient.getRegistry(), aliceAddress, [msgSend]);
+
+		//console.log("--------------------------------");
+
+		let signDoc = FirmaUtil.parseSignDocValues(stringSignDoc);
+
+		const bankTxClient = firma.Bank.getTxClient(aliceWallet);
+		let extTxRaw = await bankTxClient.signDirectForSignDoc(aliceAddress, signDoc);
+
+		const valid = await FirmaUtil.verifyDirectSignature(aliceAddress, extTxRaw.signature, signDoc);
+		expect(valid).to.be.equal(true);
+	});
+
+	it('direct sign & verify & send basic test', async () => {
+
+		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		let bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+
+		const amountFCT = 9;
+		const aliceAddress = await aliceWallet.getAddress();
+		const bobAddress = await bobWallet.getAddress();
+		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
+
+		let msgSend = BankTxClient.msgSend({
+			fromAddress: aliceAddress,
+			toAddress: bobAddress,
+			amount: [sendAmount]
+		});
+		
+		let signDoc = await FirmaUtil.makeSignDoc(BankTxClient.getRegistry(), aliceAddress, [msgSend]);
+		let stringSignDoc:string = FirmaUtil.stringifySignDocValues(signDoc);
+
+		//console.log("--------------------------------");
+
+		let newSignDoc = FirmaUtil.parseSignDocValues(stringSignDoc);
+
+		const bankTxClient = firma.Bank.getTxClient(aliceWallet);
+
+		let extTxRaw = await bankTxClient.signDirectForSignDoc(aliceAddress, newSignDoc);
+
+		const valid = await FirmaUtil.verifyDirectSignature(aliceAddress, extTxRaw.signature, newSignDoc);
+
+		if (valid) {
+			let result = await bankTxClient.broadcast(extTxRaw.txRaw);
+			//console.log(result);
+
+			expect(result.code).to.be.equal(0);
+		}
+
+		expect(valid).to.be.equal(true);
 	});
 });
