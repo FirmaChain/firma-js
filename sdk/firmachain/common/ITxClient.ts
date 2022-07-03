@@ -2,12 +2,10 @@ import { Registry, EncodeObject } from "@cosmjs/proto-signing";
 import { DirectSecp256k1Wallet } from "@cosmjs/proto-signing";
 
 import { SignAndBroadcastOptions } from ".";
-import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { SigningStargateClient } from "./signingstargateclient";
+import { SignDoc, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { TxRawExt, SigningStargateClient } from "./signingstargateclient";
 import { BroadcastTxResponse } from "./stargateclient";
 import { FirmaWalletService } from "../../FirmaWalletService";
-
-import { Any } from "cosmjs-types/google/protobuf/any";
 
 export class ITxClient {
 
@@ -18,15 +16,6 @@ export class ITxClient {
         private readonly registry: Registry) {
 
         this.rawWallet = wallet.getRawWallet();
-    }
-
-    public getAnyData(message: EncodeObject) : Any {
-        const anyData = Any.fromPartial({
-			typeUrl: message.typeUrl,
-			value: this.getRegistry().encode(message)
-		});
-
-        return anyData;
     }
 
     public getRegistry(): Registry { return this.registry; }
@@ -54,5 +43,11 @@ export class ITxClient {
 
     async signAndBroadcast(msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions): Promise<BroadcastTxResponse> {
         return await this.broadcast(await this.sign(msgs, { fee, memo }));
+    }
+
+    public async signDirectForSignDoc(signerAddress: string, signDoc: SignDoc) : Promise<TxRawExt>{
+
+        const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, this.registry);
+        return await client.signDirectForSignDoc(signerAddress, signDoc);
     }
 }

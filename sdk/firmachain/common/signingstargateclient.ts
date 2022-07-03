@@ -6,7 +6,7 @@ import { EncodeObject, encodePubkey, makeSignDoc, OfflineDirectSigner, Registry,
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
-import { AuthInfo, SignerInfo, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { AuthInfo, SignDoc, SignerInfo, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { StdFee } from ".";
 import { Account, accountFromAny } from "./accounts";
 
@@ -16,6 +16,7 @@ import { Int53 } from "@cosmjs/math";
 import { Any } from "../google/protobuf/any";
 import Long from "long";
 import { encodeSecp256k1Pubkey } from "../amino/encoding";
+import { StdSignature } from "@cosmjs/amino";
 
 export interface SignerData {
     readonly accountNumber: number;
@@ -28,15 +29,24 @@ export interface SequenceResponse {
     readonly sequence: number;
 }
 
+export interface TxRawExt {
+    readonly txRaw: TxRaw;
+    readonly signature: string;
+}
+
 export class SigningStargateClient extends StargateClient {
 
-    private readonly signer: OfflineDirectSigner;
+    private readonly signer: OfflineDirectSigner | undefined;
     private readonly registry: Registry;
     private chainId: string | undefined;
 
     private static _endpoint = "";
 
-    static async connectWithSigner(endpoint: string, signer: OfflineDirectSigner, registry: Registry):
+    private getSigner() : OfflineDirectSigner {
+        return this.signer!;
+    }
+
+    static async connectWithSigner(endpoint: string, signer: OfflineDirectSigner | undefined, registry: Registry):
         Promise<SigningStargateClient> {
 
         this._endpoint = endpoint;
@@ -44,7 +54,7 @@ export class SigningStargateClient extends StargateClient {
         return new SigningStargateClient(tmClient, signer, registry);
     }
 
-    protected constructor(tmClient: Tendermint34Client | undefined, signer: OfflineDirectSigner, registry: Registry) {
+    protected constructor(tmClient: Tendermint34Client | undefined, signer: OfflineDirectSigner | undefined, registry: Registry) {
         super(tmClient);
         this.registry = registry;
         this.signer = signer;
@@ -57,6 +67,43 @@ export class SigningStargateClient extends StargateClient {
         return this.broadcastTx(txBytes);
     }
 
+    public static async makeSignDocForSend(signerAddress: string,
+        messages: readonly EncodeObject[],
+        fee: StdFee,
+        memo: string,
+        serverUrl: string,
+        chainId: string,
+        registry: Registry
+        ): Promise<SignDoc> {
+        
+        SigningStargateClient._endpoint = serverUrl;
+
+        const { accountNumber, sequence } = await SigningStargateClient.getSequence(signerAddress);
+            
+        let account = await SigningStargateClient.getAccount(signerAddress);
+
+        if(account == null)
+            throw new Error("Failed to retrieve account from signer");
+
+        const rawSecp256k1Pubkey = fromBase64(account.pubkey!.value);
+        const pubkey = encodePubkey(encodeSecp256k1Pubkey(rawSecp256k1Pubkey));
+
+        const txBodyEncodeObject: TxBodyEncodeObject = {
+            typeUrl: "/cosmos.tx.v1beta1.TxBody",
+            value: {
+                messages: messages,
+                memo: memo,
+            },
+        };
+
+        const txBodyBytes = registry.encode(txBodyEncodeObject);
+        const gasLimit = Int53.fromString(fee.gas).toNumber();
+        const authInfoBytes = this.makeAuthInfoBytes([{ pubkey, sequence }], fee.amount, gasLimit, fee.granter);
+
+        return makeSignDoc(txBodyBytes, authInfoBytes, chainId, accountNumber);
+    }
+
+
     async sign(signerAddress: string,
         messages: readonly EncodeObject[],
         fee: StdFee,
@@ -66,7 +113,7 @@ export class SigningStargateClient extends StargateClient {
         if (explicitSignerData) {
             signerData = explicitSignerData;
         } else {
-            const { accountNumber, sequence } = await this.getSequence(signerAddress);
+            const { accountNumber, sequence } = await SigningStargateClient.getSequence(signerAddress);
             const chainId = await this.getChainId();
             signerData = {
                 accountNumber: accountNumber,
@@ -94,11 +141,11 @@ export class SigningStargateClient extends StargateClient {
    * This is called AccAddress in Cosmos SDK, which is basically an alias for raw binary data.
    * The result is typically 20 bytes long but not restricted to that.
    */
-    private toAccAddress(address: string): Uint8Array {
+     private static toAccAddress(address: string): Uint8Array {
         return Bech32.decode(address).data;
     }
 
-    async getAccount(address: string): Promise<Account | undefined> {
+    static async getAccount(address: string): Promise<Account | undefined> {
         // http://192.168.126.130:26657/abci_query?path=%22/store/acc/key%22&data=0x017763cada6ef547429c1c6088d663b55021bb6a43
 
         try {
@@ -128,7 +175,7 @@ export class SigningStargateClient extends StargateClient {
         }
     }
 
-    async getSequence(address: string): Promise<SequenceResponse> {
+    static async getSequence(address: string): Promise<SequenceResponse> {
         const account = await this.getAccount(address);
         if (!account) {
             throw new Error("Account does not exist on chain. Send some tokens there before trying to query sequence.");
@@ -139,7 +186,7 @@ export class SigningStargateClient extends StargateClient {
         };
     }
 
-    private makeSignerInfos(signers: ReadonlyArray<{ readonly pubkey: Any; readonly sequence: number }>,
+    private static makeSignerInfos(signers: ReadonlyArray<{ readonly pubkey: Any; readonly sequence: number }>,
         signMode: SignMode): SignerInfo[] {
         return signers.map(
             ({ pubkey, sequence }): SignerInfo => ({
@@ -152,7 +199,7 @@ export class SigningStargateClient extends StargateClient {
         );
     }
 
-    private makeAuthInfoBytes(signers: ReadonlyArray<{ pubkey: Any; sequence: number }>,
+    private static makeAuthInfoBytes(signers: ReadonlyArray<{ pubkey: Any; sequence: number }>,
         feeAmount: Coin[],
         gasLimit: number,
         granter: string,
@@ -176,7 +223,7 @@ export class SigningStargateClient extends StargateClient {
         { accountNumber, sequence, chainId }: SignerData,
     ): Promise<TxRaw> {
 
-        const accountFromSigner = (await this.signer.getAccounts()).find(
+        const accountFromSigner = (await this.getSigner().getAccounts()).find(
             (account) => account.address === signerAddress,
         );
         if (!accountFromSigner) {
@@ -193,13 +240,34 @@ export class SigningStargateClient extends StargateClient {
 
         const txBodyBytes = this.registry.encode(txBodyEncodeObject);
         const gasLimit = Int53.fromString(fee.gas).toNumber();
-        const authInfoBytes = this.makeAuthInfoBytes([{ pubkey, sequence }], fee.amount, gasLimit, fee.granter);
+        const authInfoBytes = SigningStargateClient.makeAuthInfoBytes([{ pubkey, sequence }], fee.amount, gasLimit, fee.granter);
         const signDoc = makeSignDoc(txBodyBytes, authInfoBytes, chainId, accountNumber);
-        const { signature, signed } = await this.signer.signDirect(signerAddress, signDoc);
+
+        const { signature, signed } = await this.getSigner().signDirect(signerAddress, signDoc);
         return TxRaw.fromPartial({
             bodyBytes: signed.bodyBytes,
             authInfoBytes: signed.authInfoBytes,
             signatures: [fromBase64(signature.signature)],
         });
+    }
+
+    public async signDirectForSignDoc(signerAddress: string, signDoc: SignDoc) : Promise<TxRawExt>{
+        
+        const accountFromSigner = (await this.getSigner().getAccounts()).find(
+            (account) => account.address === signerAddress,
+        );
+        if (!accountFromSigner) {
+            throw new Error("Failed to retrieve account from signer");
+        }
+        
+        const { signature, signed } = await this.getSigner().signDirect(signerAddress, signDoc);
+
+        let txRaw = TxRaw.fromPartial({
+            bodyBytes: signed.bodyBytes,
+            authInfoBytes: signed.authInfoBytes,
+            signatures: [fromBase64(signature.signature)],
+        });
+
+        return {txRaw: txRaw, signature: signature.signature }
     }
 }
