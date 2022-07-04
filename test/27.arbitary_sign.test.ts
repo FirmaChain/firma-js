@@ -5,7 +5,6 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 import { ArbitraryVerifyData } from '../sdk/firmachain/common/signingaminostargateclient';
 import { BankTxClient } from '../sdk/firmachain/bank';
-import { ITxClient } from '../sdk/firmachain/common/ITxClient';
 
 describe('[27. arbitary sign]', () => {
 
@@ -57,14 +56,14 @@ describe('[27. arbitary sign]', () => {
 			amount: [sendAmount]
 		});
 
-		let stringSignDoc = await FirmaUtil.makeSignDocWithStringify(BankTxClient.getRegistry(), aliceAddress, [msgSend]);
+		let stringSignDoc = await FirmaUtil.makeSignDocWithStringify(aliceAddress, [msgSend]);
 
 		//console.log("--------------------------------");
 
 		let signDoc = FirmaUtil.parseSignDocValues(stringSignDoc);
 
-		const bankTxClient = firma.Bank.getTxClient(aliceWallet);
-		let extTxRaw = await bankTxClient.signDirectForSignDoc(aliceAddress, signDoc);
+		const commonTxClient = FirmaUtil.getCommonTxClient(aliceWallet);
+		let extTxRaw = await commonTxClient.signDirectForSignDoc(aliceAddress, signDoc);
 
 		const valid = await FirmaUtil.verifyDirectSignature(aliceAddress, extTxRaw.signature, signDoc);
 		expect(valid).to.be.equal(true);
@@ -86,21 +85,20 @@ describe('[27. arbitary sign]', () => {
 			amount: [sendAmount]
 		});
 		
-		let signDoc = await FirmaUtil.makeSignDoc(BankTxClient.getRegistry(), aliceAddress, [msgSend]);
+		let signDoc = await FirmaUtil.makeSignDoc(aliceAddress, [msgSend]);
 		let stringSignDoc:string = FirmaUtil.stringifySignDocValues(signDoc);
 
 		//console.log("--------------------------------");
 
 		let newSignDoc = FirmaUtil.parseSignDocValues(stringSignDoc);
 
-		const bankTxClient = firma.Bank.getTxClient(aliceWallet);
-
-		let extTxRaw = await bankTxClient.signDirectForSignDoc(aliceAddress, newSignDoc);
+		const commonTxClient = FirmaUtil.getCommonTxClient(aliceWallet);
+		let extTxRaw = await commonTxClient.signDirectForSignDoc(aliceAddress, newSignDoc);
 
 		const valid = await FirmaUtil.verifyDirectSignature(aliceAddress, extTxRaw.signature, newSignDoc);
 
 		if (valid) {
-			let result = await bankTxClient.broadcast(extTxRaw.txRaw);
+			let result = await commonTxClient.broadcast(extTxRaw.txRaw);
 			//console.log(result);
 
 			expect(result.code).to.be.equal(0);

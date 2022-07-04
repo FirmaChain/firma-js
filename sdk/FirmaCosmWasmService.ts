@@ -8,7 +8,7 @@ import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 
-import pako from "pako";
+//import pako from "pako";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import Long from "long";
 import { AccessConfig } from "cosmjs-types/cosmwasm/wasm/v1/types";
@@ -254,9 +254,9 @@ export class FirmaCosmWasmService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
         try {
             const address = await wallet.getAddress();
-            const compressed = pako.gzip(wasmCode, { level: 9 });
+            //const compressed = pako.gzip(wasmCode, { level: 9 });
 
-            const message = CosmWasmTxClient.msgStoreCode({ sender: address, wasmByteCode: compressed, instantiatePermission: accessConfig });
+            const message = CosmWasmTxClient.msgStoreCode({ sender: address, wasmByteCode: wasmCode, instantiatePermission: accessConfig });
 
             const txClient = new CosmWasmTxClient(wallet, this.config.rpcAddress);
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
