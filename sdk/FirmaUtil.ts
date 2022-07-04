@@ -23,6 +23,7 @@ import { FirmaWalletService } from "./FirmaWalletService";
 import { SigningStargateClient } from "./firmachain/common/signingstargateclient";
 import { Any } from "./firmachain/google/protobuf/any";
 import Long from "long";
+import { CommonTxClient } from "./firmachain/common/CommonTxClient";
 
 const CryptoJS = require("crypto-js");
 const sha1 = require("crypto-js/sha1");
@@ -30,8 +31,7 @@ const sha256 = require("crypto-js/sha256");
 const encHex = require("crypto-js/enc-hex");
 
 export class FirmaUtil {
-
-    static config: FirmaConfig;
+	static config: FirmaConfig;
 
     static readonly FctDecimal: number = 6;
 
@@ -351,7 +351,7 @@ export class FirmaUtil {
           };
     }
 
-    public static async makeSignDoc(registry: Registry,
+    public static async makeSignDoc(
         signerAddress: string,
         messages: readonly EncodeObject[],        
         txMisc: TxMisc = DefaultTxMisc
@@ -361,17 +361,17 @@ export class FirmaUtil {
 
         let chainID = FirmaUtil.config.chainID;
         let serverUrl = FirmaUtil.config.rpcAddress;
+        let registry = CommonTxClient.getRegistry();
 
         return await SigningStargateClient.makeSignDocForSend(signerAddress, messages, result.fee, result.memo, serverUrl, chainID, registry);
     }
 
-    public static async makeSignDocWithStringify(registry: Registry,
-        signerAddress: string,
+    public static async makeSignDocWithStringify(signerAddress: string,
         messages: readonly EncodeObject[],        
         txMisc: TxMisc = DefaultTxMisc
     ): Promise<SignDoc> {
 
-        let signDoc = await this.makeSignDoc(registry, signerAddress, messages, txMisc);
+        let signDoc = await this.makeSignDoc(signerAddress, messages, txMisc);
         let stringSignDoc = this.stringifySignDocValues(signDoc);
 
         return stringSignDoc;
@@ -385,6 +385,10 @@ export class FirmaUtil {
 
         return anyData;
     }
+
+    static getCommonTxClient(aliceWallet: FirmaWalletService) {
+        return new CommonTxClient(aliceWallet, FirmaUtil.config.rpcAddress);
+	}
 }
 
 export const DefaultTxMisc = { memo: "", fee: 0, gas: 0, feeGranter: "" };
