@@ -215,7 +215,7 @@ export class FirmaUtil {
             const queryClient = new TendermintQueryClient(FirmaUtil.config.rpcAddress);
             const gas = await queryClient.queryEstimateGas(hexTx);
 
-            const multiplier = 1.25;
+            const multiplier = 1.15;
 
             return Math.ceil(gas * multiplier);
         } catch (error) {
