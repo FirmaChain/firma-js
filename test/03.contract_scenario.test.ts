@@ -80,7 +80,14 @@ describe('[03. Contract scenario base test]', () => {
 		var msg3 = await firma.Contract.getUnsignedTxAddContractLog(donueWallet, contractHash, timeStamp, eventName, ownerAddress3, jsonString);
 		var msg4 = await firma.Contract.getUnsignedTxAddContractLog(donueWallet, contractHash, timeStamp, eventName, ownerAddress4, jsonString);
 
-		let result = await firma.Contract.signAndBroadcast(donueWallet, [msg1, msg2, msg3, msg4]);
+		let msgArray = [msg1, msg2, msg3, msg4, msg1, msg2, msg3, msg4, msg1];
+
+		let gas = await firma.Contract.getGasEstimationSignAndBroadcast(donueWallet, msgArray);
+		//console.log(gas);
+
+		let fee = Math.ceil(gas * 0.1);
+
+		let result = await firma.Contract.signAndBroadcast(donueWallet, msgArray, {gas: gas, fee: fee});
 		expect(result.code).equal(0);
 	});
 

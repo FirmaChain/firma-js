@@ -299,6 +299,23 @@ export class ContractService {
         }
     }
 
+    async getGasEstimationSignAndBroadcast(wallet: FirmaWalletService,
+        msgList: EncodeObject[],
+        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+
+        try {
+
+            const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
+
+            const txRaw = await contractTxClient.sign(msgList, getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await FirmaUtil.estimateGas(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     async signAndBroadcast(wallet: FirmaWalletService, msgList: EncodeObject[], txMisc: TxMisc = DefaultTxMisc):
         Promise<BroadcastTxResponse> {
         try {
