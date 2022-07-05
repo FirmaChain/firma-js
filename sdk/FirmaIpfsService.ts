@@ -1,36 +1,35 @@
 import { FirmaConfig } from "./FirmaConfig";
-import { create, IPFSHTTPClient } from 'ipfs-http-client';
 import fs from "fs";
 import { FirmaUtil } from "./FirmaUtil";
+import axios from "axios";
 
 export class IpfsService {
 
-    private ipfsNodeClient: IPFSHTTPClient;
-    private readonly protocol: string;
-
     constructor(private readonly config: FirmaConfig) {
+     
+    }
 
-        if (config.ipfsNodeAddress.includes("https://")) {
-            this.protocol = "https";
-        } else if (config.ipfsNodeAddress.includes("http://")) {
-            this.protocol = "http";
-        } else {
-            this.protocol = "https";
-        }
-
-        let address = config.ipfsNodeAddress;
-        address = address.replace("https://", "");
-        address = address.replace("http://", "");
-
-        this.ipfsNodeClient = create({ host: address, port: config.ipfsNodePort, protocol: this.protocol });
+    private getBasePostUrl() : string{
+        return this.config.ipfsNodeAddress + ":" + this.config.ipfsNodePort + "/api/v0/add"
     }
 
     async addJson(jsonData: string): Promise<string> {
 
         try {
-            const result = await this.ipfsNodeClient.add(jsonData);
-            return result.cid.toString();
 
+            const FormData = require('form-data');
+		    var bodyData = new FormData();
+    		bodyData.append('json', jsonData);
+
+            const response = await axios.request({
+                url: this.getBasePostUrl(),
+                method: 'POST',
+                headers: bodyData.getHeaders(),
+                data: bodyData
+              });
+
+            return response.data.Hash;
+	
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -40,8 +39,18 @@ export class IpfsService {
     async addBuffer(buffer: ArrayBuffer): Promise<string> {
 
         try {
-            const result = await this.ipfsNodeClient.add(buffer);
-            return result.cid.toString();
+            const FormData = require('form-data');
+		    var bodyData = new FormData();
+    		bodyData.append('buffer', Buffer.from(buffer));
+
+            const response = await axios.request({
+                url: this.getBasePostUrl(),
+                method: 'POST',
+                headers: bodyData.getHeaders(),
+                data: bodyData
+              });
+
+            return response.data.Hash;
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -52,29 +61,21 @@ export class IpfsService {
     async addFile(fileUrl: string): Promise<string> {
 
         try {
-            const data = fs.readFileSync(fileUrl);
-            const result = await this.ipfsNodeClient.add(data);
+            const FormData = require('form-data');
+		    var bodyData = new FormData();
 
-            return result.cid.toString();
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
-    }
+            let fileBuffer = fs.readFileSync(fileUrl);
+    		bodyData.append('file', fileBuffer);
 
-    async getFile(hash: string): Promise<string> {
+            const response = await axios.request({
+                url: this.getBasePostUrl(),
+                method: 'POST',
+                headers: bodyData.getHeaders(),
+                data: bodyData
+              });
 
-        try {
-            const stream = this.ipfsNodeClient.get(hash);
-            let data = "";
+            return response.data.Hash;
 
-            // CHECK: output data is string. is ok?
-            // chunks of data are returned as a Buffer, convert it back to a string
-            for await (const chunk of stream) {
-                data += chunk.toString();
-            }
-
-            return data;
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
