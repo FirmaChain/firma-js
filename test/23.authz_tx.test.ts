@@ -17,7 +17,6 @@ describe('[23. Authz Tx Test]', () => {
 	it('Authz Grant Send', async () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobAddress = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
-
 		// add a year expiration to test.
 		var expirationDate = new Date();
 		expirationDate.setFullYear(expirationDate.getFullYear() + 1);
@@ -80,7 +79,7 @@ describe('[23. Authz Tx Test]', () => {
 		// if set zero, unlimited delegation enabled.
 		const maxFCT = 100;
 
-		var result = await firma.Authz.grantStakeAuthorization(aliceWallet, bobAddress, validatorAddress, AuthorizationType.AUTHORIZATION_TYPE_DELEGATE, expirationDate, maxFCT);
+		var result = await firma.Authz.grantStakeAuthorization(aliceWallet, bobAddress, [validatorAddress], AuthorizationType.AUTHORIZATION_TYPE_DELEGATE, expirationDate, maxFCT);
 
 		// in case of undefine maxFCT
 		//var result = await firma.Authz.grantStakeAuthorization(wallet, bobAddress, validatorAddress, AuthorizationType.AUTHORIZATION_TYPE_DELEGATE, expirationDate);
@@ -140,7 +139,7 @@ describe('[23. Authz Tx Test]', () => {
 
 		const maxFCT = 10;
 
-		var result = await firma.Authz.grantStakeAuthorization(aliceWallet, bobAddress, validatorAddress, AuthorizationType.AUTHORIZATION_TYPE_UNDELEGATE, expirationDate, maxFCT);
+		var result = await firma.Authz.grantStakeAuthorization(aliceWallet, bobAddress, [validatorAddress], AuthorizationType.AUTHORIZATION_TYPE_UNDELEGATE, expirationDate, maxFCT);
 
 		//console.log(result);
 
@@ -197,7 +196,7 @@ describe('[23. Authz Tx Test]', () => {
 
 		const maxFCT = 10;
 
-		var result = await firma.Authz.grantStakeAuthorization(aliceWallet, bobAddress, validatorAddress, AuthorizationType.AUTHORIZATION_TYPE_REDELEGATE, expirationDate, maxFCT);
+		var result = await firma.Authz.grantStakeAuthorization(aliceWallet, bobAddress, [validatorAddress], AuthorizationType.AUTHORIZATION_TYPE_REDELEGATE, expirationDate, maxFCT);
 
 		//console.log(result);
 

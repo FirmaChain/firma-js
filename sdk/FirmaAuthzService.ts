@@ -49,7 +49,7 @@ export class FirmaAuthzService {
         
     private async getSignedTxGrantStakeAutorization(wallet: FirmaWalletService,
         granteeAddress: string,
-        validatorAddress: string,
+        validatorAddressList: string[],
         type: AuthorizationType,
         maxTokens: string,
         expirationDate: Date,
@@ -61,7 +61,7 @@ export class FirmaAuthzService {
             const authorization = Any.fromPartial({
                 typeUrl: "/cosmos.staking.v1beta1.StakeAuthorization",
                 value: Uint8Array.from(StakeAuthorization.encode(StakeAuthorization.fromPartial({
-                    allowList: { address: [validatorAddress] },
+                    allowList: { address: validatorAddressList },
                     maxTokens: (maxTokens === "0") ? undefined : { denom: this.config.denom, amount: maxTokens },
                     authorizationType: type
                 })).finish()),
@@ -202,13 +202,13 @@ export class FirmaAuthzService {
 
     async getGasEstimationGrantStakeAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
-        validatorAddress: string,
+        validatorAddressList: string[],
         type: AuthorizationType,
         expirationDate: Date,
         maxTokens: number = 0,
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
         try {
-            const txRaw = await this.getSignedTxGrantStakeAutorization(wallet, granteeAddress, validatorAddress, type, FirmaUtil.getUFCTStringFromFCT(maxTokens), expirationDate, txMisc);
+            const txRaw = await this.getSignedTxGrantStakeAutorization(wallet, granteeAddress, validatorAddressList, type, FirmaUtil.getUFCTStringFromFCT(maxTokens), expirationDate, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -219,13 +219,13 @@ export class FirmaAuthzService {
 
     async grantStakeAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
-        validatorAddress: string,
+        validatorAddressList: string[],
         type: AuthorizationType,
         expirationDate: Date,
         maxTokens: number = 0,
         txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
         try {
-            const txRaw = await this.getSignedTxGrantStakeAutorization(wallet, granteeAddress, validatorAddress, type, FirmaUtil.getUFCTStringFromFCT(maxTokens), expirationDate, txMisc);
+            const txRaw = await this.getSignedTxGrantStakeAutorization(wallet, granteeAddress, validatorAddressList, type, FirmaUtil.getUFCTStringFromFCT(maxTokens), expirationDate, txMisc);
 
             const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
             return await authzTxClient.broadcast(txRaw);

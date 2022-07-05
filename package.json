@@ -1,6 +1,6 @@
 {
   "name": "@firmachain/firma-js",
-  "version": "0.2.36",
+  "version": "0.2.37",
   "description": "The Official FirmaChain Javascript SDK written in Typescript",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -36,11 +36,15 @@
     "@cosmjs/math": "^0.26.0",
     "@cosmjs/proto-signing": "^0.25.6",
     "@cosmjs/tendermint-rpc": "^0.26.0",
+    "@nftstorage/ipfs-cluster": "^5.0.1",
     "@types/pako": "^2.0.0",
     "axios": "^0.21.4",
     "cosmjs-types": "^0.2.0",
     "crypto-js": "^4.1.1",
+    "ipfs-cluster-api": "^0.0.9",
     "ipfs-http-client": "^52.0.5",
+    "is-stream": "^3.0.0",
+    "node-ipfs-cluster-api": "^0.0.1",
     "pako": "^2.0.2",
     "protobufjs": "^6.10.2",
     "readline-sync": "^1.4.10"
