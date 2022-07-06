@@ -11,17 +11,17 @@ const types = [
 
 const registry = new Registry(types as any);
 
-export interface MsgTransferEncodeObject extends EncodeObject {
+export interface MsgNftTransferEncodeObject extends EncodeObject {
     readonly typeUrl: "/firmachain.firmachain.nft.MsgTransfer";
     readonly value: Partial<MsgTransfer>;
 }
 
-export interface MsgMintEncodeObject extends EncodeObject {
+export interface MsgNftMintEncodeObject extends EncodeObject {
     readonly typeUrl: "/firmachain.firmachain.nft.MsgMint";
     readonly value: Partial<MsgMint>;
 }
 
-export interface MsgBurnEncodeObject extends EncodeObject {
+export interface MsgNftBurnEncodeObject extends EncodeObject {
     readonly typeUrl: "/firmachain.firmachain.nft.MsgBurn";
     readonly value: Partial<MsgBurn>;
 }
@@ -36,15 +36,15 @@ export class NftTxClient extends ITxClient {
         return registry;
     }
 
-    static msgTransfer(data: MsgTransfer): MsgTransferEncodeObject {
+    static msgTransfer(data: MsgTransfer): MsgNftTransferEncodeObject {
         return { typeUrl: "/firmachain.firmachain.nft.MsgTransfer", value: data };
     }
 
-    static msgMint(data: MsgMint): MsgMintEncodeObject {
+    static msgMint(data: MsgMint): MsgNftMintEncodeObject {
         return { typeUrl: "/firmachain.firmachain.nft.MsgMint", value: data };
     }
 
-    static msgBurn(data: MsgBurn): MsgBurnEncodeObject {
+    static msgBurn(data: MsgBurn): MsgNftBurnEncodeObject {
         return { typeUrl: "/firmachain.firmachain.nft.MsgBurn", value: data };
     }
 }

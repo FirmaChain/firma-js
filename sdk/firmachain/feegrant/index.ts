@@ -1,3 +1,3 @@
 export * from './FeeGrantTxClient';
-//export * from './BankQueryClient';
+export * from './FeeGrantQueryClient';
 export * from '../common';
