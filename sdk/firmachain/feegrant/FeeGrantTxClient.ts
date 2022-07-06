@@ -10,12 +10,12 @@ const types = [
 
 const registry = new Registry(types as any);
 
-export interface MsgGrantAllowanceEncodeObject extends EncodeObject {
+export interface MsgFeeGrantAllowanceEncodeObject extends EncodeObject {
     readonly typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance";
     readonly value: Partial<MsgGrantAllowance>;
 }
 
-export interface MsgRevokeAllowanceEncodeObject extends EncodeObject {
+export interface MsgFeeGrantRevokeAllowanceEncodeObject extends EncodeObject {
     readonly typeUrl: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance";
     readonly value: Partial<MsgRevokeAllowance>;
 }
@@ -30,11 +30,11 @@ export class FeeGrantTxClient extends ITxClient {
         return registry;
     }
 
-    static msgGrantAllowance(data: MsgGrantAllowance): MsgGrantAllowanceEncodeObject {
+    static msgGrantAllowance(data: MsgGrantAllowance): MsgFeeGrantAllowanceEncodeObject {
         return { typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance", value: data };
     }
 
-    static msgRevokeAllowance(data: MsgRevokeAllowance): MsgRevokeAllowanceEncodeObject {
+    static msgRevokeAllowance(data: MsgRevokeAllowance): MsgFeeGrantRevokeAllowanceEncodeObject {
         return { typeUrl: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance", value: data };
     }
 }

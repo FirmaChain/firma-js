@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { AuthorizationType } from '../sdk/firmachain/authz/AuthzTxTypes';
+import { AuthorizationType } from '../sdk/firmachain/authz';
 import { BankTxClient } from '../sdk/firmachain/bank';
 import { DistributionTxClient } from '../sdk/firmachain/distribution';
 import { StakingTxClient } from '../sdk/firmachain/staking';
