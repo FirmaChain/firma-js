@@ -332,27 +332,30 @@ export class FirmaUtil {
         return this.verifySignature(address, signature, messageHash);
     };
 
-    public static parseSignDocValues(signDocString: any) : any{
+    public static parseSignDocValues(signDocString: string) : any{
+
+        const signDoc = JSON.parse(signDocString);
 
         return {
-            ...signDocString,
-            bodyBytes: fromHex(signDocString.bodyBytes),
-            authInfoBytes: fromHex(signDocString.authInfoBytes),
-            accountNumber: new Long(signDocString.accountNumber),
+            ...signDoc,
+            bodyBytes: fromHex(signDoc.bodyBytes),
+            authInfoBytes: fromHex(signDoc.authInfoBytes),
+            accountNumber: new Long(signDoc.accountNumber),
           };
     }
 
-    public static stringifySignDocValues(signDoc: any): any {
-        return {
+    public static stringifySignDocValues(signDoc: any): string {
+        return JSON.stringify({
             ...signDoc,
             bodyBytes: toHex(signDoc.bodyBytes),
             authInfoBytes: toHex(signDoc.authInfoBytes),
             accountNumber: signDoc.accountNumber.toString(16),
-          };
+          });
     }
 
     public static async makeSignDoc(
         signerAddress: string,
+        pubkey: string,
         messages: readonly EncodeObject[],        
         txMisc: TxMisc = DefaultTxMisc
     ): Promise<SignDoc> {
@@ -363,15 +366,16 @@ export class FirmaUtil {
         let serverUrl = FirmaUtil.config.rpcAddress;
         let registry = CommonTxClient.getRegistry();
 
-        return await SigningStargateClient.makeSignDocForSend(signerAddress, messages, result.fee, result.memo, serverUrl, chainID, registry);
+        return await SigningStargateClient.makeSignDocForSend(signerAddress, pubkey, messages, result.fee, result.memo, serverUrl, chainID, registry);
     }
 
     public static async makeSignDocWithStringify(signerAddress: string,
+        pubkey: string,
         messages: readonly EncodeObject[],        
         txMisc: TxMisc = DefaultTxMisc
-    ): Promise<SignDoc> {
+    ): Promise<string> {
 
-        let signDoc = await this.makeSignDoc(signerAddress, messages, txMisc);
+        let signDoc = await this.makeSignDoc(signerAddress, pubkey, messages, txMisc);
         let stringSignDoc = this.stringifySignDocValues(signDoc);
 
         return stringSignDoc;
