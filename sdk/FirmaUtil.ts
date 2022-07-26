@@ -340,16 +340,17 @@ export class FirmaUtil {
             ...signDoc,
             bodyBytes: fromHex(signDoc.bodyBytes),
             authInfoBytes: fromHex(signDoc.authInfoBytes),
-            accountNumber: new Long(signDoc.accountNumber),
+            accountNumber: Long.fromString(signDoc.accountNumber),
           };
     }
 
     public static stringifySignDocValues(signDoc: any): string {
+
         return JSON.stringify({
             ...signDoc,
             bodyBytes: toHex(signDoc.bodyBytes),
             authInfoBytes: toHex(signDoc.authInfoBytes),
-            accountNumber: signDoc.accountNumber.toString(16),
+            accountNumber: signDoc.accountNumber.toString(),
           });
     }
 
