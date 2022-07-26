@@ -68,6 +68,22 @@ export class FirmaWalletService {
         return await signFromLedger(this.ledger, messages, option, registry)
     }
 
+    async getPubKey(): Promise<string> {
+
+        try {
+            if (this.ledger != null) {
+                return FirmaUtil.arrayBufferToBase64(await this.ledger.getPublicKey());
+            }
+
+            const accounts = await this.wallet.getAccounts();
+            return FirmaUtil.arrayBufferToBase64(accounts[0].pubkey);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     async getAddress(): Promise<string> {
 
         try {

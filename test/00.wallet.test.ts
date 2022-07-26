@@ -17,4 +17,20 @@ describe('[00. Wallet Test]', () => {
 
 		expect(privateKeyFromWallet).to.equal(privateKey);
 	});
+
+	it('Wallet.getPubKey check', async () => {
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const pubkey = await wallet.getPubKey();
+
+		expect(pubkey).to.equal("AnRAn5/uVg97Q5mw6BuAOdzKs++JurxFQN9rpBQKdxa1");
+	});
+
+	it('Wallet.getPubKey check with new mnemonic', async () => {
+		const randomMnemonic = "inmate stock silly toy divide example orchard harbor pulse gasp acquire bulk predict spin salon quiz record office party today narrow crumble remember sing";
+
+		const wallet = await firma.Wallet.fromMnemonic(randomMnemonic);
+		const pubkey = await wallet.getPubKey();
+
+		expect(pubkey).to.equal("AvzyjjaXumyGNQR1DRkDdozJge+MPJPFuNaMr+DAK2ks");
+	});
 });

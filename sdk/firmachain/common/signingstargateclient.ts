@@ -68,6 +68,7 @@ export class SigningStargateClient extends StargateClient {
     }
 
     public static async makeSignDocForSend(signerAddress: string,
+        pubkeyStr: string,
         messages: readonly EncodeObject[],
         fee: StdFee,
         memo: string,
@@ -85,7 +86,7 @@ export class SigningStargateClient extends StargateClient {
         if(account == null)
             throw new Error("Failed to retrieve account from signer");
 
-        const rawSecp256k1Pubkey = fromBase64(account.pubkey!.value);
+        const rawSecp256k1Pubkey = fromBase64(pubkeyStr);
         const pubkey = encodePubkey(encodeSecp256k1Pubkey(rawSecp256k1Pubkey));
 
         const txBodyEncodeObject: TxBodyEncodeObject = {
@@ -98,7 +99,7 @@ export class SigningStargateClient extends StargateClient {
 
         const txBodyBytes = registry.encode(txBodyEncodeObject);
         const gasLimit = Int53.fromString(fee.gas).toNumber();
-        const authInfoBytes = this.makeAuthInfoBytes([{ pubkey, sequence }], fee.amount, gasLimit, fee.granter);
+        const authInfoBytes = this.makeAuthInfoBytes([{ pubkey: pubkey, sequence }], fee.amount, gasLimit, fee.granter);
 
         return makeSignDoc(txBodyBytes, authInfoBytes, chainId, accountNumber);
     }
