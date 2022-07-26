@@ -47,7 +47,10 @@ describe('[27. arbitary sign]', () => {
 
 		const amountFCT = 9;
 		const aliceAddress = await aliceWallet.getAddress();
+		const alicePubkey = await aliceWallet.getPubKey();
+
 		const bobAddress = await bobWallet.getAddress();
+
 		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
 
 		let msgSend = BankTxClient.msgSend({
@@ -56,7 +59,7 @@ describe('[27. arbitary sign]', () => {
 			amount: [sendAmount]
 		});
 
-		let stringSignDoc = await FirmaUtil.makeSignDocWithStringify(aliceAddress, [msgSend]);
+		let stringSignDoc = await FirmaUtil.makeSignDocWithStringify(aliceAddress, alicePubkey, [msgSend]);
 
 		//console.log("--------------------------------");
 
@@ -76,6 +79,8 @@ describe('[27. arbitary sign]', () => {
 
 		const amountFCT = 9;
 		const aliceAddress = await aliceWallet.getAddress();
+		const alicePubkey = await aliceWallet.getPubKey();
+
 		const bobAddress = await bobWallet.getAddress();
 		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
 
@@ -85,7 +90,7 @@ describe('[27. arbitary sign]', () => {
 			amount: [sendAmount]
 		});
 		
-		let signDoc = await FirmaUtil.makeSignDoc(aliceAddress, [msgSend]);
+		let signDoc = await FirmaUtil.makeSignDoc(aliceAddress, alicePubkey, [msgSend]);
 		let stringSignDoc:string = FirmaUtil.stringifySignDocValues(signDoc);
 
 		//console.log("--------------------------------");
