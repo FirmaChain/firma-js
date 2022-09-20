@@ -5,6 +5,7 @@ import { FirmaWalletService } from "./FirmaWalletService";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
+import { EncodeObject } from "@cosmjs/proto-signing";
 
 export class NftService {
 
@@ -151,7 +152,7 @@ export class NftService {
         }
     }
 
-    private async getSignedTxBurn(wallet: FirmaWalletService, nftID: string, txMisc: TxMisc = DefaultTxMisc):
+    public async getSignedTxBurn(wallet: FirmaWalletService, nftID: string, txMisc: TxMisc = DefaultTxMisc):
         Promise<TxRaw> {
 
         try {
@@ -176,6 +177,21 @@ export class NftService {
 
             const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
             return await nftTxClient.broadcast(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getGasEstimationFromEncodeObject(wallet: FirmaWalletService, msgList: EncodeObject[], txMisc: TxMisc = DefaultTxMisc):
+        Promise<number> {
+
+        try {
+            const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
+            const txRaw = await nftTxClient.sign(msgList, getSignAndBroadcastOption(this.config.denom, txMisc));
+
+            return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -211,7 +227,7 @@ export class NftService {
             throw error;
         }
     }
-
+    
     async mint(wallet: FirmaWalletService, tokenURI: string, txMisc: TxMisc = DefaultTxMisc):
         Promise<BroadcastTxResponse> {
 
@@ -221,6 +237,18 @@ export class NftService {
             const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
             return await nftTxClient.broadcast(txRaw);
 
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async signAndBroadcast(wallet: FirmaWalletService, msgList: EncodeObject[], txMisc: TxMisc = DefaultTxMisc):
+        Promise<BroadcastTxResponse> {
+        try {
+            const contractTxClient = new NftTxClient(wallet, this.config.rpcAddress);
+            return await contractTxClient.signAndBroadcast(msgList,
+                getSignAndBroadcastOption(this.config.denom, txMisc));
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
