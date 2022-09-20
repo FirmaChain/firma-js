@@ -70,6 +70,20 @@ export class FirmaBankService {
         }
     }
 
+    async send_raw(wallet: FirmaWalletService, targetAddress: string, ufctAmount: string, txMisc: TxMisc = DefaultTxMisc):
+        Promise<BroadcastTxResponse> {
+        try {
+            const txRaw = await this.getSignedTxSend(wallet, targetAddress, this.config.denom, ufctAmount, txMisc);
+
+            const bankTxClient = new BankTxClient(wallet, this.config.rpcAddress);
+            return await bankTxClient.broadcast(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     async getTokenBalanceList(address: string): Promise<Token[]> {
         try {
             const bankQueryClient = new BankQueryClient(this.config.restApiAddress);
