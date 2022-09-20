@@ -20,7 +20,7 @@ describe('[10. NFT Tx Test]', () => {
 		expect(result.code).to.be.equal(0);
 	});
 
-	it.only('NFT Mint - BULK', async () => {
+	it('NFT Mint - BULK', async () => {
 
 		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
