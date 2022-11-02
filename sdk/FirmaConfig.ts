@@ -29,7 +29,7 @@ export class FirmaConfig {
 	  }
 
 	static readonly TestNetConfig: FirmaConfig = {
-		chainID: "imperium-3",
+		chainID: "imperium-4",
 		rpcAddress: "https://lcd-testnet.firmachain.dev:26657",
 		restApiAddress: "https://lcd-testnet.firmachain.dev:1317",
 		ipfsNodeAddress: "https://ipfs-dev.firmachain.dev",

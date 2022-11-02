@@ -31,7 +31,7 @@ describe('[13. Staking Query Test]', () => {
 		var validatorList = (await firma.Staking.getValidatorList()).dataList;
 		var result = await firma.Staking.getUndelegationListFromValidator(validatorList[0].operator_address);
 
-		console.log(result);
+		//console.log(result);
 	})
 
 	// param side

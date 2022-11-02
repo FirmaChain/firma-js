@@ -33,8 +33,9 @@ describe('[25. CosmWasm Tx Test]', () => {
 		var result = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: gas, fee: fee });
 		var data = JSON.parse(result.rawLog!);
 
-		codeId = data[0]["events"][1]["attributes"][0]["value"];
+		codeId = data[0]["events"][1]["attributes"][1]["value"];
 
+		//console.log(codeId);
 		//console.log(result);
 		expect(result.code).to.be.equal(0);
 	});
@@ -51,13 +52,11 @@ describe('[25. CosmWasm Tx Test]', () => {
 		const funds: Coin[] = [];
 
 		const testData = JSON.stringify({ "purchase_price": { "amount": "100", "denom": "ufct" }, "transfer_price": { "amount": "999", "denom": "ufct" } });
-
 		var result = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, funds, { gas: gas, fee: fee });
 		var data = JSON.parse(result.rawLog!);
-
+		
 		contractAddress = data[0]["events"][0]["attributes"][0]["value"];
-
-		//console.log(result);
+		
 		expect(result.code).to.be.equal(0);
 	});
 

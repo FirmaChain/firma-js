@@ -181,6 +181,18 @@ export class FirmaUtil {
         return false;
     }
 
+    static buf2hex(buffer: Uint8Array) { // buffer is an ArrayBuffer
+        return [...new Uint8Array(buffer)]
+            .map(x => x.toString(16).padStart(2, '0'))
+            .join('');
+    }
+
+    // for evm address support
+    static getHexAddressFromAddress(address: string): string {
+        const data = Bech32.decode(address).data;
+        return "0x" + FirmaUtil.buf2hex(data);
+    }
+
     static getValOperAddressFromAccAddress(address: string): string {
         const data = Bech32.decode(address).data;
         return Bech32.encode(FirmaUtil.config.prefix + "valoper", data);

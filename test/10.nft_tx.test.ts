@@ -34,8 +34,8 @@ describe('[10. NFT Tx Test]', () => {
 
 		let gas = await firma.Nft.getGasEstimationFromEncodeObject(wallet, txList);
 		const fee = Math.ceil(gas * 0.1);
-		console.log("gas :" + gas);
-		console.log("fee :" + fee);
+		//console.log("gas :" + gas);
+		//console.log("fee :" + fee);
 
 		var result = await firma.Nft.signAndBroadcast(wallet, txList, {gas: gas, fee: fee});
 
@@ -43,7 +43,7 @@ describe('[10. NFT Tx Test]', () => {
 		var jsonData = JSON.parse(result.rawLog!);
 		var nftId = jsonData[0]["events"][0]["attributes"][2]["value"];
 
-		console.log(nftId);
+		//console.log(nftId);
 
 		expect(result.code).to.be.equal(0);
 	});
