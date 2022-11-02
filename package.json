@@ -36,6 +36,7 @@
     "@cosmjs/math": "^0.26.0",
     "@cosmjs/proto-signing": "^0.25.6",
     "@cosmjs/tendermint-rpc": "^0.26.0",
+    "@tharsis/address-converter": "^0.1.8",
     "@types/pako": "^2.0.0",
     "axios": "^0.27.2",
     "big-number": "^2.0.0",
