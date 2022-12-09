@@ -84,6 +84,34 @@ export class FirmaBankService {
         }
     }
 
+    // getSupply
+
+    async getSupply(): Promise<string> {
+        try {
+            const bankQueryClient = new BankQueryClient(this.config.restApiAddress);
+            const result = await bankQueryClient.querySupplyOf("ufct");
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getTokenSupply(tokenID: string): Promise<string> {
+        try {
+            const bankQueryClient = new BankQueryClient(this.config.restApiAddress);
+            const result = await bankQueryClient.querySupplyOf(tokenID);
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     async getTokenBalanceList(address: string): Promise<Token[]> {
         try {
             const bankQueryClient = new BankQueryClient(this.config.restApiAddress);

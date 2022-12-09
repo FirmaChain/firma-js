@@ -15,6 +15,7 @@ import { SlashingService } from "./FirmaSlashingService";
 import { FirmaAuthzService } from "./FirmaAuthzService";
 import { FirmaCosmWasmService } from "./FirmaCosmWasmService";
 import { FirmaIbcService } from "./FirmaIbcService";
+import { FirmaMintService } from "./FirmaMintService";
 
 export class FirmaSDK {
     constructor(public Config: FirmaConfig,
@@ -33,6 +34,7 @@ export class FirmaSDK {
         public Authz: FirmaAuthzService = new FirmaAuthzService(Config),
         public CosmWasm: FirmaCosmWasmService = new FirmaCosmWasmService(Config),
         public Ibc: FirmaIbcService = new FirmaIbcService(Config),
+        public Mint: FirmaMintService = new FirmaMintService(Config),
         ) {
 
         FirmaUtil.config = Config;
