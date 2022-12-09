@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { FirmaUtil } from '..';
+import { FirmaUtil } from '../sdk/FirmaUtil';
 
 describe('[18. util Test]', () => {
 
@@ -41,19 +41,30 @@ describe('[18. util Test]', () => {
 
 	it('getValOperAddressFromAccAddress test', async () => {
 
-		const accAddress = "firma134pp6s2nv7pl4mxu58aeufdd6fv5s2zujrrmsa";
-		const valoperAddress = "firmavaloper134pp6s2nv7pl4mxu58aeufdd6fv5s2zuvsgqsn";
+		const accAddress = "firma1a85hxs97rxsrf0yzdn72vhfu39sa0dwxv90ghy";
+		const valoperAddress = "firmavaloper1a85hxs97rxsrf0yzdn72vhfu39sa0dwxjkynh2";
 
 		let result = FirmaUtil.getValOperAddressFromAccAddress(accAddress);
 		expect(result).to.be.equal(valoperAddress);
 	})
 
+	it('getValConsAddressFromConsensusPubKey test', async () => {
+
+		const consensusPubkey = "InWhZBMP3wKQkwIBCrVqQ+BNoPhV5mTjpwiYHKHCZ/k=";
+		const valconsAddress = "firmavalcons1fh73gr3f9df7yc390ykdnmeedetlw5ll3dqwje";
+
+		let result = FirmaUtil.getValConsAddressFromAccAddress(consensusPubkey);
+		//console.log(result);
+
+		expect(result).to.be.equal(valconsAddress);
+	})
+
 	it('getAccAddressFromValOperAddress test', async () => {
 
-		const accAddress = "firma134pp6s2nv7pl4mxu58aeufdd6fv5s2zujrrmsa";
-		const valoperAddress = "firmavaloper134pp6s2nv7pl4mxu58aeufdd6fv5s2zuvsgqsn";
-
+		const accAddress = "firma1a85hxs97rxsrf0yzdn72vhfu39sa0dwxv90ghy";
+		const valoperAddress = "firmavaloper1a85hxs97rxsrf0yzdn72vhfu39sa0dwxjkynh2";
 		let result = FirmaUtil.getAccAddressFromValOperAddress(valoperAddress);
+
 		expect(result).to.be.equal(accAddress);
 	})
 

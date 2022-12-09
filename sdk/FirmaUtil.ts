@@ -198,6 +198,13 @@ export class FirmaUtil {
         return Bech32.encode(FirmaUtil.config.prefix + "valoper", data);
     }
 
+    static getValConsAddressFromAccAddress(consensusPubkey: string): string {
+
+        const ed25519PubkeyRaw = fromBase64(consensusPubkey);
+        const addressData = sha256crypto(ed25519PubkeyRaw).slice(0, 20);
+        return Bech32.encode(FirmaUtil.config.prefix + "valcons", addressData);
+    }
+
     static getAccAddressFromValOperAddress(address: string): string {
         const data = Bech32.decode(address).data;
         return Bech32.encode(FirmaUtil.config.prefix, data);

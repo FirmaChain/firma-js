@@ -63,4 +63,23 @@ describe('[05. Bank test]', () => {
 		//result[0].amount
 		//expect(result).to.be.equal("0");
 	});
+
+	it('Bank getSupply()', async () => {
+
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		var result = await firma.Bank.getSupply();
+
+		//console.log(result);
+		//expect(result).to.be.equal("0");
+	});
+
+	it('Bank getTokenSupply()', async () => {
+
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		var result = await firma.Bank.getTokenSupply("ukomx1670550348");
+
+		//console.log(result);
+		//expect(result).to.be.equal("0");
+	});
+
 });
