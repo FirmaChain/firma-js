@@ -63,7 +63,7 @@ export interface DelegationInfo {
 
 export interface ValidatorDataType {
     operator_address: string;
-    consensus_pubkey: { typeUrl: string, value: string };
+    consensus_pubkey: { '@type': string, key: string };
     jailed: boolean;
     status: string;
     tokens: string;
