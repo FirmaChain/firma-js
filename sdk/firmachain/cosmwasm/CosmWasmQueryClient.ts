@@ -124,7 +124,7 @@ export class CosmWasmQueryClient {
         const path = `/cosmwasm/wasm/v1/contract/${contractAddress}/smart/${queryBase64}`;
         const result = await this.axios.get(path);
 
-        return result.data.data;
+        return JSON.stringify(result.data.data);
     }
 
     async getContractState(contractAddress: string): Promise<ContractStateInfo[]> {

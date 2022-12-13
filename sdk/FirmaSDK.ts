@@ -13,6 +13,7 @@ import { FirmaGovService } from "./FirmaGovService";
 import { ChainService } from "./FirmaChainService";
 import { SlashingService } from "./FirmaSlashingService";
 import { FirmaAuthzService } from "./FirmaAuthzService";
+import { FirmaCosmWasmCw20Service } from "./FirmaCosmWasmCw20";
 import { FirmaCosmWasmService } from "./FirmaCosmWasmService";
 import { FirmaIbcService } from "./FirmaIbcService";
 import { FirmaMintService } from "./FirmaMintService";
@@ -35,7 +36,8 @@ export class FirmaSDK {
         public CosmWasm: FirmaCosmWasmService = new FirmaCosmWasmService(Config),
         public Ibc: FirmaIbcService = new FirmaIbcService(Config),
         public Mint: FirmaMintService = new FirmaMintService(Config),
-        ) {
+        public Cw20: FirmaCosmWasmCw20Service = new FirmaCosmWasmCw20Service(Config, CosmWasm),
+    ) {
 
         FirmaUtil.config = Config;
     }

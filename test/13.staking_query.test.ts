@@ -1,14 +1,19 @@
 import { expect } from 'chai';
+import { FirmaConfig } from '../sdk/FirmaConfig';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
 
 describe('[13. Staking Query Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	const firma = new FirmaSDK(FirmaConfig.TestNetConfig);
 
-	it('1.get total validator list', async () => {
+	it.only('1.get total validator list', async () => {
 
 		var result = await firma.Staking.getValidatorList();
+
+		//console.log(result.dataList[0].consensus_pubkey['@type']);
+		//console.log(result.dataList[0].consensus_pubkey.key);
+
 		//console.log(result);
 	})
 

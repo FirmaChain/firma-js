@@ -1,9 +1,10 @@
+import { FirmaConfig } from "../sdk/FirmaConfig";
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { TestChainConfig } from './config_test';
 
 describe('[19. chain Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	const firma = new FirmaSDK(FirmaConfig.TestNetConfig);
 
 	it('getChainStatus test', async () => {
 		const result = await firma.BlockChain.getChainSyncInfo();
@@ -25,5 +26,18 @@ describe('[19. chain Test]', () => {
 		// value: firma1jmg3kwy5hntx66nl93dyk2d92943394qsf6gcf
 		//console.log("key: " + key);
 		//console.log("value: " + value);
+	})
+
+	it.only('getChainInfo test', async () => {
+		const result = await firma.BlockChain.getChainInfo();
+//		console.log(result);
+/*
+{
+  chainId: 'imperium-4',
+  appVersion: '0.3.5-beta3-1-g4a1ba1c',
+  cosmosVersion: 'v0.45.9'
+}
+*/
+
 	})
 });
