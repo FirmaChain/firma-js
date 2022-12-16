@@ -17,6 +17,7 @@ import { FirmaCosmWasmCw20Service } from "./FirmaCosmWasmCw20";
 import { FirmaCosmWasmService } from "./FirmaCosmWasmService";
 import { FirmaIbcService } from "./FirmaIbcService";
 import { FirmaMintService } from "./FirmaMintService";
+import { FirmaCosmWasmCw721Service } from "./FirmaCosmWasmCw721";
 
 export class FirmaSDK {
     constructor(public Config: FirmaConfig,
@@ -37,6 +38,7 @@ export class FirmaSDK {
         public Ibc: FirmaIbcService = new FirmaIbcService(Config),
         public Mint: FirmaMintService = new FirmaMintService(Config),
         public Cw20: FirmaCosmWasmCw20Service = new FirmaCosmWasmCw20Service(Config, CosmWasm),
+        public Cw721: FirmaCosmWasmCw721Service = new FirmaCosmWasmCw721Service(Config, CosmWasm),
     ) {
 
         FirmaUtil.config = Config;

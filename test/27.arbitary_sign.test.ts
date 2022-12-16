@@ -8,7 +8,11 @@ import { BankTxClient } from '../sdk/firmachain/bank';
 
 describe('[27. arbitary sign]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	// https://docs.cosmos.network/master/architecture/adr-036-arbitrary-signature.html
 	// https://github.com/cosmos/cosmjs/issues/844

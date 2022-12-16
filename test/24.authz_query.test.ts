@@ -6,7 +6,11 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[24. Authz query Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	it('Authz getSendGrantData', async () => {
 

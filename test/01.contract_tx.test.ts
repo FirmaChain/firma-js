@@ -4,7 +4,11 @@ import { aliceMnemonic, TestChainConfig } from './config_test';
 
 describe('[01. Contract Tx Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	it('Contract getUnsignedTxAddContractLog X 3 and signAndBroadcast', async () => {
 

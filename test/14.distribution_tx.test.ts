@@ -5,7 +5,11 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from '
 
 describe('[14. Distribution Tx Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	it('withdrawAllRewards for delegator side', async () => {
 

@@ -3,7 +3,11 @@ import { TestChainConfig } from './config_test';
 
 describe('[26. cosmwasm query Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	let contractAddress = "";
 

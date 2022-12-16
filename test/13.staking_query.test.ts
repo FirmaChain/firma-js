@@ -1,15 +1,34 @@
 import { expect } from 'chai';
 import { FirmaConfig } from '../sdk/FirmaConfig';
 import { FirmaSDK } from "../sdk/FirmaSDK"
+import { StakingValidatorStatus } from '../sdk/FirmaStakingService';
 import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
 
 describe('[13. Staking Query Test]', () => {
 
-	const firma = new FirmaSDK(FirmaConfig.TestNetConfig);
+	let firma: FirmaSDK;
 
-	it.only('1.get total validator list', async () => {
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
+	it('1.get total validator list', async () => {
+
+		// default : StakingValidatorStatus.ALL
 		var result = await firma.Staking.getValidatorList();
+		//console.log(result);
+
+		//var result = await firma.Staking.getValidatorList(StakingValidatorStatus.ALL);
+		//console.log(result);
+
+		//var result = await firma.Staking.getValidatorList(StakingValidatorStatus.BONDED);
+		//console.log(result);
+
+		//var result = await firma.Staking.getValidatorList(StakingValidatorStatus.UNBONDING);
+		//console.log(result);
+
+		//var result = await firma.Staking.getValidatorList(StakingValidatorStatus.UNBONDED);
+		//console.log(result);
 
 		//console.log(result.dataList[0].consensus_pubkey['@type']);
 		//console.log(result.dataList[0].consensus_pubkey.key);

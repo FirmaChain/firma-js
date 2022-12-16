@@ -4,7 +4,11 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[06. Feegrant Tx Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	it('feegrant GrantPeriodicAllowance tx', async () => {
 

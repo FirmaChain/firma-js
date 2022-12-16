@@ -5,7 +5,11 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[11. NFT Query Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	it('NFT getBalanceOf', async () => {
 

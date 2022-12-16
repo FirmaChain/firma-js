@@ -5,7 +5,11 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[21. Token Tx Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	let timeStamp = Math.round(+new Date() / 1000);
 

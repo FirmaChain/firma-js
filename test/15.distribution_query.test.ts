@@ -5,7 +5,11 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from '
 
 describe('[15. Distribution Query Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	it('get communityPool', async () => {
 

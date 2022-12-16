@@ -6,7 +6,11 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[10. NFT Tx Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	it('NFT Mint', async () => {
 
@@ -25,7 +29,7 @@ describe('[10. NFT Tx Test]', () => {
 		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
 		const address = await wallet.getAddress();
-		
+
 		const tx1 = NftTxClient.msgMint({ owner: address, tokenURI: "https://naver1.com" });
 		const tx2 = NftTxClient.msgMint({ owner: address, tokenURI: "https://naver2.com" });
 		const tx3 = NftTxClient.msgMint({ owner: address, tokenURI: "https://naver3.com" });

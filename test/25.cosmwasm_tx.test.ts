@@ -9,7 +9,11 @@ import { AccessConfig, AccessType } from 'cosmjs-types/cosmwasm/wasm/v1/types';
 
 describe('[25. CosmWasm Tx Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	// sample : cw_nameservice.wasm
 	// https://docs.cosmwasm.com/docs/1.0/getting-started/compile-contract

@@ -6,7 +6,11 @@ import { TestChainConfig } from './config_test';
 
 describe('[02. Contract Query Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	it('Contract getContractLogAll-pagination', async () => {
 

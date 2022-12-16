@@ -4,7 +4,11 @@ import { aliceMnemonic, TestChainConfig } from './config_test';
 
 describe('[05. Bank test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	it('Bank getBalance() of a user who has never been created.', async () => {
 

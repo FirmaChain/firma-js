@@ -7,7 +7,11 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[28. IBC Tx Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	it.skip('IBC transfer', async () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);

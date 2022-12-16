@@ -4,7 +4,11 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[00. Wallet Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	it('fromMnemonic check', async () => {
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
