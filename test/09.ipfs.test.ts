@@ -4,7 +4,11 @@ import { TestChainConfig } from './config_test';
 
 describe('[09. IPFS Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	it('ipfs test', async () => {
 

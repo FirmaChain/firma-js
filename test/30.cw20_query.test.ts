@@ -4,11 +4,15 @@ import { TestChainConfig } from './config_test';
 
 describe('[30. cw20 query Test]', () => {
 
-	const firma = new FirmaSDK(FirmaConfig.TestNetConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(FirmaConfig.TestNetConfig);
+	})
 
 	let contractAddress = "firma1fxkx7wd4q7z5zgm8qh0vaxptx4gp0ppgjm0ke56jr55azpzecpcsuexqg8";
 
-	it.skip('Cw20 getBalance', async () => {
+	it('Cw20 getBalance', async () => {
 
 		const address = "firma13hcgnwfpe99htsr92v2keqsgx909rhkwfnxgwr";
 		const balance = await firma.Cw20.getBalance(contractAddress, address);

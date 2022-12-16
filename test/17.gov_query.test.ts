@@ -4,7 +4,11 @@ import { TestChainConfig } from './config_test';
 
 describe('[17. Gov Query Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	it('get getProposalList', async () => {
 

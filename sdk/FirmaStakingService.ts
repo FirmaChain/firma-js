@@ -19,6 +19,13 @@ import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 import { Description } from "cosmjs-types/cosmos/staking/v1beta1/staking";
 import { MsgCreateValidator } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 
+export enum StakingValidatorStatus {
+    ALL = "",
+    BONDED = "BOND_STATUS_BONDED",
+    UNBONDED = "BOND_STATUS_UNBONDED",
+    UNBONDING = "BOND_STATUS_UNBONDING",
+}
+
 export class FirmaStakingService {
 
     constructor(private readonly config: FirmaConfig) { }
@@ -422,10 +429,11 @@ export class FirmaStakingService {
         }
     }
 
-    async getValidatorList(paginationKey: string = ""): Promise<{ dataList: ValidatorDataType[], pagination: Pagination }> {
+    
+    async getValidatorList(status: StakingValidatorStatus = StakingValidatorStatus.ALL, paginationKey: string = ""): Promise<{ dataList: ValidatorDataType[], pagination: Pagination }> {
         try {
             const queryClient = new StakingQueryClient(this.config.restApiAddress);
-            const result = await queryClient.queryValidators(paginationKey);
+            const result = await queryClient.queryValidators(status.toString(), paginationKey);
 
             return result;
 

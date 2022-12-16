@@ -203,10 +203,10 @@ export class StakingQueryClient {
     }
 
 
-    async queryValidators(paginationKey: string = ""): Promise<{ dataList: ValidatorDataType[], pagination: Pagination }> {
+    async queryValidators(status: string, paginationKey: string = ""): Promise<{ dataList: ValidatorDataType[], pagination: Pagination }> {
 
         const path = "/cosmos/staking/v1beta1/validators";
-        const result = await this.axios.get(path, { params: { "pagination.key": paginationKey } });
+        const result = await this.axios.get(path, { params: { status, "pagination.key": paginationKey } });
 
         const convertPagination: Pagination = {
             next_key: result.data.pagination.next_key,

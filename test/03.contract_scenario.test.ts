@@ -5,14 +5,19 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[03. Contract scenario base test]', () => {
 
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
+
 	const donueMnemonic = aliceMnemonic;
 	const creatorMnemonic = bobMnemonic;
 	const signer1Mnemonic = "couch tonight jelly pond notice spring gold tornado cancel hover hill soft table can buyer already region bean mask cart gasp include change rent";
 	const signer2Mnemonic = "frozen never essence submit moon night cement omit final guilt border draft caution zoo gorilla illegal notable whisper try name orange hollow maximum arrive";
 	const signer3Mnemonic = "stock vapor planet van asthma upgrade scheme fuel cushion before brief knee kick lesson gun spatial protect danger they stem stay chunk critic cram";
 	const signer4Mnemonic = "tomorrow hospital bottom lucky insane play concert casual truly certain antique airport safe envelope relax matter cute zone boring calm pudding eyebrow mouse spawn";
-
-	const firma = new FirmaSDK(TestChainConfig);
+	
 	const contractHash = "0xtestcontract" + Math.round(+new Date() / 1000);
 
 	it('CreateContract add', async () => {

@@ -5,7 +5,11 @@ import { VotingOption } from '../sdk/firmachain/common';
 
 describe.skip('[08. Gas Estimation Test]', () => {
 
-	const firma = new FirmaSDK(TestChainConfig);
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	it("1-1. bank send gas estimation", async () => {
 
