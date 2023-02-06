@@ -141,7 +141,7 @@ export class StakingQueryClient {
     async queryGetUndelegationListFromValidator(valoperAddress: string, paginationKey: string = ""): Promise<{ dataList: UndelegationInfo[], pagination: Pagination }> {
 
         const path = `/cosmos/staking/v1beta1/validators/${valoperAddress}/unbonding_delegations`;
-        const result = await this.axios.get(path, { params: { "pagination.key": paginationKey } });
+        const result = await this.axios.get(path, { params: { "pagination.key": paginationKey, "pagination.limit" : 50 } });
 
         const convertPagination: Pagination = {
             next_key: result.data.pagination.next_key,
@@ -155,7 +155,7 @@ export class StakingQueryClient {
     async queryGetDelegateListFromValidator(valoperAddress: string, paginationKey: string = ""): Promise<{ dataList: DelegationInfo[], pagination: Pagination }> {
 
         const path = `/cosmos/staking/v1beta1/validators/${valoperAddress}/delegations`;
-        const result = await this.axios.get(path, { params: { "pagination.key": paginationKey } });
+        const result = await this.axios.get(path, { params: { "pagination.key": paginationKey, "pagination.limit" : 50 } });
 
         const convertPagination: Pagination = {
             next_key: result.data.pagination.next_key,
@@ -168,7 +168,7 @@ export class StakingQueryClient {
     async queryGetTotalDelegationInfo(address: string, paginationKey: string = ""): Promise<{ dataList: DelegationInfo[], pagination: Pagination }> {
 
         const path = `/cosmos/staking/v1beta1/delegations/${address}`;
-        const result = await this.axios.get(path, { params: { "pagination.key": paginationKey } });
+        const result = await this.axios.get(path, { params: { "pagination.key": paginationKey, "pagination.limit" : 50 } });
 
         const convertPagination: Pagination = {
             next_key: result.data.pagination.next_key,
@@ -206,7 +206,7 @@ export class StakingQueryClient {
     async queryValidators(status: string, paginationKey: string = ""): Promise<{ dataList: ValidatorDataType[], pagination: Pagination }> {
 
         const path = "/cosmos/staking/v1beta1/validators";
-        const result = await this.axios.get(path, { params: { status, "pagination.key": paginationKey } });
+        const result = await this.axios.get(path, { params: { status, "pagination.key": paginationKey, "pagination.limit" : 50 } });
 
         const convertPagination: Pagination = {
             next_key: result.data.pagination.next_key,
