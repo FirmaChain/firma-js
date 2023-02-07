@@ -46,7 +46,7 @@ export class IpfsService {
             const response = await axios.request({
                 url: this.getBasePostUrl(),
                 method: 'POST',
-                headers: bodyData.getHeaders(),
+                headers: { 'Content-Type': 'multipart/form-data' },
                 data: bodyData
               });
 
