@@ -33,7 +33,7 @@ describe('[22. Token query Test]', () => {
 
 	it('Token getTokenDataAll', async () => {
 
-		var totalDataList = await firma.Token.getGetTokenDataAll();
+		var totalDataList = await firma.Token.getTokenDataAll();
 		//console.log(totalDataList.dataList);
 		//console.log(totalDataList.pagination);
 
