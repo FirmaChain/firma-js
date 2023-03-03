@@ -217,7 +217,7 @@ export class TokenService {
 
 
     //  query
-    async getGetTokenDataAll(paginationKey: string = ""): Promise<{ dataList: TokenDataType[], pagination: Pagination }> {
+    async getTokenDataAll(paginationKey: string = ""): Promise<{ dataList: TokenDataType[], pagination: Pagination }> {
         try {
 
             const queryClient = new TokenQueryClient(this.config.restApiAddress);
