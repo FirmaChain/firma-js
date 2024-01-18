@@ -162,7 +162,7 @@ export class FirmaBankService {
         }
     }
 
-    private async getSignedTxSend(wallet: FirmaWalletService,
+    public async getSignedTxSend(wallet: FirmaWalletService,
         targetAddress: string,
         denom: string,
         amount: string,
