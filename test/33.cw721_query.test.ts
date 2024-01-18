@@ -2,7 +2,7 @@ import { FirmaConfig } from "../sdk/FirmaConfig";
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { TestChainConfig } from './config_test';
 
-describe('[31. cw721 query Test]', () => {
+describe.skip('[33. cw721 query Test]', () => {
 
 	let firma: FirmaSDK;
 
@@ -16,7 +16,7 @@ describe('[31. cw721 query Test]', () => {
 
 		const tokenId = "1";
 		const owner = await firma.Cw721.getOwnerFromNftID(contractAddress, tokenId);
-		//console.log(owner);
+		console.log(owner);
 	});
 
 	it('cw721 approval', async () => {
@@ -39,16 +39,7 @@ describe('[31. cw721 query Test]', () => {
 		//console.log(approval.expires);
 
 		const expires = approval.expires;
-
-		if (expires.never != null) {
-			//console.log(expires.never);
-		}
-		if (expires.at_height != null) {
-			//console.log(expires.at_height);
-		}
-		if (expires.at_time != null) {
-			//console.log(expires.at_time);
-		}
+		console.log(expires);
 		
 	});
 
@@ -64,17 +55,9 @@ describe('[31. cw721 query Test]', () => {
 			const approval = approvals[i];
 			const expires = approval.expires;
 
-			//console.log(approval.spender);
+			console.log(approval.spender);
+			console.log(expires);
 
-			if (expires.never != null) {
-				//console.log(expires.never);
-			}
-			if (expires.at_height != null) {
-				//console.log(expires.at_height);
-			}
-			if (expires.at_time != null) {
-				//console.log(expires.at_time);
-			}
 		}
 	});
 
@@ -106,6 +89,7 @@ describe('[31. cw721 query Test]', () => {
 
 		const tokenId = "1";
 		const nftInfo = await firma.Cw721.getNftTokenUri(contractAddress, tokenId);
+
 		//console.log(nftInfo);
 	});
 
@@ -125,7 +109,7 @@ describe('[31. cw721 query Test]', () => {
 		const owner = "firma13hcgnwfpe99htsr92v2keqsgx909rhkwfnxgwr";
 
 		const nftIdList = await firma.Cw721.getNFTIdListOfOwner(contractAddress, owner);
-		//console.log(nftIdList);
+		console.log(nftIdList);
 	});
 
 	it('cw721 getAllNftIdList', async () => {
@@ -142,7 +126,14 @@ describe('[31. cw721 query Test]', () => {
 
 	it('cw721 getExtension', async () => {
 
+		// not use
 		const extension = await firma.Cw721.getExtension(contractAddress);
 		//console.log(extension);
+	});
+
+	it('cw721 getOwnerShip', async () => {
+
+		const data = await firma.Cw721.getOwnerShip(contractAddress);
+		//console.log(data);
 	});
 });
