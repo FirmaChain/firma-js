@@ -75,6 +75,12 @@ export function accountFromAny(input: Any): Account {
         return accountFromBaseAccount(baseAccount!);
     }
 
+    case "/ethermint.types.v1.EthAccount":
+    {
+        const baseAccount = ModuleAccount.decode(value).baseAccount;
+        return accountFromBaseAccount(baseAccount!);
+    }
+
     default:
         throw new Error(`Unsupported type: '${typeUrl}'`);
     }

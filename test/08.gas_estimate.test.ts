@@ -195,9 +195,7 @@ describe.skip('[08. Gas Estimation Test]', () => {
 
 	it("5-3. Staking redelegate gas estimation", async () => {
 
-		let alice = "address nerve kid future spin october hip lonely smooth episode tattoo month invest away castle luxury sauce junk husband uncle bullet orbit this dismiss";
-
-		const wallet = await firma.Wallet.fromMnemonic(alice);
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const validatorList = (await firma.Staking.getValidatorList()).dataList;
 
 		if (validatorList.length < 2)

@@ -116,6 +116,7 @@ export class SigningStargateClient extends StargateClient {
         } else {
             const { accountNumber, sequence } = await SigningStargateClient.getSequence(signerAddress);
             const chainId = await this.getChainId();
+
             signerData = {
                 accountNumber: accountNumber,
                 sequence: sequence,
