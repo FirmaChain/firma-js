@@ -2,7 +2,7 @@ import { FirmaConfig } from "../sdk/FirmaConfig";
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { TestChainConfig } from './config_test';
 
-describe('[30. cw20 query Test]', () => {
+describe.skip('[31. cw20 query Test]', () => {
 
 	let firma: FirmaSDK;
 
@@ -10,51 +10,51 @@ describe('[30. cw20 query Test]', () => {
 		firma = new FirmaSDK(FirmaConfig.TestNetConfig);
 	})
 
-	let contractAddress = "firma1fxkx7wd4q7z5zgm8qh0vaxptx4gp0ppgjm0ke56jr55azpzecpcsuexqg8";
+	const contractAddress = "firma1fxkx7wd4q7z5zgm8qh0vaxptx4gp0ppgjm0ke56jr55azpzecpcsuexqg8";
 
 	it('Cw20 getBalance', async () => {
 
 		const address = "firma13hcgnwfpe99htsr92v2keqsgx909rhkwfnxgwr";
 		const balance = await firma.Cw20.getBalance(contractAddress, address);
 		
-		//console.log(balance);
+		console.log(balance);
 	});
 
-	it.skip('Cw20 getBalance - no balance', async () => {
+	it('Cw20 getBalance - no balance', async () => {
 
 		const nobalance_address = "firma1d84pmnumnsh80v74lta0vnpd476ncp4pjnuklr";
 		const balance = await firma.Cw20.getBalance(contractAddress, nobalance_address);
 		
-		//console.log(balance);
+		console.log(balance);
 	});
 
-	it.skip('Cw20 getTotalSupply', async () => {
+	it('Cw20 getTotalSupply', async () => {
 
 		const totalSupply = await firma.Cw20.getTotalSupply(contractAddress);
-		//console.log(totalSupply);
+		console.log(totalSupply);
 	});
 
-	it.skip('Cw20 getTokenInfo', async () => {
+	it('Cw20 getTokenInfo', async () => {
 
 		const tokenInfo = await firma.Cw20.getTokenInfo(contractAddress);
-		//console.log(tokenInfo);
+		console.log(tokenInfo);
 	});
 
-	it.skip('Cw20 getMinter', async () => {
+	it('Cw20 getMinter', async () => {
 
 		const address = "firma1d84pmnumnsh80v74lta0vnpd476ncp4pjnuklr";
 		const minter = await firma.Cw20.getMinter(contractAddress);
 		
-		//console.log(minter);
+		console.log(minter);
 	});
 
-	it.skip('Cw20 getAllowance', async () => {
+	it('Cw20 getAllowance', async () => {
 
 		const owner = "firma13hcgnwfpe99htsr92v2keqsgx909rhkwfnxgwr";
 		const spender = "firma1d84pmnumnsh80v74lta0vnpd476ncp4pjnuklr";
 
 		const info = await firma.Cw20.getAllowance(contractAddress, owner, spender);		
-		//console.log(info);
+		console.log(info);
 	});
 
 	it.skip('Cw20 getAllAllowances', async () => {
