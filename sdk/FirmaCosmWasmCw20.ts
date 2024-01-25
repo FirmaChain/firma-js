@@ -4,6 +4,9 @@ import { FirmaCosmWasmService } from "./FirmaCosmWasmService";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { TxMisc } from "./firmachain/common";
+import { EncodeObject } from "@cosmjs/proto-signing";
+import { CosmWasmTxClient } from "./firmachain/cosmwasm";
+import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 
 export interface Cw20Minter {
     minter: string;
@@ -46,116 +49,120 @@ export interface Cw20SpenderAllowance {
 // staic util
 const noFunds: any = [];
 
-function getMsgDataTransfer(recipient: string, amount: string) {
-    return JSON.stringify({
-        "transfer": {
-            recipient,
-            amount: amount
-        }
-    });
-}
+export class Cw20MsgData {
 
-function getMsgDataTransferFrom(owner: string, recipient: string, amount: string) {
-    return JSON.stringify({
-        "transfer_from": {
-            owner,
-            recipient,
-            amount: amount
-        }
-    });
-}
+    static getMsgDataTransfer(recipient: string, amount: string) {
+        return JSON.stringify({
+            "transfer": {
+                recipient,
+                amount: amount
+            }
+        });
+    }
+    
+    static getMsgDataTransferFrom(owner: string, recipient: string, amount: string) {
+        return JSON.stringify({
+            "transfer_from": {
+                owner,
+                recipient,
+                amount: amount
+            }
+        });
+    }
+    
+    static getMsgDataMint(recipient: string, amount: string) {
+        return JSON.stringify({
+            "mint": {
+                recipient,
+                amount
+            }
+        });
+    }
+    
+    static getMsgDataBurn(amount: string) {
+        return JSON.stringify({
+            "burn": {
+                amount: amount
+            }
+        });
+    }
+    
+    static getMsgDataBurnFrom(owner: string, amount: string) {
+        return JSON.stringify({
+            "burn_from": {
+                owner,
+                amount: amount
+            }
+        });
+    }
+    
+    static getMsgDataIncreaseAllowance(spender: string, amount: string, expires: Expires) {
+        return JSON.stringify({
+            "increase_allowance": {
+                spender,
+                amount,
+                expires
+            }
+        });
+    }
+    
+    static getMsgDataDecreaseAllowance(spender: string, amount: string, expires: Expires) {
+        return JSON.stringify({
+            "decrease_allowance": {
+                spender,
+                amount,
+                expires
+            }
+        });
+    }
+    
+    static getMsgDataUpdateMinter(new_minter: string) {
+        return JSON.stringify({
+            "update_minter": {
+                new_minter,
+            }
+        });
+    }
+    
+    static getMsgDataUpdateMarketing(description: string, marketing: string, project: string) {
+        return JSON.stringify({
+            "update_marketing": {
+                description,
+                marketing,
+                project
+            }
+        });
+    }
+    
+    static getMsgDataUploadLogo(url: string) {
+        return JSON.stringify({
+            "upload_logo": {
+                url
+            }
+        });
+    }
+    
+    static getMsgDataSend(contract: string, amount: string, msg: any) {
+        return JSON.stringify({
+            "send": {
+                contract,
+                amount,
+                msg: btoa(JSON.stringify(msg))
+            }
+        });
+    }
+    
+    static getMsgDataSendFrom(contract: string, owner: string, amount: string, msg: any) {
+        return JSON.stringify({
+            "send_from": {
+                contract,
+                owner,
+                amount,
+                msg: btoa(JSON.stringify(msg))
+            }
+        });
+    }
 
-function getMsgDataMint(recipient: string, amount: string) {
-    return JSON.stringify({
-        "mint": {
-            recipient,
-            amount
-        }
-    });
-}
-
-function getMsgDataBurn(amount: string) {
-    return JSON.stringify({
-        "burn": {
-            amount: amount
-        }
-    });
-}
-
-function getMsgDataBurnFrom(owner: string, amount: string) {
-    return JSON.stringify({
-        "burn_from": {
-            owner,
-            amount: amount
-        }
-    });
-}
-
-function getMsgDataIncreaseAllowance(spender: string, amount: string, expires: Expires) {
-    return JSON.stringify({
-        "increase_allowance": {
-            spender,
-            amount,
-            expires
-        }
-    });
-}
-
-function getMsgDataDecreaseAllowance(spender: string, amount: string, expires: Expires) {
-    return JSON.stringify({
-        "decrease_allowance": {
-            spender,
-            amount,
-            expires
-        }
-    });
-}
-
-function getMsgDataUpdateMinter(new_minter: string) {
-    return JSON.stringify({
-        "update_minter": {
-            new_minter,
-        }
-    });
-}
-
-function getMsgDataUpdateMarketing(description: string, marketing: string, project: string) {
-    return JSON.stringify({
-        "update_marketing": {
-            description,
-            marketing,
-            project
-        }
-    });
-}
-
-function getMsgDataUploadLogo(url: string) {
-    return JSON.stringify({
-        "upload_logo": {
-            url
-        }
-    });
-}
-
-function getMsgDataSend(contract: string, amount: string, msg: any) {
-    return JSON.stringify({
-        "send": {
-            contract,
-            amount,
-            msg: btoa(JSON.stringify(msg))
-        }
-    });
-}
-
-function getMsgDataSendFrom(contract: string, owner: string, amount: string, msg: any) {
-    return JSON.stringify({
-        "send_from": {
-            contract,
-            owner,
-            amount,
-            msg: btoa(JSON.stringify(msg))
-        }
-    });
 }
 
 // class
@@ -163,125 +170,218 @@ export class FirmaCosmWasmCw20Service {
 
     constructor(private readonly config: FirmaConfig, private readonly cosmwasmService: FirmaCosmWasmService) { }
 
+    public getCw721MsgData () : typeof Cw20MsgData {
+        return Cw20MsgData;
+    }
+
     // tx
     async transfer(wallet: FirmaWalletService, contractAddress: string, recipient: string, amount: string, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataTransfer(recipient, amount);
+        const msgData = Cw20MsgData.getMsgDataTransfer(recipient, amount);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxTransfer(wallet: FirmaWalletService, contractAddress: string, recipient: string, amount: string) {
+        const msgData = Cw20MsgData.getMsgDataTransfer(recipient, amount);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async transferFrom(wallet: FirmaWalletService, contractAddress: string, owner: string, recipient: string, amount: string, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataTransferFrom(owner, recipient, amount);
+        const msgData = Cw20MsgData.getMsgDataTransferFrom(owner, recipient, amount);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxTransferFrom(wallet: FirmaWalletService, contractAddress: string, owner: string, recipient: string, amount: string) {
+        const msgData = Cw20MsgData.getMsgDataTransferFrom(owner, recipient, amount);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async mint(wallet: FirmaWalletService, contractAddress: string, recipient: string, amount: string, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataMint(recipient, amount);
+        const msgData = Cw20MsgData.getMsgDataMint(recipient, amount);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxMint(wallet: FirmaWalletService, contractAddress: string, recipient: string, amount: string) {
+        const msgData = Cw20MsgData.getMsgDataMint(recipient, amount);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async burn(wallet: FirmaWalletService, contractAddress: string, amount: string, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataBurn(amount);
+        const msgData = Cw20MsgData.getMsgDataBurn(amount);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxBurn(wallet: FirmaWalletService, contractAddress: string, amount: string) {
+        const msgData = Cw20MsgData.getMsgDataBurn(amount);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async burnFrom(wallet: FirmaWalletService, contractAddress: string, owner: string, amount: string, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataBurnFrom(owner, amount);
+        const msgData = Cw20MsgData.getMsgDataBurnFrom(owner, amount);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxBurnFrom(wallet: FirmaWalletService, contractAddress: string, owner: string, amount: string) {
+        const msgData = Cw20MsgData.getMsgDataBurnFrom(owner, amount);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async increaseAllowance(wallet: FirmaWalletService, contractAddress: string, spender: string, amount: string, expires: Expires, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataIncreaseAllowance(spender, amount, expires);
+        const msgData = Cw20MsgData.getMsgDataIncreaseAllowance(spender, amount, expires);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxIncreaseAllowance(wallet: FirmaWalletService, contractAddress: string, spender: string, amount: string, expires: Expires) {
+        const msgData = Cw20MsgData.getMsgDataIncreaseAllowance(spender, amount, expires);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async decreaseAllowance(wallet: FirmaWalletService, contractAddress: string, spender: string, amount: string, expires: Expires, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataDecreaseAllowance(spender, amount, expires);
+        const msgData = Cw20MsgData.getMsgDataDecreaseAllowance(spender, amount, expires);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxDecreaseAllowance(wallet: FirmaWalletService, contractAddress: string, spender: string, amount: string, expires: Expires) {
+        const msgData = Cw20MsgData.getMsgDataDecreaseAllowance(spender, amount, expires);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async updateMinter(wallet: FirmaWalletService, contractAddress: string, new_minter: string, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataUpdateMinter(new_minter);
+        const msgData = Cw20MsgData.getMsgDataUpdateMinter(new_minter);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxUpdateMinter(wallet: FirmaWalletService, contractAddress: string, new_minter: string) {
+        const msgData = Cw20MsgData.getMsgDataUpdateMinter(new_minter);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async updateMarketing(wallet: FirmaWalletService, contractAddress: string, description: string, marketing: string, project: string, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataUpdateMarketing(description, marketing, project);
+        const msgData = Cw20MsgData.getMsgDataUpdateMarketing(description, marketing, project);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxUpdateMarketing(wallet: FirmaWalletService, contractAddress: string, description: string, marketing: string, project: string) {
+        const msgData = Cw20MsgData.getMsgDataUpdateMarketing(description, marketing, project);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async uploadLogo(wallet: FirmaWalletService, contractAddress: string, url: string, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataUploadLogo(url);
+        const msgData = Cw20MsgData.getMsgDataUploadLogo(url);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxUploadLogo(wallet: FirmaWalletService, contractAddress: string, url: string) {
+        const msgData = Cw20MsgData.getMsgDataUploadLogo(url);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async send(wallet: FirmaWalletService, contractAddress: string, targetContractAddress: string, amount: string, msg: any, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataSend(targetContractAddress, amount, msg);
+        const msgData = Cw20MsgData.getMsgDataSend(targetContractAddress, amount, msg);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxSend(wallet: FirmaWalletService, contractAddress: string, targetContractAddress: string, amount: string, msg: any) {
+        const msgData = Cw20MsgData.getMsgDataSend(targetContractAddress, amount, msg);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async sendFrom(wallet: FirmaWalletService, contractAddress: string, targetContractAddress: string, owner: string, amount: string, msg: any, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataSendFrom(targetContractAddress, owner, amount, msg);
+        const msgData = Cw20MsgData.getMsgDataSendFrom(targetContractAddress, owner, amount, msg);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
     }
 
+    async getUnsignedTxSendFrom(wallet: FirmaWalletService, contractAddress: string, targetContractAddress: string, owner: string, amount: string, msg: any) {
+        const msgData = Cw20MsgData.getMsgDataSendFrom(targetContractAddress, owner, amount, msg);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
+    }
+
+    async signAndBroadcast(wallet: FirmaWalletService, msgList: EncodeObject[], txMisc: TxMisc = DefaultTxMisc):
+        Promise<BroadcastTxResponse> {
+        try {
+            const txClient = new CosmWasmTxClient(wallet, this.config.rpcAddress);
+            return await txClient.signAndBroadcast(msgList,
+                getSignAndBroadcastOption(this.config.denom, txMisc));
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getGasEstimationSignAndBroadcast(wallet: FirmaWalletService,
+        msgList: EncodeObject[],
+        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+
+        try {
+            const txClient = new CosmWasmTxClient(wallet, this.config.rpcAddress);
+
+            const txRaw = await txClient.sign(msgList, getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await FirmaUtil.estimateGas(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+
     // gas
     async getGasEstimationTransfer(wallet: FirmaWalletService, contractAddress: string, recipient: string, amount: string): Promise<number> {
-        const msgData = getMsgDataTransfer(recipient, amount);
+        const msgData = Cw20MsgData.getMsgDataTransfer(recipient, amount);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationTransferFrom(wallet: FirmaWalletService, contractAddress: string, owner: string, recipient: string, amount: string): Promise<number> {
-        const msgData = getMsgDataTransferFrom(owner, recipient, amount);
+        const msgData = Cw20MsgData.getMsgDataTransferFrom(owner, recipient, amount);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationMint(wallet: FirmaWalletService, contractAddress: string, recipient: string, amount: string): Promise<number> {
-        const msgData = getMsgDataMint(recipient, amount);
+        const msgData = Cw20MsgData.getMsgDataMint(recipient, amount);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationBurn(wallet: FirmaWalletService, contractAddress: string, amount: string): Promise<number> {
-        const msgData = getMsgDataBurn(amount);
+        const msgData = Cw20MsgData.getMsgDataBurn(amount);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationBurnFrom(wallet: FirmaWalletService, contractAddress: string, owner: string, amount: string): Promise<number> {
-        const msgData = getMsgDataBurnFrom(owner, amount);
+        const msgData = Cw20MsgData.getMsgDataBurnFrom(owner, amount);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationIncreaseAllowance(wallet: FirmaWalletService, contractAddress: string, spender: string, amount: string, expires: Expires): Promise<number> {
-        const msgData = getMsgDataIncreaseAllowance(spender, amount, expires);
+        const msgData = Cw20MsgData.getMsgDataIncreaseAllowance(spender, amount, expires);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationDecreaseAllowance(wallet: FirmaWalletService, contractAddress: string, spender: string, amount: string, expires: Expires): Promise<number> {
-        const msgData = getMsgDataDecreaseAllowance(spender, amount, expires);
+        const msgData = Cw20MsgData.getMsgDataDecreaseAllowance(spender, amount, expires);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationUpdateMinter(wallet: FirmaWalletService, contractAddress: string, new_minter: string): Promise<number> {
-        const msgData = getMsgDataUpdateMinter(new_minter);
+        const msgData = Cw20MsgData.getMsgDataUpdateMinter(new_minter);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationUpdateMarketing(wallet: FirmaWalletService, contractAddress: string, description: string, marketing: string, project: string): Promise<number> {
-        const msgData = getMsgDataUpdateMarketing(description, marketing, project);
+        const msgData = Cw20MsgData.getMsgDataUpdateMarketing(description, marketing, project);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationUploadLogo(wallet: FirmaWalletService, contractAddress: string, logo: string): Promise<number> {
-        const msgData = getMsgDataUploadLogo(logo);
+        const msgData = Cw20MsgData.getMsgDataUploadLogo(logo);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationSend(wallet: FirmaWalletService, contractAddress: string, targetContractAddress: string, amount: string, msg: any): Promise<number> {
-        const msgData = getMsgDataSend(targetContractAddress, amount, msg);
+        const msgData = Cw20MsgData.getMsgDataSend(targetContractAddress, amount, msg);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationSendFrom(wallet: FirmaWalletService, contractAddress: string, targetContractAddress: string, owner: string, amount: string, msg: any): Promise<number> {
-        const msgData = getMsgDataSendFrom(targetContractAddress, owner, amount, msg);
+        const msgData = Cw20MsgData.getMsgDataSendFrom(targetContractAddress, owner, amount, msg);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
