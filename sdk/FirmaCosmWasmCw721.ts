@@ -2,8 +2,11 @@ import { FirmaConfig } from "./FirmaConfig";
 
 import { FirmaCosmWasmService } from "./FirmaCosmWasmService";
 import { FirmaWalletService } from "./FirmaWalletService";
-import { DefaultTxMisc, FirmaUtil } from "./FirmaUtil";
+import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { TxMisc } from "./firmachain/common";
+import { CosmWasmTxClient } from "./firmachain/cosmwasm/CosmWasmTxClient";
+import { EncodeObject } from "@cosmjs/proto-signing";
+import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 
 export interface ExpiresAtHeight {
     at_height: number;
@@ -50,216 +53,307 @@ export interface Cw721Approval {
 // staic util
 const noFunds: any = [];
 
-function getMsgDataMint(owner: string, token_id: string, token_uri: string) {
-    return JSON.stringify({
-        "mint": {
-            token_id,
-            owner,
-            extension: {},
-            token_uri
-        }
-    });
-}
+export class Cw721MsgData {
 
-function getMsgDataBurn(token_id: string) {
-    return JSON.stringify({
-        "burn": {
-            token_id
-        }
-    });
-}
-
-function getMsgDataTransfer(recipient: string, token_id: string) {
-    return JSON.stringify({
-        "transfer_nft": {
-            recipient,
-            token_id
-        }
-    });
-}
-
-function getMsgDataApprove(spender: string, token_id: string, expires: Expires) {
-    return JSON.stringify({
-        "approve": {
-            spender,
-            token_id,
-            expires
-        }
-    });
-}
-
-function getMsgDataRevoke(spender: string, token_id: string) {
-    return JSON.stringify({
-        "revoke": {
-            spender,
-            token_id
-        }
-    });
-}
-
-function getMsgDataApproveAll(operator: string, expires: Expires) {
-    return JSON.stringify({
-        "approve_all": {
-            operator,
-            expires
-        }
-    });
-}
-
-function getMsgDataRevokeAll(operator: string) {
-    return JSON.stringify({
-        "revoke_all": {
-            operator
-        }
-    });
-}
-
-function getMsgDataSendNft(contract: string, token_id: string, msg: any) {
-    return JSON.stringify({
-        "send_nft": {
-            contract,
-            token_id,
-            msg: btoa(JSON.stringify(msg))
-        }
-    });
-}
-
-function getMsgUpdateOwnerShipTransfer(new_owner: string, expiry: Expires) {
-    return JSON.stringify({
-        "update_ownership": {
-            "transfer_ownership": {
-                new_owner,
-                expiry
+    static getMsgDataMint(owner: string, token_id: string, token_uri: string) {
+        return JSON.stringify({
+            "mint": {
+                token_id,
+                owner,
+                extension: {},
+                token_uri
             }
-        }
-    });
+        });
+    }
+    
+    static getMsgDataBurn(token_id: string) {
+        return JSON.stringify({
+            "burn": {
+                token_id
+            }
+        });
+    }
+    
+    static getMsgDataTransfer(recipient: string, token_id: string) {
+        return JSON.stringify({
+            "transfer_nft": {
+                recipient,
+                token_id
+            }
+        });
+    }
+    
+    static getMsgDataApprove(spender: string, token_id: string, expires: Expires) {
+        return JSON.stringify({
+            "approve": {
+                spender,
+                token_id,
+                expires
+            }
+        });
+    }
+    
+    static getMsgDataRevoke(spender: string, token_id: string) {
+        return JSON.stringify({
+            "revoke": {
+                spender,
+                token_id
+            }
+        });
+    }
+    
+    static getMsgDataApproveAll(operator: string, expires: Expires) {
+        return JSON.stringify({
+            "approve_all": {
+                operator,
+                expires
+            }
+        });
+    }
+    
+    static getMsgDataRevokeAll(operator: string) {
+        return JSON.stringify({
+            "revoke_all": {
+                operator
+            }
+        });
+    }
+    
+    static getMsgDataSendNft(contract: string, token_id: string, msg: any) {
+        return JSON.stringify({
+            "send_nft": {
+                contract,
+                token_id,
+                msg: btoa(JSON.stringify(msg))
+            }
+        });
+    }
+    
+    static getMsgUpdateOwnerShipTransfer(new_owner: string, expiry: Expires) {
+        return JSON.stringify({
+            "update_ownership": {
+                "transfer_ownership": {
+                    new_owner,
+                    expiry
+                }
+            }
+        });
+    }
+    
+    static getMsgUpdateOwnerShipAccept() {
+        return JSON.stringify({
+            "update_ownership": "accept_ownership"
+        });
+    }
+    
+    static getMsgUpdateOwnerShipRenounce() {
+        return JSON.stringify({
+            "update_ownership": "renounce_ownership"
+        });
+    }
 }
 
-function getMsgUpdateOwnerShipAccept() {
-    return JSON.stringify({
-        "update_ownership": "accept_ownership"
-    });
-}
-
-function getMsgUpdateOwnerShipRenounce() {
-    return JSON.stringify({
-        "update_ownership": "renounce_ownership"
-    });
-}
 
 export class FirmaCosmWasmCw721Service {
 
     constructor(private readonly config: FirmaConfig, private readonly cosmwasmService: FirmaCosmWasmService) { }
 
+    public getCw721MsgData () : typeof Cw721MsgData {
+        return Cw721MsgData;
+    }
+
     // tx
     async mint(wallet: FirmaWalletService, contractAddress: string, owner: string, token_id: string, token_uri: string = "", txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataMint(owner, token_id, token_uri);
+        const msgData = Cw721MsgData.getMsgDataMint(owner, token_id, token_uri);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxMint(wallet: FirmaWalletService, contractAddress: string, owner: string, token_id: string, token_uri: string = "") {
+        const msgData = Cw721MsgData.getMsgDataMint(owner, token_id, token_uri);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async burn(wallet: FirmaWalletService, contractAddress: string, token_id: string, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataBurn(token_id);
+        const msgData = Cw721MsgData.getMsgDataBurn(token_id);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxBurn(wallet: FirmaWalletService, contractAddress: string, token_id: string) {
+        const msgData = Cw721MsgData.getMsgDataBurn(token_id);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async transfer(wallet: FirmaWalletService, contractAddress: string, recipient: string, token_id: string, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataTransfer(recipient, token_id);
+        const msgData = Cw721MsgData.getMsgDataTransfer(recipient, token_id);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxTransfer(wallet: FirmaWalletService, contractAddress: string, recipient: string, token_id: string) {
+        const msgData = Cw721MsgData.getMsgDataTransfer(recipient, token_id);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async approve(wallet: FirmaWalletService, contractAddress: string, spender: string, token_id: string, expires: Expires, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataApprove(spender, token_id, expires);
+        const msgData = Cw721MsgData.getMsgDataApprove(spender, token_id, expires);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxApprove(wallet: FirmaWalletService, contractAddress: string, spender: string, token_id: string, expires: Expires) {
+        const msgData = Cw721MsgData.getMsgDataApprove(spender, token_id, expires);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async revoke(wallet: FirmaWalletService, contractAddress: string, spender: string, token_id: string, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataRevoke(spender, token_id);
+        const msgData = Cw721MsgData.getMsgDataRevoke(spender, token_id);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxRevoke(wallet: FirmaWalletService, contractAddress: string, spender: string, token_id: string) {
+        const msgData = Cw721MsgData.getMsgDataRevoke(spender, token_id);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async approveAll(wallet: FirmaWalletService, contractAddress: string, operator: string, expires: Expires, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataApproveAll(operator, expires);
+        const msgData = Cw721MsgData.getMsgDataApproveAll(operator, expires);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxApproveAll(wallet: FirmaWalletService, contractAddress: string, operator: string, expires: Expires) {
+        const msgData = Cw721MsgData.getMsgDataApproveAll(operator, expires);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async revokeAll(wallet: FirmaWalletService, contractAddress: string, operator: string, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataRevokeAll(operator);
+        const msgData = Cw721MsgData.getMsgDataRevokeAll(operator);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxRevokeAll(wallet: FirmaWalletService, contractAddress: string, operator: string) {
+        const msgData = Cw721MsgData.getMsgDataRevokeAll(operator);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async sendNft(wallet: FirmaWalletService, contractAddress: string, targetContractAddress: string, token_id: string, msg: any, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgDataSendNft(targetContractAddress, token_id, msg);
+        const msgData = Cw721MsgData.getMsgDataSendNft(targetContractAddress, token_id, msg);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxSendNft(wallet: FirmaWalletService, contractAddress: string, targetContractAddress: string, token_id: string, msg: any) {
+        const msgData = Cw721MsgData.getMsgDataSendNft(targetContractAddress, token_id, msg);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async updateOwnerShipTransfer(wallet: FirmaWalletService, contractAddress: string, new_owner: string, expiry: Expires, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgUpdateOwnerShipTransfer(new_owner, expiry);
+        const msgData = Cw721MsgData.getMsgUpdateOwnerShipTransfer(new_owner, expiry);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxUpdateOwnerShipTransfer(wallet: FirmaWalletService, contractAddress: string, new_owner: string, expiry: Expires) {
+        const msgData = Cw721MsgData.getMsgUpdateOwnerShipTransfer(new_owner, expiry);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async updateOwnerShipAccept(wallet: FirmaWalletService, contractAddress: string, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgUpdateOwnerShipAccept();
+        const msgData = Cw721MsgData.getMsgUpdateOwnerShipAccept();
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
     }
 
+    async getUnsignedTxUpdateOwnerShipAccept(wallet: FirmaWalletService, contractAddress: string) {
+        const msgData = Cw721MsgData.getMsgUpdateOwnerShipAccept();
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
+    }
+
     async updateOwnerShipRenounce(wallet: FirmaWalletService, contractAddress: string, txMisc: TxMisc = DefaultTxMisc) {
-        const msgData = getMsgUpdateOwnerShipRenounce();
+        const msgData = Cw721MsgData.getMsgUpdateOwnerShipRenounce();
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxUpdateOwnerShipRenounce(wallet: FirmaWalletService, contractAddress: string) {
+        const msgData = Cw721MsgData.getMsgUpdateOwnerShipRenounce();
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
+    }
+
+    async signAndBroadcast(wallet: FirmaWalletService, msgList: EncodeObject[], txMisc: TxMisc = DefaultTxMisc):
+        Promise<BroadcastTxResponse> {
+        try {
+            const txClient = new CosmWasmTxClient(wallet, this.config.rpcAddress);
+            return await txClient.signAndBroadcast(msgList,
+                getSignAndBroadcastOption(this.config.denom, txMisc));
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getGasEstimationSignAndBroadcast(wallet: FirmaWalletService,
+        msgList: EncodeObject[],
+        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+
+        try {
+            const txClient = new CosmWasmTxClient(wallet, this.config.rpcAddress);
+
+            const txRaw = await txClient.sign(msgList, getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await FirmaUtil.estimateGas(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
     }
 
     // gas
     async getGasEstimationMint(wallet: FirmaWalletService, contractAddress: string, owner: string, token_id: string, token_uri: string = ""): Promise<number> {
-        const msgData = getMsgDataMint(owner, token_id, token_uri);
+        const msgData = Cw721MsgData.getMsgDataMint(owner, token_id, token_uri);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationBurn(wallet: FirmaWalletService, contractAddress: string, token_id: string): Promise<number> {
-        const msgData = getMsgDataBurn(token_id);
+        const msgData = Cw721MsgData.getMsgDataBurn(token_id);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationTransfer(wallet: FirmaWalletService, contractAddress: string, recipient: string, token_id: string): Promise<number> {
-        const msgData = getMsgDataTransfer(recipient, token_id);
+        const msgData = Cw721MsgData.getMsgDataTransfer(recipient, token_id);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationApprove(wallet: FirmaWalletService, contractAddress: string, spender: string, token_id: string, expires: Expires): Promise<number> {
-        const msgData = getMsgDataApprove(spender, token_id, expires);
+        const msgData = Cw721MsgData.getMsgDataApprove(spender, token_id, expires);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationRevoke(wallet: FirmaWalletService, contractAddress: string, spender: string, token_id: string): Promise<number> {
-        const msgData = getMsgDataRevoke(spender, token_id);
+        const msgData = Cw721MsgData.getMsgDataRevoke(spender, token_id);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationApproveAll(wallet: FirmaWalletService, contractAddress: string, operator: string, expires: Expires): Promise<number> {
-        const msgData = getMsgDataApproveAll(operator, expires);
+        const msgData = Cw721MsgData.getMsgDataApproveAll(operator, expires);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationRevokeAll(wallet: FirmaWalletService, contractAddress: string, operator: string): Promise<number> {
-        const msgData = getMsgDataRevokeAll(operator);
+        const msgData = Cw721MsgData.getMsgDataRevokeAll(operator);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationSendNft(wallet: FirmaWalletService, contractAddress: string, targetContractAddress: string, token_id: string, msg: any): Promise<number> {
-        const msgData = getMsgDataSendNft(targetContractAddress, token_id, msg);
+        const msgData = Cw721MsgData.getMsgDataSendNft(targetContractAddress, token_id, msg);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationUpdateOwnerShipTransfer(wallet: FirmaWalletService, contractAddress: string, new_owner: string, expiry: Expires): Promise<number> {
-        const msgData = getMsgUpdateOwnerShipTransfer(new_owner, expiry);
+        const msgData = Cw721MsgData.getMsgUpdateOwnerShipTransfer(new_owner, expiry);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationUpdateOwnerShipAccept(wallet: FirmaWalletService, contractAddress: string): Promise<number> {
-        const msgData = getMsgUpdateOwnerShipAccept();
+        const msgData = Cw721MsgData.getMsgUpdateOwnerShipAccept();
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async getGasEstimationUpdateOwnerShipRenounce(wallet: FirmaWalletService, contractAddress: string): Promise<number> {
-        const msgData = getMsgUpdateOwnerShipRenounce();
+        const msgData = Cw721MsgData.getMsgUpdateOwnerShipRenounce();
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
@@ -425,8 +519,6 @@ export class FirmaCosmWasmCw721Service {
     // TODO: for many items, limit, start_after can be added later
     async getAllNftIdList(contractAddress: string): Promise<string[]> {
         try {
-
-
             const query = `{"all_tokens": { }}`;
 
             const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
