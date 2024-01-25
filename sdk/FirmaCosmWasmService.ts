@@ -12,6 +12,7 @@ import pako from "pako";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import Long from "long";
 import { AccessConfig } from "cosmjs-types/cosmwasm/wasm/v1/types";
+import { EncodeObject } from "@cosmjs/proto-signing";
 
 export class FirmaCosmWasmService {
 
@@ -146,6 +147,34 @@ export class FirmaCosmWasmService {
         }
     }
 
+    async signAndBroadcast(wallet: FirmaWalletService, msgList: EncodeObject[], txMisc: TxMisc = DefaultTxMisc):
+        Promise<BroadcastTxResponse> {
+        try {
+            const txClient = new CosmWasmTxClient(wallet, this.config.rpcAddress);
+            return await txClient.signAndBroadcast(msgList,
+                getSignAndBroadcastOption(this.config.denom, txMisc));
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getGasEstimationSignAndBroadcast(wallet: FirmaWalletService,
+        msgList: EncodeObject[],
+        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+
+        try {
+            const txClient = new CosmWasmTxClient(wallet, this.config.rpcAddress);
+
+            const txRaw = await txClient.sign(msgList, getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await FirmaUtil.estimateGas(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     async getGasEstimationInstantiateContract(wallet: FirmaWalletService, admin: string, codeId: string, label: string, msg: string, funds: Coin[], txMisc: TxMisc = DefaultTxMisc): Promise<number> {
         try {
             const txRaw = await this.getSignedTxInstantiateContract(wallet, admin, codeId, label, msg, funds, txMisc);
@@ -232,7 +261,20 @@ export class FirmaCosmWasmService {
         }
     }
 
-    private async getSignedTxExecuteContract(wallet: FirmaWalletService, contractAddress: string, msg: string, funds: Coin[], txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+    public async getUnsignedTxExecuteContract(wallet: FirmaWalletService, contractAddress: string, msg: string, funds: Coin[]): Promise<EncodeObject> {
+        try {
+            const address = await wallet.getAddress();
+            const utfMsg = toUtf8(msg);
+
+            return CosmWasmTxClient.msgExecuteContract({ sender: address, contract: contractAddress, msg: utfMsg, funds: funds });
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    public async getSignedTxExecuteContract(wallet: FirmaWalletService, contractAddress: string, msg: string, funds: Coin[], txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
         try {
             const address = await wallet.getAddress();
             const utfMsg = toUtf8(msg);
