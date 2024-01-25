@@ -1,0 +1,202 @@
+import { FirmaConfig } from "./FirmaConfig";
+
+import { FirmaCosmWasmService } from "./FirmaCosmWasmService";
+import { FirmaWalletService } from "./FirmaWalletService";
+import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
+import { TxMisc } from "./firmachain/common";
+import { CosmWasmTxClient } from "./firmachain/cosmwasm/CosmWasmTxClient";
+import { EncodeObject } from "@cosmjs/proto-signing";
+import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
+import { FirmaCosmWasmCw20Service } from "./FirmaCosmWasmCw20";
+import { FirmaCosmWasmCw721Service } from "./FirmaCosmWasmCw721";
+
+export interface ExpiresAtHeight {
+    at_height: number;
+}
+
+export interface ExpiresAtTime {
+    at_time: number; // Unix timestamp
+}
+
+export interface ExpiresNever {
+    never: {};
+}
+
+export type Expires = ExpiresAtHeight | ExpiresAtTime | ExpiresNever;
+
+interface OwnershipResponse {
+    owner: string | null;
+    pending_owner: string | null;
+    pending_expiry: Expires | null;
+}
+
+export interface Cw721NftInfo {
+    access: {
+        owner: string;
+        approvals: Cw721Approval[];
+    }
+
+    info: {
+        token_uri: string;
+        extension: Object;
+    }
+}
+
+export interface Cw721ContractInfo {
+    name: string;
+    symbol: string;
+}
+
+export interface Cw721Approval {
+    spender: string,
+    expires: Expires;
+}
+
+// staic util
+const noFunds: any = [];
+
+export class CwBridgeMsgData {
+
+    static getMsgDataLock() {
+        return {
+			action: "lock",
+			target_addr: ""
+		}
+    }
+
+    static getMsgDataDeposit(toAddress: string) {
+        return {
+			action: "deposit",
+			target_addr : toAddress
+		}
+    }
+
+    static getMsgDataUnlock(token_id: string) {
+        return JSON.stringify({
+            "unlock": {
+                token_id,
+            }
+        });
+    }
+
+    static getMsgDataWithdraw(token_id: string) {
+        return JSON.stringify({
+            "withdraw": {
+                token_id,
+            }
+        });
+    }
+
+    static getMsgDataMint(owner: string, token_id: string, token_uri: string) {
+        return JSON.stringify({
+            "mint": {
+                token_id,
+                owner,
+                extension: {},
+                token_uri
+            }
+        });
+    }
+}
+
+
+export class FirmaCosmWasmCwBridgeService {
+
+    constructor(private readonly config: FirmaConfig, private readonly cosmwasmService: FirmaCosmWasmService, private readonly cw721Service: FirmaCosmWasmCw721Service) { }
+
+    public getCwBridgeMsgData () : typeof CwBridgeMsgData {
+        return CwBridgeMsgData;
+    }
+
+    async lock(wallet: FirmaWalletService, contractAddress: string, cw721ContractAddress: string, tokenId: string, txMisc: TxMisc = DefaultTxMisc) {
+        const msgData = CwBridgeMsgData.getMsgDataLock();
+		return await this.cw721Service.sendNft(wallet, cw721ContractAddress, contractAddress, tokenId, msgData, txMisc);
+    }
+
+    async getUnsignedTxLock(wallet: FirmaWalletService, contractAddress: string, cw721ContractAddress: string, tokenId: string) {
+        const msgData = CwBridgeMsgData.getMsgDataLock();
+        return await this.cw721Service.getUnsignedTxSendNft(wallet, cw721ContractAddress, contractAddress, tokenId, msgData);
+    }
+
+    async deposit(wallet: FirmaWalletService, contractAddress: string, cw721ContractAddress: string, tokenId: string, toAddress: string, txMisc: TxMisc = DefaultTxMisc) {
+        const msgData = CwBridgeMsgData.getMsgDataDeposit(toAddress);
+        return await this.cw721Service.sendNft(wallet, cw721ContractAddress, contractAddress, tokenId, msgData, txMisc);
+    }
+
+    async getUnsignedTxDeposit(wallet: FirmaWalletService, contractAddress: string, cw721ContractAddress: string, tokenId: string, toAddress: string) {
+        const msgData = CwBridgeMsgData.getMsgDataDeposit(toAddress);
+        return await this.cw721Service.getUnsignedTxSendNft(wallet, cw721ContractAddress, contractAddress, tokenId, msgData);
+    }
+
+    async unlock(wallet: FirmaWalletService, contractAddress: string, token_id: string, txMisc: TxMisc = DefaultTxMisc) {
+        const msgData = CwBridgeMsgData.getMsgDataUnlock(token_id);
+        return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxUnlock(wallet: FirmaWalletService, contractAddress: string, token_id: string) {
+        const msgData = CwBridgeMsgData.getMsgDataUnlock(token_id);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
+    }
+
+    async withdraw(wallet: FirmaWalletService, contractAddress: string, token_id: string, txMisc: TxMisc = DefaultTxMisc) {
+        const msgData = CwBridgeMsgData.getMsgDataWithdraw(token_id);
+        return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxWithdraw(wallet: FirmaWalletService, contractAddress: string, token_id: string) {
+        const msgData = CwBridgeMsgData.getMsgDataWithdraw(token_id);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
+    }
+
+    async signAndBroadcast(wallet: FirmaWalletService, msgList: EncodeObject[], txMisc: TxMisc = DefaultTxMisc):
+        Promise<BroadcastTxResponse> {
+        try {
+            const txClient = new CosmWasmTxClient(wallet, this.config.rpcAddress);
+            return await txClient.signAndBroadcast(msgList,
+                getSignAndBroadcastOption(this.config.denom, txMisc));
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getGasEstimationSignAndBroadcast(wallet: FirmaWalletService,
+        msgList: EncodeObject[],
+        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+
+        try {
+            const txClient = new CosmWasmTxClient(wallet, this.config.rpcAddress);
+
+            const txRaw = await txClient.sign(msgList, getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await FirmaUtil.estimateGas(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    // gas
+    async getGasEstimationLock(wallet: FirmaWalletService, contractAddress: string, cw721ContractAddress: string, tokenId: string): Promise<number> {
+        const msgData = CwBridgeMsgData.getMsgDataLock();
+        return await this.cw721Service.getGasEstimationSendNft(wallet, cw721ContractAddress, contractAddress, tokenId, msgData);
+    }
+
+    async getGasEstimationDeposit(wallet: FirmaWalletService, contractAddress: string, cw721ContractAddress: string, tokenId: string, toAddress: string): Promise<number> {
+        const msgData = CwBridgeMsgData.getMsgDataDeposit(toAddress);
+        return await this.cw721Service.getGasEstimationSendNft(wallet, cw721ContractAddress, contractAddress, tokenId, msgData);
+    }
+
+    async getGasEstimationUnlock(wallet: FirmaWalletService, contractAddress: string, token_id: string): Promise<number> {
+        const msgData = CwBridgeMsgData.getMsgDataUnlock(token_id);
+        return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
+    }
+
+    async getGasEstimationWithdraw(wallet: FirmaWalletService, contractAddress: string, token_id: string): Promise<number> {
+        const msgData = CwBridgeMsgData.getMsgDataWithdraw(token_id);
+        return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
+    }
+
+    // query
+    
+}
