@@ -10,7 +10,7 @@ import { FirmaUtil } from "../sdk/FirmaUtil";
 import fs from "fs";
 import { AccessConfig, AccessType } from "cosmjs-types/cosmwasm/wasm/v1/types";
 
-describe.skip('[30. cw20 tx Test]', () => {
+describe('[30. cw20 tx Test]', () => {
 
 	let firma: FirmaSDK;
 

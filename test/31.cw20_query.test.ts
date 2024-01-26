@@ -2,7 +2,7 @@ import { FirmaConfig } from "../sdk/FirmaConfig";
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { TestChainConfig } from './config_test';
 
-describe.skip('[31. cw20 query Test]', () => {
+describe('[31. cw20 query Test]', () => {
 
 	let firma: FirmaSDK;
 
