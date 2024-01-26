@@ -7,49 +7,24 @@ import { TxMisc } from "./firmachain/common";
 import { CosmWasmTxClient } from "./firmachain/cosmwasm/CosmWasmTxClient";
 import { EncodeObject } from "@cosmjs/proto-signing";
 import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
-import { FirmaCosmWasmCw20Service } from "./FirmaCosmWasmCw20";
 import { FirmaCosmWasmCw721Service } from "./FirmaCosmWasmCw721";
 
-export interface ExpiresAtHeight {
-    at_height: number;
+export interface BridgeGlobalTxCounts {
+    lock_count: number;
+    unlock_count: number;
+    deposit_count: number;
+    withdraw_count: number;
 }
 
-export interface ExpiresAtTime {
-    at_time: number; // Unix timestamp
+export interface BridgeConfig {
+    owner: string;
+    cw721_address: string;
 }
 
-export interface ExpiresNever {
-    never: {};
-}
-
-export type Expires = ExpiresAtHeight | ExpiresAtTime | ExpiresNever;
-
-interface OwnershipResponse {
-    owner: string | null;
-    pending_owner: string | null;
-    pending_expiry: Expires | null;
-}
-
-export interface Cw721NftInfo {
-    access: {
-        owner: string;
-        approvals: Cw721Approval[];
-    }
-
-    info: {
-        token_uri: string;
-        extension: Object;
-    }
-}
-
-export interface Cw721ContractInfo {
-    name: string;
-    symbol: string;
-}
-
-export interface Cw721Approval {
-    spender: string,
-    expires: Expires;
+export interface NftInfo {
+    owner: string,
+    token_id: string,
+    is_deposit: boolean,
 }
 
 // staic util
@@ -198,5 +173,47 @@ export class FirmaCosmWasmCwBridgeService {
     }
 
     // query
-    
+
+    async getConfig(contractAddress: string) : Promise<BridgeConfig>{
+        const query = `{"get_config": {  }}`;
+        const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
+        return JSON.parse(result);
+    }
+
+    async getNftInfo(contractAddress: string, tokenId: string) : Promise<NftInfo>{
+        const query = `{"nft_info": { "token_id": "${tokenId}" }}`;
+        const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
+
+        return JSON.parse(result);
+    }
+
+    async getOwnerNfts(contractAddress: string, ownerAddress: string) : Promise<string[]>{
+        const query = `{"owner_nfts": { "owner_addr": "${ownerAddress}" }}`;
+        const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
+        return JSON.parse(result);
+    }
+
+    async getOwnerNftsInfo(contractAddress: string, ownerAddress: string) : Promise<NftInfo[]>{
+        const query = `{"owner_nfts_info": { "owner_addr": "${ownerAddress}" }}`;
+        const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
+        return JSON.parse(result);
+    }
+
+    async getOwnerWithdrawableNfts(contractAddress: string, ownerAddress: string) : Promise<NftInfo[]>{
+        const query = `{"owner_withdrawable_nfts": { "owner_addr": "${ownerAddress}" }}`;
+        const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
+        return JSON.parse(result);
+    }
+
+    async getOwnerUnlockableNfts(contractAddress: string, ownerAddress: string) : Promise<NftInfo[]>{
+        const query = `{"owner_unlockable_nfts": { "owner_addr": "${ownerAddress}" }}`;
+        const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
+        return JSON.parse(result);
+    }
+
+    async getGlobalTxCounts(contractAddress: string) : Promise<BridgeGlobalTxCounts>{
+        const query = `{"global_tx_counts": {}}`;
+        const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
+        return JSON.parse(result);
+    }
 }
