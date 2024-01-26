@@ -30,6 +30,34 @@ describe('[10. NFT Tx Test]', () => {
 
 		const address = await wallet.getAddress();
 
+		const tx1 = await firma.Nft.getUnsignedTxMint(wallet, "https://naver1.com" );
+		const tx2 = await firma.Nft.getUnsignedTxMint(wallet, "https://naver2.com" );
+		const tx3 = await firma.Nft.getUnsignedTxMint(wallet, "https://naver3.com" );
+		
+		const txList = [tx1, tx2, tx3, tx1, tx2, tx3, tx1, tx2, tx3, tx1, tx2, tx3];
+
+		let gas = await firma.Nft.getGasEstimationFromEncodeObject(wallet, txList);
+		const fee = Math.ceil(gas * 0.1);
+		console.log("gas :" + gas);
+		console.log("fee :" + fee);
+
+		var result = await firma.Nft.signAndBroadcast(wallet, txList, {gas: gas, fee: fee});
+
+		// get nftId below code
+		var jsonData = JSON.parse(result.rawLog!);
+		var nftId = jsonData[0]["events"][0]["attributes"][2]["value"];
+
+		//console.log(nftId);
+
+		expect(result.code).to.be.equal(0);
+	});
+
+	it('NFT Mint - BULK low level', async () => {
+
+		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+
+		const address = await wallet.getAddress();
+
 		const tx1 = NftTxClient.msgMint({ owner: address, tokenURI: "https://naver1.com" });
 		const tx2 = NftTxClient.msgMint({ owner: address, tokenURI: "https://naver2.com" });
 		const tx3 = NftTxClient.msgMint({ owner: address, tokenURI: "https://naver3.com" });

@@ -106,14 +106,30 @@ export class NftService {
         }
     }
 
-    private async getSignedTxTransfer(wallet: FirmaWalletService,
+    async getUnsignedTxTransfer(wallet: FirmaWalletService,
+        toAddress: string,
+        nftID: string
+        ): Promise<EncodeObject> {
+
+        try {
+            const address = await wallet.getAddress();
+            const message = NftTxClient.msgTransfer({ owner: address, toAddress, nftId: parseInt(nftID) });
+
+            return message;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getSignedTxTransfer(wallet: FirmaWalletService,
         toAddress: string,
         nftID: string,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const address = await wallet.getAddress();
-            const message = NftTxClient.msgTransfer({ owner: address, toAddress: toAddress, nftId: parseInt(nftID) });
+            const message = await this.getUnsignedTxTransfer(wallet, toAddress, nftID);
 
             const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
             return await nftTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
@@ -152,12 +168,25 @@ export class NftService {
         }
     }
 
-    public async getSignedTxBurn(wallet: FirmaWalletService, nftID: string, txMisc: TxMisc = DefaultTxMisc):
+    async getUnsignedTxBurn(wallet: FirmaWalletService, nftID: string): Promise<EncodeObject> {
+            
+            try {
+                const address = await wallet.getAddress();
+                const message = NftTxClient.msgBurn({ owner: address, nftId: parseInt(nftID) });
+    
+                return message;
+    
+            } catch (error) {
+                FirmaUtil.printLog(error);
+                throw error;
+            }
+        }
+
+    async getSignedTxBurn(wallet: FirmaWalletService, nftID: string, txMisc: TxMisc = DefaultTxMisc):
         Promise<TxRaw> {
 
         try {
-            const address = await wallet.getAddress();
-            const message = NftTxClient.msgBurn({ owner: address, nftId: parseInt(nftID) });
+            const message = await this.getUnsignedTxBurn(wallet, nftID);
 
             const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
             return await nftTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
@@ -212,12 +241,11 @@ export class NftService {
         }
     }
 
-    private async getSignedTxMint(wallet: FirmaWalletService, tokenURI: string, txMisc: TxMisc = DefaultTxMisc):
+    async getSignedTxMint(wallet: FirmaWalletService, tokenURI: string, txMisc: TxMisc = DefaultTxMisc):
         Promise<TxRaw> {
 
         try {
-            const address = await wallet.getAddress();
-            const message = NftTxClient.msgMint({ owner: address, tokenURI: tokenURI });
+            const message = await this.getUnsignedTxMint(wallet, tokenURI);
 
             const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
             return await nftTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
@@ -227,6 +255,20 @@ export class NftService {
             throw error;
         }
     }
+
+    async getUnsignedTxMint(wallet: FirmaWalletService, tokenURI: string): Promise<EncodeObject> {
+            
+            try {
+                const address = await wallet.getAddress();
+                const message = NftTxClient.msgMint({ owner: address, tokenURI: tokenURI });
+    
+                return message;
+    
+            } catch (error) {
+                FirmaUtil.printLog(error);
+                throw error;
+            }
+        }
     
     async mint(wallet: FirmaWalletService, tokenURI: string, txMisc: TxMisc = DefaultTxMisc):
         Promise<BroadcastTxResponse> {
