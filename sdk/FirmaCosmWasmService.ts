@@ -14,6 +14,8 @@ import Long from "long";
 import { AccessConfig } from "cosmjs-types/cosmwasm/wasm/v1/types";
 import { EncodeObject } from "@cosmjs/proto-signing";
 
+export { AccessConfig, AccessType } from "cosmjs-types/cosmwasm/wasm/v1/types";
+
 export class FirmaCosmWasmService {
 
     constructor(private readonly config: FirmaConfig) { }

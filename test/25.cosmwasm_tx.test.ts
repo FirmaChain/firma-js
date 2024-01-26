@@ -5,7 +5,7 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 import fs from "fs";
 import { Coin } from '@cosmjs/proto-signing';
-import { AccessConfig, AccessType } from 'cosmjs-types/cosmwasm/wasm/v1/types';
+import { AccessConfig, AccessType } from '../sdk/FirmaCosmWasmService';
 
 describe('[25. CosmWasm Tx Test]', () => {
 
