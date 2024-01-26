@@ -17,3 +17,24 @@ export * from './sdk/firmachain/token';
 
 export * from './sdk/firmachain/nft';
 export * from './sdk/firmachain/feegrant';
+
+export * from './sdk/FirmaWalletService';
+export * from './sdk/FirmaBankService';
+export * from './sdk/FirmaFeeGrantService';
+export * from './sdk/FirmaStakingService';
+export * from './sdk/FirmaDistributionService';
+export * from './sdk/FirmaGovService';
+export * from './sdk/FirmaNftService';
+export * from './sdk/FirmaTokenService';
+export * from './sdk/FirmaContractService';
+export * from './sdk/FirmaIpfsService';
+export * from './sdk/FirmaChainService';
+export * from './sdk/FirmaSlashingService';
+export * from './sdk/FirmaAuthzService';
+export * from './sdk/FirmaCosmWasmService';
+export * from './sdk/FirmaIbcService';
+export * from './sdk/FirmaMintService';
+export * from './sdk/FirmaCosmWasmCw20';
+export * from './sdk/FirmaCosmWasmCw721';
+export * from './sdk/FirmaCosmWasmCwBridge';
+

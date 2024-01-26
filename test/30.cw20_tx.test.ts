@@ -8,7 +8,7 @@ import { Expires } from "../sdk/FirmaCosmWasmCw20";
 import { FirmaUtil } from "../sdk/FirmaUtil";
 
 import fs from "fs";
-import { AccessConfig, AccessType } from "cosmjs-types/cosmwasm/wasm/v1/types";
+import { AccessConfig, AccessType } from "../sdk/FirmaCosmWasmService";
 
 describe('[30. cw20 tx Test]', () => {
 
