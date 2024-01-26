@@ -10,7 +10,7 @@ import { FirmaUtil } from "../sdk/FirmaUtil";
 import fs from "fs";
 import { AccessConfig, AccessType } from "cosmjs-types/cosmwasm/wasm/v1/types";
 
-describe.only('[32. cw721 tx Test]', () => {
+describe('[32. cw721 tx Test]', () => {
 
 	let firma: FirmaSDK;
 
@@ -62,8 +62,7 @@ describe.only('[32. cw721 tx Test]', () => {
 		const testData = JSON.stringify({
 			minter: aliceAddress,
 			name: "My Awesome NFT Collection",
-			symbol: "MAWESOME",
-			withdraw_address: aliceAddress // withdraw_address is optional
+			symbol: "MAWESOME"			
 		});
 
 		var result = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: gas, fee: fee });
