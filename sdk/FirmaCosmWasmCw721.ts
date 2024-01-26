@@ -8,24 +8,24 @@ import { CosmWasmTxClient } from "./firmachain/cosmwasm/CosmWasmTxClient";
 import { EncodeObject } from "@cosmjs/proto-signing";
 import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 
-export interface ExpiresAtHeight {
+export interface Cw721ExpiresAtHeight {
     at_height: number;
 }
 
-export interface ExpiresAtTime {
+export interface Cw721ExpiresAtTime {
     at_time: number; // Unix timestamp
 }
 
-export interface ExpiresNever {
+export interface Cw721ExpiresNever {
     never: {};
 }
 
-export type Expires = ExpiresAtHeight | ExpiresAtTime | ExpiresNever;
+export type Cw721Expires = Cw721ExpiresAtHeight | Cw721ExpiresAtTime | Cw721ExpiresNever;
 
 interface OwnershipResponse {
     owner: string | null;
     pending_owner: string | null;
-    pending_expiry: Expires | null;
+    pending_expiry: Cw721Expires | null;
 }
 
 export interface Cw721NftInfo {
@@ -47,7 +47,7 @@ export interface Cw721ContractInfo {
 
 export interface Cw721Approval {
     spender: string,
-    expires: Expires;
+    expires: Cw721Expires;
 }
 
 // staic util
@@ -83,7 +83,7 @@ export class Cw721MsgData {
         });
     }
     
-    static getMsgDataApprove(spender: string, token_id: string, expires: Expires) {
+    static getMsgDataApprove(spender: string, token_id: string, expires: Cw721Expires) {
         return JSON.stringify({
             "approve": {
                 spender,
@@ -102,7 +102,7 @@ export class Cw721MsgData {
         });
     }
     
-    static getMsgDataApproveAll(operator: string, expires: Expires) {
+    static getMsgDataApproveAll(operator: string, expires: Cw721Expires) {
         return JSON.stringify({
             "approve_all": {
                 operator,
@@ -129,7 +129,7 @@ export class Cw721MsgData {
         });
     }
     
-    static getMsgUpdateOwnerShipTransfer(new_owner: string, expiry: Expires) {
+    static getMsgUpdateOwnerShipTransfer(new_owner: string, expiry: Cw721Expires) {
         return JSON.stringify({
             "update_ownership": {
                 "transfer_ownership": {
@@ -193,12 +193,12 @@ export class FirmaCosmWasmCw721Service {
         return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
-    async approve(wallet: FirmaWalletService, contractAddress: string, spender: string, token_id: string, expires: Expires, txMisc: TxMisc = DefaultTxMisc) {
+    async approve(wallet: FirmaWalletService, contractAddress: string, spender: string, token_id: string, expires: Cw721Expires, txMisc: TxMisc = DefaultTxMisc) {
         const msgData = Cw721MsgData.getMsgDataApprove(spender, token_id, expires);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
     }
 
-    async getUnsignedTxApprove(wallet: FirmaWalletService, contractAddress: string, spender: string, token_id: string, expires: Expires) {
+    async getUnsignedTxApprove(wallet: FirmaWalletService, contractAddress: string, spender: string, token_id: string, expires: Cw721Expires) {
         const msgData = Cw721MsgData.getMsgDataApprove(spender, token_id, expires);
         return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
@@ -213,12 +213,12 @@ export class FirmaCosmWasmCw721Service {
         return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
-    async approveAll(wallet: FirmaWalletService, contractAddress: string, operator: string, expires: Expires, txMisc: TxMisc = DefaultTxMisc) {
+    async approveAll(wallet: FirmaWalletService, contractAddress: string, operator: string, expires: Cw721Expires, txMisc: TxMisc = DefaultTxMisc) {
         const msgData = Cw721MsgData.getMsgDataApproveAll(operator, expires);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
     }
 
-    async getUnsignedTxApproveAll(wallet: FirmaWalletService, contractAddress: string, operator: string, expires: Expires) {
+    async getUnsignedTxApproveAll(wallet: FirmaWalletService, contractAddress: string, operator: string, expires: Cw721Expires) {
         const msgData = Cw721MsgData.getMsgDataApproveAll(operator, expires);
         return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
@@ -243,12 +243,12 @@ export class FirmaCosmWasmCw721Service {
         return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
-    async updateOwnerShipTransfer(wallet: FirmaWalletService, contractAddress: string, new_owner: string, expiry: Expires, txMisc: TxMisc = DefaultTxMisc) {
+    async updateOwnerShipTransfer(wallet: FirmaWalletService, contractAddress: string, new_owner: string, expiry: Cw721Expires, txMisc: TxMisc = DefaultTxMisc) {
         const msgData = Cw721MsgData.getMsgUpdateOwnerShipTransfer(new_owner, expiry);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
     }
 
-    async getUnsignedTxUpdateOwnerShipTransfer(wallet: FirmaWalletService, contractAddress: string, new_owner: string, expiry: Expires) {
+    async getUnsignedTxUpdateOwnerShipTransfer(wallet: FirmaWalletService, contractAddress: string, new_owner: string, expiry: Cw721Expires) {
         const msgData = Cw721MsgData.getMsgUpdateOwnerShipTransfer(new_owner, expiry);
         return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
@@ -317,7 +317,7 @@ export class FirmaCosmWasmCw721Service {
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
-    async getGasEstimationApprove(wallet: FirmaWalletService, contractAddress: string, spender: string, token_id: string, expires: Expires): Promise<number> {
+    async getGasEstimationApprove(wallet: FirmaWalletService, contractAddress: string, spender: string, token_id: string, expires: Cw721Expires): Promise<number> {
         const msgData = Cw721MsgData.getMsgDataApprove(spender, token_id, expires);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
@@ -327,7 +327,7 @@ export class FirmaCosmWasmCw721Service {
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
-    async getGasEstimationApproveAll(wallet: FirmaWalletService, contractAddress: string, operator: string, expires: Expires): Promise<number> {
+    async getGasEstimationApproveAll(wallet: FirmaWalletService, contractAddress: string, operator: string, expires: Cw721Expires): Promise<number> {
         const msgData = Cw721MsgData.getMsgDataApproveAll(operator, expires);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
@@ -342,7 +342,7 @@ export class FirmaCosmWasmCw721Service {
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
-    async getGasEstimationUpdateOwnerShipTransfer(wallet: FirmaWalletService, contractAddress: string, new_owner: string, expiry: Expires): Promise<number> {
+    async getGasEstimationUpdateOwnerShipTransfer(wallet: FirmaWalletService, contractAddress: string, new_owner: string, expiry: Cw721Expires): Promise<number> {
         const msgData = Cw721MsgData.getMsgUpdateOwnerShipTransfer(new_owner, expiry);
         return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
@@ -405,10 +405,10 @@ export class FirmaCosmWasmCw721Service {
         }
     }
 
-    async getAllOperators(contractAddress: string, owner: string, isIncludeExpired: boolean = false): Promise<Cw721Approval[]> {
+    async getAllOperators(contractAddress: string, owner: string, isIncludeExpired: boolean = false, limit: number = 10, start_after: string = ""): Promise<Cw721Approval[]> {
         try {
 
-            const query = `{"all_operators": { "owner": "${owner}", "include_expired" : ${isIncludeExpired} }}`;
+            const query = `{"all_operators": { "owner": "${owner}", "include_expired" : ${isIncludeExpired}, "limit": ${limit}, "start_after": "${start_after}" }}`;
 
             const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
             const data = JSON.parse(result);
@@ -500,10 +500,10 @@ export class FirmaCosmWasmCw721Service {
         }
     }
 
-    async getNFTIdListOfOwner(contractAddress: string, owner: string): Promise<string[]> {
+    async getNFTIdListOfOwner(contractAddress: string, owner: string, limit: number = 10, start_after: string = ""): Promise<string[]> {
         try {
 
-            const query = `{"tokens": { "owner": "${owner}" }}`;
+            const query = `{"tokens": { "owner": "${owner}", "limit": ${limit}, "start_after": "${start_after}" }}`;
 
             const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
             const data = JSON.parse(result);
@@ -515,11 +515,11 @@ export class FirmaCosmWasmCw721Service {
             throw error;
         }
     }
-
-    // TODO: for many items, limit, start_after can be added later
-    async getAllNftIdList(contractAddress: string): Promise<string[]> {
+    
+    async getAllNftIdList(contractAddress: string, limit: number = 10, start_after: string = ""): Promise<string[]> {
         try {
-            const query = `{"all_tokens": { }}`;
+            
+            const query = `{"all_tokens": { "limit": ${limit}, "start_after": "${start_after}" }}`;
 
             const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
             const data = JSON.parse(result);
