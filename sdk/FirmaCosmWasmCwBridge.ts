@@ -32,6 +32,30 @@ const noFunds: any = [];
 
 export class CwBridgeMsgData {
 
+    static getMsgDataChangeOwner(new_owner: string) {
+        return JSON.stringify({
+            "change_owner": {
+                new_owner,
+            }
+        });
+    }
+
+    static getMsgDataAddAuthorizedUser(user: string) {
+        return JSON.stringify({
+            "add_authorized_user": {
+                user,
+            }
+        });
+    }
+
+    static getMsgDataRemoveAuthorizedUser(user: string) {
+        return JSON.stringify({
+            "remove_authorized_user": {
+                user,
+            }
+        });
+    }
+
     static getMsgDataLock() {
         return {
 			action: "lock",
@@ -81,6 +105,40 @@ export class FirmaCosmWasmCwBridgeService {
 
     public getCwBridgeMsgData () : typeof CwBridgeMsgData {
         return CwBridgeMsgData;
+    }
+
+    async changeOwner(wallet: FirmaWalletService, contractAddress: string, new_owner: string, txMisc: TxMisc = DefaultTxMisc) {
+        const msgData = CwBridgeMsgData.getMsgDataChangeOwner(new_owner);
+        return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxChangeOwner(wallet: FirmaWalletService, contractAddress: string, new_owner: string) {
+        const msgData = JSON.stringify({
+            "change_owner": {
+                new_owner,
+            }
+        });
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
+    }
+
+    async addAuthorizedUser(wallet: FirmaWalletService, contractAddress: string, user: string, txMisc: TxMisc = DefaultTxMisc) {
+        const msgData = CwBridgeMsgData.getMsgDataAddAuthorizedUser(user);
+        return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxAddAuthorizedUser(wallet: FirmaWalletService, contractAddress: string, user: string) {
+        const msgData = CwBridgeMsgData.getMsgDataAddAuthorizedUser(user);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
+    }
+
+    async removeAuthorizedUser(wallet: FirmaWalletService, contractAddress: string, user: string, txMisc: TxMisc = DefaultTxMisc) {
+        const msgData = CwBridgeMsgData.getMsgDataRemoveAuthorizedUser(user);
+        return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async getUnsignedTxRemoveAuthorizedUser(wallet: FirmaWalletService, contractAddress: string, user: string) {
+        const msgData = CwBridgeMsgData.getMsgDataRemoveAuthorizedUser(user);
+        return await this.cosmwasmService.getUnsignedTxExecuteContract(wallet, contractAddress, msgData, noFunds);
     }
 
     async lock(wallet: FirmaWalletService, contractAddress: string, cw721ContractAddress: string, tokenId: string, txMisc: TxMisc = DefaultTxMisc) {
@@ -152,6 +210,22 @@ export class FirmaCosmWasmCwBridgeService {
     }
 
     // gas
+
+    async getGasEstimationChangeOwner(wallet: FirmaWalletService, contractAddress: string, new_owner: string): Promise<number> {
+        const msgData = CwBridgeMsgData.getMsgDataChangeOwner(new_owner);
+        return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
+    }
+
+    async getGasEstimationAddAuthorizedUser(wallet: FirmaWalletService, contractAddress: string, user: string): Promise<number> {
+        const msgData = CwBridgeMsgData.getMsgDataAddAuthorizedUser(user);
+        return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
+    }
+
+    async getGasEstimationRemoveAuthorizedUser(wallet: FirmaWalletService, contractAddress: string, user: string): Promise<number> {
+        const msgData = CwBridgeMsgData.getMsgDataRemoveAuthorizedUser(user);
+        return await this.cosmwasmService.getGasEstimationExecuteContract(wallet, contractAddress, msgData, noFunds);
+    }
+
     async getGasEstimationLock(wallet: FirmaWalletService, contractAddress: string, cw721ContractAddress: string, tokenId: string): Promise<number> {
         const msgData = CwBridgeMsgData.getMsgDataLock();
         return await this.cw721Service.getGasEstimationSendNft(wallet, cw721ContractAddress, contractAddress, tokenId, msgData);
@@ -175,7 +249,19 @@ export class FirmaCosmWasmCwBridgeService {
     // query
 
     async getConfig(contractAddress: string) : Promise<BridgeConfig>{
-        const query = `{"get_config": {  }}`;
+        const query = `{"get_config": {}}`;
+        const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
+        return JSON.parse(result);
+    }
+
+    async getOwner(contractAddress: string) : Promise<string>{
+        const query = `{"get_owner": {}}`;
+        const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
+        return JSON.parse(result);
+    }
+
+    async getAuthorizedUsers(contractAddress: string) : Promise<string[]>{
+        const query = `{"get_authorized_users": {}}`;
         const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
         return JSON.parse(result);
     }
