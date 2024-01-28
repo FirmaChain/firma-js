@@ -24,10 +24,20 @@ describe('[36. Bridge query Test]', () => {
 		bobAddress = await bobWallet.getAddress();
 	})
 
-	let bridgeContractAddress = "firma1ksvlfex49desf4c452j6dewdjs6c48nafemetuwjyj6yexd7x3wqdknay4"
+	let bridgeContractAddress = "firma1zj39neajvynzv4swf3a33394z84l6nfduy5sntw58re3z7ef9p4qk8lwk4"
 
 	it.skip('cw bridge get_config', async () => {
 		const result = await firma.CwBridge.getConfig(bridgeContractAddress);
+		console.log(result);
+	});
+
+	it.only('cw bridge get_owner', async () => {
+		const result = await firma.CwBridge.getOwner(bridgeContractAddress);
+		console.log(result);
+	});
+
+	it.only('cw bridge get_authorized_user', async () => {
+		const result = await firma.CwBridge.getAuthorizedUsers(bridgeContractAddress);
 		console.log(result);
 	});
 
