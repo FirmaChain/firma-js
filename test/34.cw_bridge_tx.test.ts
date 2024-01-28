@@ -25,7 +25,7 @@ describe('[34. Bridge tx Test]', () => {
 	})
 
 	let cw721ContractAddress = "firma1mp3dl27wwhdkhkyed5d4ypaq7h5dewazqkqhny98sxcy2cpu23ls369adt";
-	let bridgeContractAddress = "firma1ksvlfex49desf4c452j6dewdjs6c48nafemetuwjyj6yexd7x3wqdknay4"
+	let bridgeContractAddress = "firma1zj39neajvynzv4swf3a33394z84l6nfduy5sntw58re3z7ef9p4qk8lwk4"
 	let codeId = "";
 
 	it.skip('Cw bridge mint temp', async () => {
@@ -33,7 +33,7 @@ describe('[34. Bridge tx Test]', () => {
 		// [ 15,16,17,18,19,20 ]
 
 		const owner = aliceAddress;
-		const new_token_id = "20";
+		const new_token_id = "21";
 		const new_token_uri = "https://meta.nft.io/uri/" + new_token_id;
 
 		let gas = await firma.Cw721.getGasEstimationMint(aliceWallet, cw721ContractAddress, owner, new_token_id, new_token_uri);
@@ -42,6 +42,48 @@ describe('[34. Bridge tx Test]', () => {
 		var result = await firma.Cw721.mint(aliceWallet, cw721ContractAddress, owner, new_token_id, new_token_uri, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
 
+	}),
+
+	it.skip('Cw bridge chage_owner', async () => {
+		
+		const new_owner = bobAddress;
+
+		const gas = await firma.CwBridge.getGasEstimationChangeOwner(aliceWallet, bridgeContractAddress, new_owner);
+		const fee = Math.ceil(gas * 0.1);
+
+		var result = await firma.CwBridge.changeOwner(aliceWallet, bridgeContractAddress, new_owner, { gas: gas, fee: fee });
+		expect(result.code).to.be.equal(0);
+
+		const data = await firma.CwBridge.getOwner(bridgeContractAddress);
+		console.log(data);
+	}),
+
+	it.skip('Cw bridge add_authorized_user', async () => {
+
+		const user = aliceAddress;
+
+		const gas = await firma.CwBridge.getGasEstimationAddAuthorizedUser(bobWallet, bridgeContractAddress, user);
+		const fee = Math.ceil(gas * 0.1);
+
+		var result = await firma.CwBridge.addAuthorizedUser(bobWallet, bridgeContractAddress, user, { gas: gas, fee: fee });
+		expect(result.code).to.be.equal(0);
+
+		const data = await firma.CwBridge.getAuthorizedUsers(bridgeContractAddress);
+		console.log(data);
+	}),
+
+	it.skip('Cw bridge remove_authorized_user', async () => {
+
+		const user = aliceAddress;
+
+		const gas = await firma.CwBridge.getGasEstimationRemoveAuthorizedUser(aliceWallet, bridgeContractAddress, user);
+		const fee = Math.ceil(gas * 0.1);
+
+		var result = await firma.CwBridge.removeAuthorizedUser(aliceWallet, bridgeContractAddress, user, { gas: gas, fee: fee });
+		expect(result.code).to.be.equal(0);
+
+		const data = await firma.CwBridge.getAuthorizedUsers(bridgeContractAddress);
+		console.log(data);
 	}),
 
 	it.skip('Cw bridge lock', async () => {
@@ -108,9 +150,9 @@ describe('[34. Bridge tx Test]', () => {
 		console.log(data);
 	});
 
-	it.skip('Cw bridge deposit', async () => {
-
-		const token_id = "14";
+	it.only('Cw bridge deposit', async () => {
+		
+		const token_id = "21";
 
 		const gas = await firma.CwBridge.getGasEstimationDeposit(aliceWallet, bridgeContractAddress, cw721ContractAddress, token_id, bobAddress);
 		const fee = Math.ceil(gas * 0.1);

@@ -25,7 +25,7 @@ describe('[35. Bridge tx low Test]', () => {
 	})
 
 	let cw721ContractAddress = "firma1mp3dl27wwhdkhkyed5d4ypaq7h5dewazqkqhny98sxcy2cpu23ls369adt";
-	let bridgeContractAddress = "firma1ksvlfex49desf4c452j6dewdjs6c48nafemetuwjyj6yexd7x3wqdknay4"
+	let bridgeContractAddress = "firma1zj39neajvynzv4swf3a33394z84l6nfduy5sntw58re3z7ef9p4qk8lwk4"
 	let codeId = "";
 
 	// low level test
