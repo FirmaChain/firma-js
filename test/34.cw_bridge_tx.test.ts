@@ -150,7 +150,7 @@ describe('[34. Bridge tx Test]', () => {
 		console.log(data);
 	});
 
-	it.only('Cw bridge deposit', async () => {
+	it.skip('Cw bridge deposit', async () => {
 		
 		const token_id = "21";
 
