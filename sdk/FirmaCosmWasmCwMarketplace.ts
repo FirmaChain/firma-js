@@ -253,14 +253,14 @@ export class FirmaCosmWasmCwMarketplaceService {
         return JSON.parse(result);
     }
 
-    async getRegisterList(contractAddress: string) : Promise<MarketplaceRegisterData[]>{
-        const query = `{"get_register_list": {}}`;
+    async getRegisterList(contractAddress: string, limit: number = 10, start_after: string = "") : Promise<MarketplaceRegisterData[]>{
+        const query = `{"get_register_list": { "limit": ${limit}, "start_after": "${start_after}" }}`;
         const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
         return JSON.parse(result);
     }
 
-    async getRegisterListByAddress(contractAddress: string, address: string) : Promise<MarketplaceRegisterData[]>{
-        const query = `{"get_register_list_by_address": {"address": "${address}"}}`;
+    async getRegisterListByAddress(contractAddress: string, address: string, limit: number = 10, start_after: string = "") : Promise<MarketplaceRegisterData[]>{
+        const query = `{"get_register_list_by_address": { "address": "${address}", "limit": ${limit}, "start_after": "${start_after}" }}`;
         const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
         return JSON.parse(result);
     }
