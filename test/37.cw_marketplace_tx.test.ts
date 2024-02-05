@@ -4,7 +4,6 @@ import { FirmaSDK } from "../sdk/FirmaSDK"
 import { expect } from 'chai';
 import { aliceMnemonic, bobMnemonic } from './config_test';
 import { FirmaWalletService } from "../sdk/FirmaWalletService";
-import { FirmaUtil } from "../dist";
 
 describe('[37. Marketplace tx Test]', () => {
 
