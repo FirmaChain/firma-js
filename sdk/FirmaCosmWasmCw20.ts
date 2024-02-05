@@ -20,6 +20,13 @@ export interface Cw20MarketingInfo {
     marketing: string;
 }
 
+export interface Cw20TokenInfo {
+    name: string;
+    symbol: string;
+    decimals: number;
+    total_supply: string;
+}
+
 export interface ExpiresAtHeight {
     at_height: number;
 }
@@ -416,7 +423,7 @@ export class FirmaCosmWasmCw20Service {
         }
     }
 
-    async getTokenInfo(contractAddress: string): Promise<string> {
+    async getTokenInfo(contractAddress: string): Promise<Cw20TokenInfo> {
         try {
 
             const query = `{"token_info": {}}`;
@@ -493,14 +500,14 @@ export class FirmaCosmWasmCw20Service {
         }
     }
 
-    async getAllAccounts(contractAddress: string, limit: number = 10, start_after: string = ""): Promise<string> {
+    async getAllAccounts(contractAddress: string, limit: number = 10, start_after: string = ""): Promise<string[]> {
         try {
 
             const query = `{"all_accounts": {"limit": ${limit}, "start_after": "${start_after}"}}`;
             const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
             const data = JSON.parse(result);
 
-            return data;
+            return data.accounts;
 
         } catch (error) {
             FirmaUtil.printLog(error);
