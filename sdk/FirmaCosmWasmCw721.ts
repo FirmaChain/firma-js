@@ -13,7 +13,7 @@ export interface Cw721ExpiresAtHeight {
 }
 
 export interface Cw721ExpiresAtTime {
-    at_time: number; // Unix timestamp
+    at_time: string; // Unix timestamp nano seconds
 }
 
 export interface Cw721ExpiresNever {

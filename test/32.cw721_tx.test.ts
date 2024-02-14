@@ -9,6 +9,7 @@ import { FirmaUtil } from "../sdk/FirmaUtil";
 
 import fs from "fs";
 import { AccessConfig, AccessType } from "../sdk/FirmaCosmWasmService";
+import { Cw721Expires } from "../sdk/FirmaCosmWasmCw721";
 
 describe('[32. cw721 tx Test]', () => {
 
@@ -77,7 +78,7 @@ describe('[32. cw721 tx Test]', () => {
 	it.skip('Cw721 mint', async () => {
 
 		const owner = aliceAddress;
-		const token_id = "4";
+		const token_id = "5";
 		const token_uri = "https://meta.nft.io/uri/" + token_id;
 
 		const gas = await firma.Cw721.getGasEstimationMint(aliceWallet, contractAddress, owner, token_id, token_uri);
@@ -142,7 +143,7 @@ describe('[32. cw721 tx Test]', () => {
 		const token_id = "1";
 
 		//const expires: Expires = { at_height: 7216240 };
-		//const expires: Expires = { at_time: 1628580000 }; // unix timestamp
+		//const expires: Expires = { at_time: "1852937600000000000" }; // unix timestamp nano seconds
 		//const expires: Expires = { never: {} };
 
 		const expires: Expires = { never: {} };
@@ -174,7 +175,7 @@ describe('[32. cw721 tx Test]', () => {
 	it.skip('Cw721 approve_all', async () => {
 
 		//const expires: Expires = { at_height: 7216240 };
-		//const expires: Expires = { at_time: 1628580000 }; // unix timestamp
+		//const expires: Cw721Expires = { at_time: "1852937600000000000" }; // unix timestamp nano seconds
 		//const expires: Expires = { never: {} };
 
 		const expires: Expires = { never: {} };
@@ -208,7 +209,7 @@ describe('[32. cw721 tx Test]', () => {
 		const new_owner = bobAddress;
 
 		//const expires: Expires = { at_height: 7216240 };
-		//const expires: Expires = { at_time: 1628580000 }; // unix timestamp
+		//const expires: Cw721Expires = { at_time: "1852937600000000000" }; // unix timestamp nano seconds
 		//const expires: Expires = { never: {} };
 
 		const expires: Expires = { never: {} };

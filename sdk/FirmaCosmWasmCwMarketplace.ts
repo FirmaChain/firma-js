@@ -241,7 +241,7 @@ export class FirmaCosmWasmCwMarketplaceService {
     
     // query
 
-    async getConfig(contractAddress: string) : Promise<CwMarketplaceMsgData>{
+    async getConfig(contractAddress: string) : Promise<MarketplaceConfig>{
         const query = `{"get_config": {}}`;
         const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
         return JSON.parse(result);

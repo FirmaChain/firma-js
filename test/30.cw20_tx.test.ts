@@ -233,7 +233,7 @@ describe('[30. cw20 tx Test]', () => {
 		const amount = "1000";
 
 		//const expires: Expires = { at_height: 7216240 };
-		//const expires: Expires = { at_time: 1628580000 }; // unix timestamp
+		//const expires: Expires = { at_time: "1852937600000000000" }; // unix timestamp nano seconds
 		//const expires: Expires = { never: {} };
 
 		const expires: Expires = { never: {} };
@@ -265,7 +265,7 @@ describe('[30. cw20 tx Test]', () => {
 		const amount = "1000";
 
 		//const expires: Expires = { at_height: 7216240 };
-		//const expires: Expires = { at_time: 1628580000 }; // unix timestamp
+		//const expires: Expires = { at_time: "1852937600000000000" }; // unix timestamp nano seconds
 		//const expires: Expires = { never: {} };
 
 		const expires: Expires = { never: {} };
