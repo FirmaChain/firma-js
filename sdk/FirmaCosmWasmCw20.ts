@@ -16,7 +16,9 @@ export interface Cw20Minter {
 export interface Cw20MarketingInfo {
     project: string;
     description: string;
-    logo: string;
+    logo: {
+        url: string;
+    };
     marketing: string;
 }
 
@@ -32,7 +34,7 @@ export interface ExpiresAtHeight {
 }
 
 export interface ExpiresAtTime {
-    at_time: number; // Unix 타임스탬프 형태
+    at_time: string; // Unix timestamp nano seconds
 }
 
 export interface ExpiresNever {
@@ -485,7 +487,7 @@ export class FirmaCosmWasmCw20Service {
         }
     }
 
-    async getAllSpenderAllowances(contractAddress: string, spender: string, limit: number = 10, start_after: string = ""): Promise<Cw20SpenderAllowance> {
+    async getAllSpenderAllowances(contractAddress: string, spender: string, limit: number = 10, start_after: string = ""): Promise<Cw20SpenderAllowance[]> {
         try {
 
             const query = `{"all_spender_allowances": {"spender": "${spender}", "limit": ${limit}, "start_after": "${start_after}"}}`;
