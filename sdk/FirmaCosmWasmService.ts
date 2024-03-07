@@ -351,10 +351,10 @@ export class FirmaCosmWasmService {
         }
     }
 
-    async getContractInfo(codeId: string): Promise<ContractInfo> {
+    async getContractInfo(contractAddress: string): Promise<ContractInfo> {
         try {
             const queryClient = new CosmWasmQueryClient(this.config.restApiAddress);
-            const result = await queryClient.getContractInfo(codeId);
+            const result = await queryClient.getContractInfo(contractAddress);
 
             return result;
 
@@ -364,10 +364,10 @@ export class FirmaCosmWasmService {
         }
     }
 
-    async getContractHistory(codeId: string): Promise<ContractHistoryInfo[]> {
+    async getContractHistory(contractAddress: string): Promise<ContractHistoryInfo[]> {
         try {
             const queryClient = new CosmWasmQueryClient(this.config.restApiAddress);
-            const result = await queryClient.getContractHistory(codeId);
+            const result = await queryClient.getContractHistory(contractAddress);
 
             return result;
 
@@ -403,10 +403,10 @@ export class FirmaCosmWasmService {
         }
     }
 
-    async getContractState(codeId: string): Promise<ContractStateInfo[]> {
+    async getContractState(contractAddress: string): Promise<ContractStateInfo[]> {
         try {
             const queryClient = new CosmWasmQueryClient(this.config.restApiAddress);
-            const result = await queryClient.getContractState(codeId);
+            const result = await queryClient.getContractState(contractAddress);
 
             return result;
 
