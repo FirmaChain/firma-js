@@ -157,11 +157,7 @@ export class Cw721MsgData {
 export class FirmaCosmWasmCw721Service {
 
     constructor(private readonly config: FirmaConfig, private readonly cosmwasmService: FirmaCosmWasmService) { }
-
-    public getCw721MsgData () : typeof Cw721MsgData {
-        return Cw721MsgData;
-    }
-
+    
     // tx
     async mint(wallet: FirmaWalletService, contractAddress: string, owner: string, token_id: string, token_uri: string = "", txMisc: TxMisc = DefaultTxMisc) {
         const msgData = Cw721MsgData.getMsgDataMint(owner, token_id, token_uri);

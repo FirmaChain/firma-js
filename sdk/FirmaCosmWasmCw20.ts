@@ -178,11 +178,7 @@ export class Cw20MsgData {
 export class FirmaCosmWasmCw20Service {
 
     constructor(private readonly config: FirmaConfig, private readonly cosmwasmService: FirmaCosmWasmService) { }
-
-    public getCw721MsgData () : typeof Cw20MsgData {
-        return Cw20MsgData;
-    }
-
+    
     // tx
     async transfer(wallet: FirmaWalletService, contractAddress: string, recipient: string, amount: string, txMisc: TxMisc = DefaultTxMisc) {
         const msgData = Cw20MsgData.getMsgDataTransfer(recipient, amount);
@@ -494,7 +490,7 @@ export class FirmaCosmWasmCw20Service {
             const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
             const data = JSON.parse(result);
 
-            return data;
+            return data.allowances;
 
         } catch (error) {
             FirmaUtil.printLog(error);
