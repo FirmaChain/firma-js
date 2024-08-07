@@ -1,5 +1,5 @@
 import Axios, { AxiosInstance } from "axios";
-import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
+import { Pagination } from "../common";
 
 export interface CodeInfo {
     code_id: string;
@@ -73,14 +73,22 @@ export class CosmWasmQueryClient {
         return result.data;
     }
 
-    async getContractListFromCodeId(codeId: string): Promise<string[]> {
+    async getContractListFromCodeId(codeId: string, paginationKey: string): Promise<{
+        dataList: string[],
+        pagination: Pagination;
+    }> {
 
         //curl -X GET "http://0.0.0.0:1317/cosmwasm/wasm/v1/code/1/contracts" -H  "accept: application/json"
 
         const path = `/cosmwasm/wasm/v1/code/${codeId}/contracts`;
-        const result = await this.axios.get(path);
+        const result = await this.axios.get(path, { params: { "pagination.key": paginationKey } });
 
-        return result.data.contracts;
+        const convertPagination: Pagination = {
+            next_key: result.data.pagination.next_key,
+            total: Number.parseInt(result.data.pagination.total)
+        };
+        
+        return { dataList: result.data.contracts, pagination: convertPagination };
     }
 
     async getContractInfo(contractAddress: string): Promise<ContractInfo> {
