@@ -47,8 +47,8 @@ export class FirmaIbcService {
         try {
             const txRaw = await this.getSignedTxTransfer(wallet, sourcePort, sourceChannel, denom, amount, receiver, timeoutHeight, timeoutTimestamp, txMisc);
 
-            const bankTxClient = new IbcTxClient(wallet, this.config.rpcAddress);
-            return await bankTxClient.broadcast(txRaw);
+            const txClient = new IbcTxClient(wallet, this.config.rpcAddress);
+            return await txClient.broadcast(txRaw);
 
         } catch (error) {
             FirmaUtil.printLog(error);

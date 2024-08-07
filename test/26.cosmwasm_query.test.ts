@@ -52,11 +52,13 @@ describe('[26. cosmwasm query Test]', () => {
 
 	it('CosmWasm getContractListFromCodeId', async () => {
 
-		const codeId = "1";
+		const codeId = "132";
 
+		// add pagination
+		
 		let result = await firma.CosmWasm.getContractListFromCodeId(codeId);
-		contractAddress = result[0];
-		//console.log(result[0]);
+		//console.log(result);
+		
 	});
 
 	it('CosmWasm getPinnedCodeList', async () => {

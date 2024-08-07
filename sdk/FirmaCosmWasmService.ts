@@ -1,4 +1,4 @@
-import { CosmWasmTxClient, CosmWasmQueryClient, TxMisc, CodeInfo, CodeData, ContractInfo, ContractHistoryInfo, ContractStateInfo } from "./firmachain/cosmwasm";
+import { CosmWasmTxClient, CosmWasmQueryClient, TxMisc, CodeInfo, CodeData, ContractInfo, ContractHistoryInfo, ContractStateInfo, Pagination } from "./firmachain/cosmwasm";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { toUtf8 } from "@cosmjs/encoding";
@@ -338,10 +338,13 @@ export class FirmaCosmWasmService {
         }
     }
 
-    async getContractListFromCodeId(codeId: string): Promise<string[]> {
+    async getContractListFromCodeId(codeId: string, paginationKey: string = ""): Promise<{
+        dataList: string[], 
+        pagination: Pagination;
+    }> {
         try {
             const queryClient = new CosmWasmQueryClient(this.config.restApiAddress);
-            const result = await queryClient.getContractListFromCodeId(codeId);
+            const result = await queryClient.getContractListFromCodeId(codeId, paginationKey);
 
             return result;
 
