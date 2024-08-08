@@ -468,7 +468,7 @@ export class FirmaCosmWasmCw20Service {
         }
     }
 
-    async getAllAllowances(contractAddress: string, owner: string, limit: number = 10, start_after: string = ""): Promise<Cw20SpenderAllowance[]> {
+    async getAllAllowances(contractAddress: string, owner: string, limit: number = 10, start_after: string | null = null): Promise<Cw20SpenderAllowance[]> {
         try {
 
             const query = `{"all_allowances": {"owner": "${owner}", "limit": ${limit}, "start_after": "${start_after}"}}`;
@@ -483,7 +483,7 @@ export class FirmaCosmWasmCw20Service {
         }
     }
 
-    async getAllSpenderAllowances(contractAddress: string, spender: string, limit: number = 10, start_after: string = ""): Promise<Cw20SpenderAllowance[]> {
+    async getAllSpenderAllowances(contractAddress: string, spender: string, limit: number = 10, start_after: string | null = null): Promise<Cw20SpenderAllowance[]> {
         try {
 
             const query = `{"all_spender_allowances": {"spender": "${spender}", "limit": ${limit}, "start_after": "${start_after}"}}`;
@@ -498,7 +498,7 @@ export class FirmaCosmWasmCw20Service {
         }
     }
 
-    async getAllAccounts(contractAddress: string, limit: number = 10, start_after: string = ""): Promise<string[]> {
+    async getAllAccounts(contractAddress: string, limit: number = 10, start_after: string | null = null): Promise<string[]> {
         try {
 
             const query = `{"all_accounts": {"limit": ${limit}, "start_after": "${start_after}"}}`;
