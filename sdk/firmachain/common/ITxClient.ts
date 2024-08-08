@@ -41,6 +41,11 @@ export class ITxClient {
         return await client.broadcastTx(txBytes);
     }
 
+    async broadcastTxBytes(txBytes: Uint8Array): Promise<BroadcastTxResponse> {
+        const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, this.registry);
+        return await client.broadcastTx(txBytes);
+    }
+
     async signAndBroadcast(msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions): Promise<BroadcastTxResponse> {
         return await this.broadcast(await this.sign(msgs, { fee, memo }));
     }

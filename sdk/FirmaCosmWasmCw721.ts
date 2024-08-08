@@ -404,7 +404,14 @@ export class FirmaCosmWasmCw721Service {
     async getAllOperators(contractAddress: string, owner: string, isIncludeExpired: boolean = false, limit: number = 10, start_after: string | null = null): Promise<Cw721Approval[]> {
         try {
 
-            const query = `{"all_operators": { "owner": "${owner}", "include_expired" : ${isIncludeExpired}, "limit": ${limit}, "start_after": "${start_after}" }}`;
+            const query = `{
+                "all_operators": { 
+                    "owner": "${owner}", 
+                    "include_expired" : ${isIncludeExpired}, 
+                    "limit": ${limit},
+                    "start_after": ${start_after !== null ? `"${start_after}"` : null} 
+                }
+            }`;
 
             const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
             const data = JSON.parse(result);
@@ -499,7 +506,7 @@ export class FirmaCosmWasmCw721Service {
     async getNFTIdListOfOwner(contractAddress: string, owner: string, limit: number = 10, start_after: string | null = null): Promise<string[]> {
         try {
 
-            const query = `{"tokens": { "owner": "${owner}", "limit": ${limit}, "start_after": "${start_after}" }}`;
+            const query = `{"tokens": { "owner": "${owner}", "limit": ${limit}, "start_after": ${start_after !== null ? `"${start_after}"` : null}  }}`;
 
             const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
             const data = JSON.parse(result);
@@ -515,7 +522,7 @@ export class FirmaCosmWasmCw721Service {
     async getAllNftIdList(contractAddress: string, limit: number = 10, start_after: string | null = null): Promise<string[]> {
         try {
             
-            const query = `{"all_tokens": { "limit": ${limit}, "start_after": "${start_after}" }}`;
+            const query = `{"all_tokens": { "limit": ${limit}, "start_after": ${start_after !== null ? `"${start_after}"` : null} }}`;
 
             const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
             const data = JSON.parse(result);
