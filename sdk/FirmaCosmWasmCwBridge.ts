@@ -274,19 +274,19 @@ export class FirmaCosmWasmCwBridgeService {
     }
 
     async getOwnerNfts(contractAddress: string, ownerAddress: string, limit: number = 10, start_after: string | null = null) : Promise<string[]>{
-        const query = `{"owner_nfts": { "owner_addr": "${ownerAddress}", "limit": ${limit}, "start_after": "${start_after}" }}`;
+        const query = `{"owner_nfts": { "owner_addr": "${ownerAddress}", "limit": ${limit}, "start_after": ${start_after !== null ? `"${start_after}"` : null} }}`;
         const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
         return JSON.parse(result);
     }
 
     async getOwnerNftsInfo(contractAddress: string, ownerAddress: string, limit: number = 10, start_after: string | null = null) : Promise<NftInfo[]>{
-        const query = `{"owner_nfts_info": { "owner_addr": "${ownerAddress}", "limit": ${limit}, "start_after": "${start_after}" }}`;
+        const query = `{"owner_nfts_info": { "owner_addr": "${ownerAddress}", "limit": ${limit},"start_after": ${start_after !== null ? `"${start_after}"` : null} }}`;
         const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
         return JSON.parse(result);
     }
 
     async getOwnerWithdrawableNfts(contractAddress: string, ownerAddress: string, limit: number = 10, start_after: string | null = null) : Promise<NftInfo[]>{
-        const query = `{"owner_withdrawable_nfts": { "owner_addr": "${ownerAddress}", "limit": ${limit}, "start_after": "${start_after}" }}`;
+        const query = `{"owner_withdrawable_nfts": { "owner_addr": "${ownerAddress}", "limit": ${limit}, "start_after": ${start_after !== null ? `"${start_after}"` : null}}}`;
         const result = await this.cosmwasmService.getContractSmartQueryData(contractAddress, query);
         return JSON.parse(result);
     }
