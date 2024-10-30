@@ -2,8 +2,9 @@ import { FirmaSDK } from "../sdk/FirmaSDK"
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { aliceMnemonic, bobMnemonic, validatorMnemonic, TestChainConfig } from './config_test';
 import { VotingOption } from '../sdk/firmachain/common';
+import { Timestamp } from "../sdk/firmachain/google/protobuf/timestamp";
 
-describe.skip('[08. Gas Estimation Test]', () => {
+describe.only('[08. Gas Estimation Test]', () => {
 
 	let firma: FirmaSDK;
 
@@ -24,26 +25,35 @@ describe.skip('[08. Gas Estimation Test]', () => {
 		} catch (error) {
 			console.log(error);
 		}
-		
 	});
 
 	it("1-2. bank sendToken gas estimation", async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const targetWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
-		const amount = 1;
+		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		const aliceAddress = await aliceWallet.getAddress();
+		const bobAddress = await bobWallet.getAddress();
+
+		const timeStamp = Math.round(+new Date() / 1000);
 		
-		const tokenID = "ukomx";
+		const tokenName = `KOMX TOKEN${timeStamp}`;
+		const tokenSymbol = `KOMX${timeStamp}`;
+		const tokenID = `ukomx${timeStamp}`;
+		const tokenURI = "https://firmachain.org";
+		const totalSupply = 100000;
 		const decimal = 6;
+		const mintable = true;
+		const burnable = true;
+		const sendAmount = 1;
 		
 		try {
-			const gas = await firma.Bank.getGasEstimationSendToken(wallet, await targetWallet.getAddress(), tokenID, amount, decimal);
+			await firma.Token.createToken(aliceWallet, tokenName, tokenSymbol, tokenURI, totalSupply, decimal, mintable, burnable);
+			const gas = await firma.Bank.getGasEstimationSendToken(aliceWallet, bobAddress, tokenID, sendAmount, decimal);
 			console.log("estimateGas : " + gas);
-			
+			await firma.Token.burn(aliceWallet, tokenID, totalSupply, decimal);
 		} catch (error) {
 			console.log(error);
 		}
-		
 	});
 
 	it("2-1. Contract addContractLog getGasEstimationFromUnSignedTxList gas estimation", async () => {
@@ -125,7 +135,7 @@ describe.skip('[08. Gas Estimation Test]', () => {
 		console.log("estimateGas : " + gas);
 	});
 
-	it.skip("4-1. Feegrant GrantPeriodicAllowance gas estimation", async () => {
+	it("4-1. Feegrant GrantPeriodicAllowance gas estimation", async () => {
 
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
@@ -147,7 +157,7 @@ describe.skip('[08. Gas Estimation Test]', () => {
 		console.log("estimateGas : " + gas);
 	});
 
-	it.skip("4-2. Feegrant GrantBasicAllowance gas estimation", async () => {
+	it("4-2. Feegrant GrantBasicAllowance gas estimation", async () => {
 
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
@@ -161,7 +171,9 @@ describe.skip('[08. Gas Estimation Test]', () => {
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
+		await firma.FeeGrant.grantBasicAllowance(aliceWallet, await bobWallet.getAddress());
 		const gas = await firma.FeeGrant.getGasEstimationRevokeAllowance(aliceWallet, await bobWallet.getAddress());
+		await firma.FeeGrant.revokeAllowance(aliceWallet, await bobWallet.getAddress());
 		console.log("estimateGas : " + gas);
 	});
 
@@ -217,9 +229,6 @@ describe.skip('[08. Gas Estimation Test]', () => {
 		} catch (error) {
 			console.log(error);
 		}
-
-
-		
 	});
 
 	it("6-1. Distribution withdrawAllRewards gas estimation", async () => {
@@ -342,34 +351,44 @@ describe.skip('[08. Gas Estimation Test]', () => {
 		console.log("estimateGas : " + gas);
 	});
 
-	it("7-6. Gov deposit gas estimation", async () => {
+	it("7-6. Gov deposit & vote gas estimation", async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
-		const proposalId = 1;
-		const amount = 1000;
-		var result = await firma.Gov.deposit(wallet, proposalId, amount);
+		const proposalList = await firma.Gov.getProposalList();
+		const proposalId = Number(proposalList[proposalList.length - 1].proposal_id) + 1;
 
-		const gas = await firma.Gov.getGasEstimationDeposit(wallet, proposalId, amount);
-		console.log("estimateGas : " + gas);
+		const title = `Text Proposal ${proposalId}`;
+		const description = "This is a text proposal";
+		const initDeposit = 5000;
+		const depositAmount = 5000;
+
+		const result = await firma.Gov.submitTextProposal(aliceWallet, title, description, initDeposit);
+		console.log(result);
+		
+		const depositGas = await firma.Gov.getGasEstimationDeposit(aliceWallet, proposalId, depositAmount);
+		console.log("deposit estimateGas : " + depositGas);
+		
+		const voteGas = await firma.Gov.getGasEstimationVote(aliceWallet, proposalId, VotingOption.VOTE_OPTION_YES);
+		console.log("vote estimateGas : " + voteGas);
 	});
 
-	it("7-7. Gov vote gas estimation", async () => {
+	// it("7-7. Gov vote gas estimation", async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const proposalId = 1;
+	// 	const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+	// 	const proposalId = 1;
 
-		const gas = await firma.Gov.getGasEstimationVote(wallet, proposalId, VotingOption.VOTE_OPTION_YES);
-		console.log("estimateGas : " + gas);
-	});
+	// 	const gas = await firma.Gov.getGasEstimationVote(wallet, proposalId, VotingOption.VOTE_OPTION_YES);
+	// 	console.log("estimateGas : " + gas);
+	// });
 
 	it("8-1. Token createToken gas estimation", async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
 		const tokenName = "KOMX TOKEN";
-		const symbol = "KOMX63232";
-		const tokenURI = "https://naver.com";
+		const symbol = "KOMX";
+		const tokenURI = "https://firmachain.org";
 		const totalSupply = 10000;
 		const decimal = 6;
 		const mintable = true;
@@ -379,39 +398,63 @@ describe.skip('[08. Gas Estimation Test]', () => {
 		console.log("estimateGas : " + gas);
 	});
 
-	it("8-2. Token mint gas estimation", async () => {
+	it("8-2. Token mint & burn gas estimation", async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobAddress = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
-		const tokenID = "ukomx6";
-		const amount = 10000;
-		const decimal = 6;
+		const timeStamp = Math.round(+new Date() / 1000);
 
-		const gas = await firma.Token.getGasEstimationMint(wallet, tokenID, amount, decimal, bobAddress);
-		console.log("estimateGas : " + gas);
-	});
-
-	it("8-3. Token burn gas estimation", async () => {
-
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-
-		const tokenID = "ukomx6";
-		const amount = 10;
-		const decimal = 6;
-
-		const gas = await firma.Token.getGasEstimationBurn(wallet, tokenID, amount, decimal);
-		console.log("estimateGas : " + gas);
-	});
-
-	it("8-4. Token updateTokenURI gas estimation", async () => {
-
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-
-		const tokenID = "ukomx6";
+		const tokenName = `KOMX TOKEN${timeStamp}`;
+		const symbol = `KOMX${timeStamp}`;
+		const tokenID = `ukomx${timeStamp}`;
 		const tokenURI = "https://firmachain.org";
+		const totalSupply = 10000000;
+		const decimal = 6;
+		const isMintable = true;
+		const isBurnable = true;
+		const amount = 10000;
 
-		const gas = await firma.Token.getGasEstimationUpdateTokenURI(wallet, tokenID, tokenURI);
+		await firma.Token.createToken(wallet, tokenName, symbol, tokenURI, totalSupply, decimal, isMintable, isBurnable);
+		const mintGas = await firma.Token.getGasEstimationMint(wallet, tokenID, amount, decimal, bobAddress);
+		console.log("estimate mint gas : " + mintGas);
+		const burnGas = await firma.Token.getGasEstimationBurn(wallet, tokenID, amount, decimal);
+		console.log("estimate burn gas : " + burnGas);
+		await firma.Token.burn(wallet, tokenID, totalSupply, decimal);
+	});
+
+	// it("8-3. Token burn gas estimation", async () => {
+
+	// 	const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+
+	// 	const tokenID = "ukomx6";
+	// 	const amount = 10;
+	// 	const decimal = 6;
+
+	// 	const gas = await firma.Token.getGasEstimationBurn(wallet, tokenID, amount, decimal);
+	// 	console.log("estimateGas : " + gas);
+	// });
+
+	it("8-3. Token updateTokenURI gas estimation", async () => {
+
+		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+
+		const timeStamp = Math.round(+new Date() / 1000);
+		
+		const tokenName = `KOMX TOKEN${timeStamp}`;
+		const symbol = `KOMX${timeStamp}`;
+		const tokenID = `ukomx${timeStamp}`;
+		const tokenURI = "https://firmachain.org";
+		const totalSupply = 10000000;
+		const decimal = 6;
+		const isMintable = true;
+		const isBurnable = true;
+		
+		await firma.Token.createToken(wallet, tokenName, symbol, tokenURI, totalSupply, decimal, isMintable, isBurnable);
+		
+		const updateTokenURI = "https://firmachain.org";
+		const gas = await firma.Token.getGasEstimationUpdateTokenURI(wallet, tokenID, updateTokenURI);
 		console.log("estimateGas : " + gas);
+		await firma.Token.burn(wallet, tokenID, totalSupply, decimal);
 	});
 });
