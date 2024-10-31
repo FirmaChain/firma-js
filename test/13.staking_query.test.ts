@@ -115,6 +115,7 @@ describe('[13. Staking Query Test]', () => {
 		var validatorList = (await firma.Staking.getValidatorList()).dataList;
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
+		await firma.Staking.undelegate(wallet, validatorList[0].operator_address, 1);
 		var result = await firma.Staking.getUndelegationInfoFromValidator(await wallet.getAddress(), validatorList[0].operator_address);
 
 		// If there is no data in the list, throw 404 exception.
