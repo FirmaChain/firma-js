@@ -1,6 +1,6 @@
 import { FirmaConfig } from "../sdk/FirmaConfig";
 import { FirmaSDK } from "../sdk/FirmaSDK"
-import { TestChainConfig } from './config_test';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[19. chain Test]', () => {
 
@@ -15,9 +15,14 @@ describe('[19. chain Test]', () => {
 		//console.log(result);
 	})
 
-	it.skip('getTransactionByHash test', async () => {
-		const txHash = "0x5DA9D094D15660D21947C9EEF1329CCB70117E7BCD3A451F27E5C7AFF5DB6DF0";
-		const result = await firma.BlockChain.getTransactionByHash(txHash);
+	it('getTransactionByHash test', async () => {
+		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		const bobAddress = await bobWallet.getAddress();
+		const sendAmount = 1;
+
+		const txResult = await firma.Bank.send(aliceWallet, bobAddress, sendAmount);
+		const result = await firma.BlockChain.getTransactionByHash(`0x${txResult.transactionHash}`);
 
 		//console.log(result);
 		//console.log(result.tx_result.events[0]);
