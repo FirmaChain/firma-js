@@ -6,7 +6,7 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from '
 
 // If test it, the properties of the chain change, so skip it.
 
-describe.only('[16. Gov Tx Test]', () => {
+describe('[16. Gov Tx Test]', () => {
 
 	let firma: FirmaSDK;
 
@@ -145,7 +145,7 @@ describe.only('[16. Gov Tx Test]', () => {
 		expect(result.code).to.equal(0);
 	});
 
-	it.only('Vote - alice YES & bob NO', async () => {
+	it('Vote - alice YES & bob NO', async () => {
 
 
 		const proposalList = await firma.Gov.getProposalList();

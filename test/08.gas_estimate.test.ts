@@ -4,7 +4,7 @@ import { aliceMnemonic, bobMnemonic, validatorMnemonic, TestChainConfig } from '
 import { VotingOption } from '../sdk/firmachain/common';
 import { Timestamp } from "../sdk/firmachain/google/protobuf/timestamp";
 
-describe.only('[08. Gas Estimation Test]', () => {
+describe('[08. Gas Estimation Test]', () => {
 
 	let firma: FirmaSDK;
 
