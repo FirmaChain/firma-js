@@ -1,9 +1,15 @@
 import { expect } from 'chai';
 import { FirmaUtil } from '../sdk/FirmaUtil';
+import { FirmaSDK } from '../sdk/FirmaSDK';
+import { TestChainConfig } from './config_test';
 
 describe('[18. util Test]', () => {
 
-	// getHashFromString
+	let firma: FirmaSDK;
+
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
 
 	it('getSha1HashFromString test', async () => {
 
@@ -41,10 +47,14 @@ describe('[18. util Test]', () => {
 
 	it('getValOperAddressFromAccAddress test', async () => {
 
-		const accAddress = "firma1a85hxs97rxsrf0yzdn72vhfu39sa0dwxv90ghy";
-		const valoperAddress = "firmavaloper1a85hxs97rxsrf0yzdn72vhfu39sa0dwxjkynh2";
+		const validatorList = await firma.Staking.getValidatorList()
+		const validator = validatorList.dataList[0];
+		const valoperAddress = validator.operator_address;
 
-		let result = FirmaUtil.getValOperAddressFromAccAddress(accAddress);
+		const accAddress = FirmaUtil.getAccAddressFromValOperAddress(valoperAddress);
+
+		const result = FirmaUtil.getValOperAddressFromAccAddress(accAddress);
+
 		expect(result).to.be.equal(valoperAddress);
 	})
 
