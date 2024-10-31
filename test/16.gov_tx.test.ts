@@ -6,7 +6,7 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from '
 
 // If test it, the properties of the chain change, so skip it.
 
-describe.skip('[16. Gov Tx Test]', () => {
+describe.only('[16. Gov Tx Test]', () => {
 
 	let firma: FirmaSDK;
 
@@ -78,7 +78,7 @@ describe.skip('[16. Gov Tx Test]', () => {
 		const title = "Software Upgrade proposal1";
 		const description = "This is a software upgrade proposal";
 
-		const upgradeName = "v0.2.7";
+		const upgradeName = "v0.3.5";
 		const upgradeHeight = 20000000;
 
 		var result = await firma.Gov.submitSoftwareUpgradeProposalByHeight(aliceWallet, title, description, initialDepositFCT, upgradeName, upgradeHeight);
@@ -124,40 +124,61 @@ describe.skip('[16. Gov Tx Test]', () => {
 		expect(result.code).to.equal(0);
 	});*/
 
-	// TODO: get recent gov proposal list and then set proposalId for below case
-	const tempProposalId = 1;
-
 	// more deposit after initial deposit case
 	it('Deposit OK', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
-		const proposalId = tempProposalId;
-		const amount = 1000;
-		var result = await firma.Gov.deposit(wallet, proposalId, amount);
+		const proposalList = await firma.Gov.getProposalList();
+		const lastProposalId = Number(proposalList[proposalList.length - 1].proposal_id) + 1;
+
+		const title = `Text proposal ${lastProposalId}`;
+		const description = `This is a text proposal(${lastProposalId})`;
+		const initialDeposit = 1000;
+
+		await firma.Gov.submitTextProposal(wallet, title, description, initialDeposit);
+
+		const depositAmount = 1000;
+
+		const result = await firma.Gov.deposit(wallet, lastProposalId, depositAmount);
 		//console.log(result);
 		expect(result.code).to.equal(0);
 	});
 
-	it('Vote - alice YES', async () => {
+	it.only('Vote - alice YES & bob NO', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const proposalId = tempProposalId;
 
-		var result = await firma.Gov.vote(wallet, proposalId, VotingOption.VOTE_OPTION_YES);
+		const proposalList = await firma.Gov.getProposalList();
+		const lastProposalId = Number(proposalList[proposalList.length - 1].proposal_id) + 1;
+
+		const title = `Text proposal ${lastProposalId}`;
+		const description = `This is a text proposal(${lastProposalId})`;
+		const initialDeposit = 5000;
+
+		const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
+		await firma.Gov.submitTextProposal(validatorWallet, title, description, initialDeposit);
+		
+		// Alice
+		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const aliceVotingResult = await firma.Gov.vote(aliceWallet, lastProposalId, VotingOption.VOTE_OPTION_YES);
+		// Bob
+		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		const bobVotingResult = await firma.Gov.vote(bobWallet, lastProposalId, VotingOption.VOTE_OPTION_NO);
+
 		//console.log(result);
-		expect(result.code).to.equal(0);
+		expect(aliceVotingResult.code).to.equal(0);
+		expect(bobVotingResult.code).to.equal(0);
 	});
 
-	it('Vote - bob NO', async () => {
+	// it('Vote - bob NO', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(bobMnemonic);
-		const proposalId = tempProposalId;
+	// 	const wallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+	// 	const proposalId = tempProposalId;
 
-		var result = await firma.Gov.vote(wallet, proposalId, VotingOption.VOTE_OPTION_NO);
-		//console.log(result);
-		expect(result.code).to.equal(0);
-	});
+	// 	var result = await firma.Gov.vote(wallet, proposalId, VotingOption.VOTE_OPTION_NO);
+	// 	//console.log(result);
+	// 	expect(result.code).to.equal(0);
+	// });
 
 	// TODO: more voting case need it!
 });
