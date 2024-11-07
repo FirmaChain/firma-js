@@ -1,13 +1,15 @@
 import { FirmaSDK } from "../sdk/FirmaSDK"
 
 import { expect } from 'chai';
-import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
+import fs from "fs";
+
+import { AccessConfig, AccessType } from "../sdk/FirmaCosmWasmService";
 import { FirmaWalletService } from "../sdk/FirmaWalletService";
 import { Expires } from "../sdk/FirmaCosmWasmCw20";
 import { FirmaUtil } from "../sdk/FirmaUtil";
 
-import fs from "fs";
-import { AccessConfig, AccessType } from "../sdk/FirmaCosmWasmService";
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
+
 
 describe('[30. cw20 tx Test]', () => {
 
@@ -18,6 +20,9 @@ describe('[30. cw20 tx Test]', () => {
 	let aliceAddress: string;
 	let bobAddress: string;
 
+	let contractAddress = "";
+	let codeId = "";
+
 	beforeEach(async function () {
 		firma = new FirmaSDK(TestChainConfig);
 
@@ -27,9 +32,6 @@ describe('[30. cw20 tx Test]', () => {
 		aliceAddress = await aliceWallet.getAddress();
 		bobAddress = await bobWallet.getAddress();
 	})
-
-	let contractAddress = "";
-	let codeId = "";
 
 	it('CosmWasm Cw20 StoreCode', async () => {
 		const wasmFile = fs.readFileSync("./test/sample/cw20_base.wasm");
@@ -87,8 +89,8 @@ describe('[30. cw20 tx Test]', () => {
 			}
 		});
 
-		var result = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: gas, fee: fee });
-		var data = JSON.parse(result.rawLog!);
+		const result = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: gas, fee: fee });
+		const data = JSON.parse(result.rawLog!);
 
 		contractAddress = data[0]["events"][0]["attributes"][0]["value"];
 

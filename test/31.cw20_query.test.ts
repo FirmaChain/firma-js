@@ -1,7 +1,10 @@
+import fs from "fs";
+
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { FirmaUtil } from "../sdk/FirmaUtil";
 import { FirmaWalletService } from "../sdk/FirmaWalletService";
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
+import { AccessConfig, AccessType } from "../sdk/FirmaCosmWasmService";
 
 describe('[31. cw20 query Test]', () => {
 
@@ -10,9 +13,9 @@ describe('[31. cw20 query Test]', () => {
 	let bobWallet: FirmaWalletService;
 	let aliceAddress: string;
 	let bobAddress: string;
-	let contractAddress: string;
 
-	const codeId = "1";
+	let contractAddress: string = "";
+	let codeId = "";
 
 	beforeEach(async function() {
 		firma = new FirmaSDK(TestChainConfig);
@@ -20,48 +23,71 @@ describe('[31. cw20 query Test]', () => {
 		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
-		const admin = await aliceWallet.getAddress();
-		const label = "test1";
-
-		const gas = 3000000;
-		const fee = FirmaUtil.getUFCTFromFCT(0.3);
-		const noFunds: any = [];
-
-		const testData = JSON.stringify({
-			decimals: 6,
-			name: "MyToken",
-			symbol: "MTK",
-			initial_balances: [
-				{
-					address: aliceAddress,
-					amount: "500000000000"
-				},
-				{
-					address: bobAddress,
-					amount: "500000000000"
-				}
-			],
-			// mint is optional
-			mint: {
-				minter: aliceAddress,
-				cap: "10000000000000"
-			},
-			// marketing is optional
-			marketing: {
-				description: "MyToken's description is like this.",
-				logo: {
-					"url": "https://example.com/mytoken-logo.png"
-				},
-				marketing: aliceAddress,
-				project: "https://mytokenproject.com"
-			}
-		});
-
-		var result = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: gas, fee: fee });
-		var data = JSON.parse(result.rawLog!);
-
-		contractAddress = data[0]["events"][0]["attributes"][0]["value"];
+		aliceAddress = await aliceWallet.getAddress();
+		bobAddress = await bobWallet.getAddress();
 	})
+
+	it('Cw20 Storecode & Instantiate', async () => {
+		if (codeId === "") {
+			const wasmFile = fs.readFileSync("./test/sample/cw20_base.wasm");
+			const array = new Uint8Array(wasmFile.buffer);
+	
+			const storeCodeGas = 3000000;
+			const storeCodeFee = FirmaUtil.getUFCTFromFCT(0.3);
+	
+			const everyBodyAccessConfig: AccessConfig = { permission: AccessType.ACCESS_TYPE_EVERYBODY, address: "" };
+			//const onlyAddressAccessConfig: AccessConfig = { permission: AccessType.ACCESS_TYPE_ONLY_ADDRESS, address: aliceAddress };
+	
+			const storeCodeResult = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: storeCodeGas, fee: storeCodeFee });
+			const storeCodedata = JSON.parse(storeCodeResult.rawLog!);
+	
+			codeId = storeCodedata[0]["events"][1]["attributes"][1]["value"];
+		}
+
+		if (contractAddress === "") {
+			const admin = await aliceWallet.getAddress();
+			const label = "test1";
+	
+			const instantiateGas = 3000000;
+			const instantiateFee = FirmaUtil.getUFCTFromFCT(0.3);
+			const noFunds: any = [];
+	
+			const testData = JSON.stringify({
+				decimals: 6,
+				name: "MyToken",
+				symbol: "MTK",
+				initial_balances: [
+					{
+						address: aliceAddress,
+						amount: "500000000000"
+					},
+					{
+						address: bobAddress,
+						amount: "500000000000"
+					}
+				],
+				// mint is optional
+				mint: {
+					minter: aliceAddress,
+					cap: "10000000000000"
+				},
+				// marketing is optional
+				marketing: {
+					description: "MyToken's description is like this.",
+					logo: {
+						"url": "https://example.com/mytoken-logo.png"
+					},
+					marketing: aliceAddress,
+					project: "https://mytokenproject.com"
+				}
+			});
+	
+			const instantiateResult = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: instantiateGas, fee: instantiateFee });
+			const instantiateData = JSON.parse(instantiateResult.rawLog!);
+	
+			contractAddress = instantiateData[0]["events"][0]["attributes"][0]["value"];
+		}
+	});
 
 	it('Cw20 getBalance', async () => {
 
