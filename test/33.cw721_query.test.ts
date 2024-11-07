@@ -1,3 +1,4 @@
+import { Expires } from "../sdk/FirmaCosmWasmCw20";
 import { AccessConfig, AccessType } from "../sdk/FirmaCosmWasmService";
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { FirmaUtil } from "../sdk/FirmaUtil";
@@ -16,8 +17,8 @@ describe('[33. cw721 query Test]', () => {
 
 	let contractAddress = "";
 	let codeId = "";
-	let tokenId = "1";
 
+	const tokenId = "1";
 	const tokenUri = "https://meta.nft.io/uri";
 
 	beforeEach(async function() {
@@ -27,39 +28,46 @@ describe('[33. cw721 query Test]', () => {
 		aliceAddress = await aliceWallet.getAddress();
 		bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 		bobAddress = await bobWallet.getAddress();
-
-		const wasmFile = fs.readFileSync("./test/sample/cw721_base.wasm");
-		const array = new Uint8Array(wasmFile.buffer);
-
-		const instantiateGas = 3000000;
-		const instantiateFee = FirmaUtil.getUFCTFromFCT(0.3);
-
-		const everyBodyAccessConfig: AccessConfig = { permission: AccessType.ACCESS_TYPE_EVERYBODY, address: "" };
-		//const onlyAddressAccessConfig: AccessConfig = { permission: AccessType.ACCESS_TYPE_ONLY_ADDRESS, address: aliceAddress };
-
-		var result = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: instantiateGas, fee: instantiateFee });
-		var data = JSON.parse(result.rawLog!);
-
-		codeId = data[0]["events"][1]["attributes"][1]["value"];
-
-		const admin = await aliceWallet.getAddress();
-		const label = "test1";
-
-		const gas = 3000000;
-		const fee = FirmaUtil.getUFCTFromFCT(0.3);
-		const noFunds: any = [];
-
-		const testData = JSON.stringify({
-			minter: aliceAddress,
-			name: "My Awesome NFT Collection",
-			symbol: "MAWESOME"			
-		});
-
-		var result = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: gas, fee: fee });
-		var data = JSON.parse(result.rawLog!);
-		
-		contractAddress = data[0]["events"][0]["attributes"][0]["value"];
 	})
+
+	it('cw721 init contract address', async () => {
+
+		if (codeId === "") {
+			const wasmFile = fs.readFileSync("./test/sample/cw721_base.wasm");
+			const array = new Uint8Array(wasmFile.buffer);
+	
+			const instantiateGas = 3000000;
+			const instantiateFee = FirmaUtil.getUFCTFromFCT(0.3);
+	
+			const everyBodyAccessConfig: AccessConfig = { permission: AccessType.ACCESS_TYPE_EVERYBODY, address: "" };
+			//const onlyAddressAccessConfig: AccessConfig = { permission: AccessType.ACCESS_TYPE_ONLY_ADDRESS, address: aliceAddress };
+	
+			const result = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: instantiateGas, fee: instantiateFee });
+			const data = JSON.parse(result.rawLog!);
+	
+			codeId = data[0]["events"][1]["attributes"][1]["value"];
+		}
+
+		if (contractAddress === "") {
+			const admin = await aliceWallet.getAddress();
+			const label = "test1";
+	
+			const gas = 3000000;
+			const fee = FirmaUtil.getUFCTFromFCT(0.3);
+			const noFunds: any = [];
+	
+			const testData = JSON.stringify({
+				minter: aliceAddress,
+				name: "My Awesome NFT Collection",
+				symbol: "MAWESOME"			
+			});
+	
+			const result = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: gas, fee: fee });
+			const data = JSON.parse(result.rawLog!);
+			
+			contractAddress = data[0]["events"][0]["attributes"][0]["value"];
+		}
+	});
 
 	it('cw721 getOwnerFromNftID', async () => {
 
@@ -77,8 +85,10 @@ describe('[33. cw721 query Test]', () => {
 		// If spender is different, api call occurs error.
 		// So, I have to decide wrap error case on internal functions.
 
+		const expires: Expires = { never: {} };
+		await firma.Cw721.approve(aliceWallet, contractAddress, bobAddress, tokenId, expires);
+		
 		// A point in time in nanosecond precision
-
 		const isIncludeExpired = true;
 		const approval = await firma.Cw721.getApproval(contractAddress, tokenId, bobAddress, isIncludeExpired);
 

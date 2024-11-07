@@ -19,6 +19,9 @@ describe('[32. cw721 tx Test]', () => {
 	let aliceAddress: string;
 	let bobAddress: string;
 
+	let contractAddress = "";
+	let codeId = "";
+
 	beforeEach(async function () {
 		firma = new FirmaSDK(TestChainConfig);
 
@@ -28,9 +31,6 @@ describe('[32. cw721 tx Test]', () => {
 		aliceAddress = await aliceWallet.getAddress();
 		bobAddress = await bobWallet.getAddress();
 	})
-
-	let contractAddress = "";
-	let codeId = "";
 
 	it('CosmWasm Cw721 StoreCode', async () => {
 		const wasmFile = fs.readFileSync("./test/sample/cw721_base.wasm");
