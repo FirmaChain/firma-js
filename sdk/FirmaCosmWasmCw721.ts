@@ -50,10 +50,22 @@ export interface Cw721Approval {
     expires: Cw721Expires;
 }
 
+export interface Cw721Attribute {
+    trait_type: string;
+    value: string | number;
+    display_type?: string;
+}
+
 export interface Cw721Extension {
-    imageHash: string;
-    externalUrl?: string;
-    description?: string;
+    name: string;
+    description: string;
+    image: string;
+    image_data?: string;
+    external_url?: string;
+    attributes?: Cw721Attribute[];
+    background_color?: string;
+    animation_url?: string;
+    youtube_url?: string;
 }
 
 // staic util
