@@ -50,6 +50,24 @@ export interface Cw721Approval {
     expires: Cw721Expires;
 }
 
+export interface Cw721Attribute {
+    trait_type: string;
+    value: string | number;
+    display_type?: string;
+}
+
+export interface Cw721Extension {
+    name: string;
+    description: string;
+    image: string;
+    image_data?: string;
+    external_url?: string;
+    attributes?: Cw721Attribute[];
+    background_color?: string;
+    animation_url?: string;
+    youtube_url?: string;
+}
+
 // staic util
 const noFunds: any = [];
 
@@ -151,6 +169,17 @@ export class Cw721MsgData {
             "update_ownership": "renounce_ownership"
         });
     }
+
+    static getMsgDataMintWithExtension(owner: string, token_id: string, token_uri: string, extension: Cw721Extension) {
+        return JSON.stringify({
+            "mint": {
+                token_id,
+                owner,
+                extension,
+                token_uri
+            }
+        });
+    }
 }
 
 
@@ -161,6 +190,11 @@ export class FirmaCosmWasmCw721Service {
     // tx
     async mint(wallet: FirmaWalletService, contractAddress: string, owner: string, token_id: string, token_uri: string = "", txMisc: TxMisc = DefaultTxMisc) {
         const msgData = Cw721MsgData.getMsgDataMint(owner, token_id, token_uri);
+        return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
+    }
+
+    async mintWithExtension(wallet: FirmaWalletService, contractAddress: string, owner: string, token_id: string, extension: Cw721Extension, token_uri: string = "", txMisc: TxMisc = DefaultTxMisc) {
+        const msgData = Cw721MsgData.getMsgDataMintWithExtension(owner, token_id, token_uri, extension);
         return await this.cosmwasmService.executeContract(wallet, contractAddress, msgData, noFunds, txMisc);
     }
 
