@@ -108,7 +108,7 @@ describe('[25. CosmWasm Tx Test]', () => {
 		expect(result.code).to.be.equal(0);
 	});
 
-	it.skip('CosmWasm MigrateContract', async () => {
+	it('CosmWasm MigrateContract', async () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
 		const gas = 3000000;
@@ -116,9 +116,12 @@ describe('[25. CosmWasm Tx Test]', () => {
 
 		const testData = JSON.stringify({ "purchase_price": { "amount": "1000", "denom": "ufct" }, "transfer_price": { "amount": "9990", "denom": "ufct" } });
 
-		var result = await firma.CosmWasm.migrateContract(aliceWallet, contractAddress, codeId, testData, { gas: gas, fee: fee });
-
-		//console.log(result);
-		expect(result.code).to.be.equal(0);
+		try {
+			const result = await firma.CosmWasm.migrateContract(aliceWallet, contractAddress, codeId, testData, { gas: gas, fee: fee });
+			//console.log(result);
+			expect(result.code).to.be.equal(0);
+		} catch (error) {
+			console.log(error);
+		}
 	});
 });

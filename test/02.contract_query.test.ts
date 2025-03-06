@@ -2,90 +2,109 @@ import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { FirmaUtil } from "../sdk/FirmaUtil"
 import { ContractFileType, ContractLogType } from '../sdk/firmachain/contract';
-import { TestChainConfig } from './config_test';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[02. Contract Query Test]', () => {
 
 	let firma: FirmaSDK;
+	let timeStamp = Math.round(+new Date() / 1000);
+	let fileHash = "0xklsdjflaksjflaksjf" + timeStamp;
+	let aliceAddress: string;
+	let bobAddress: string;
 
 	beforeEach(function() {
 		firma = new FirmaSDK(TestChainConfig);
 	})
 
+	it('Pre-execution for testing for contract file hash', async () => {
+
+		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+
+		aliceAddress = await aliceWallet.getAddress();
+		bobAddress = await bobWallet.getAddress();
+		
+		const eventName = "CreateContract";
+		const logJsonString = "{}";
+		await firma.Contract.addContractLog(aliceWallet, fileHash, timeStamp, eventName, aliceAddress, logJsonString);
+		await firma.Contract.addContractLog(bobWallet, fileHash, timeStamp, eventName, bobAddress, logJsonString);
+
+		const ownerList = [aliceAddress, bobAddress];
+		const fileJsonString = "{\"fileHash\": \"" + fileHash + "\"" + "}";
+		await firma.Contract.createContractFile(aliceWallet, fileHash, timeStamp, ownerList, fileJsonString);
+	});
+
 	it('Contract getContractLogAll-pagination', async () => {
 
-		var result = await firma.Contract.getContractLogAll();
+		let result = await firma.Contract.getContractLogAll();
 
 		const total = result.pagination.total;
 
-		var totalItemList: ContractLogType[] = [];
-		var index = 0;
+		let totalItemList: ContractLogType[] = [];
+		let index = 0;
 
 		while (result.pagination.next_key != null) {
 
-			for (var i = 0; i < result.dataList.length; i++) {
+			for (let i = 0; i < result.dataList.length; i++) {
 				totalItemList[index++] = result.dataList[i];
 			}
 
 			result = await firma.Contract.getContractLogAll(result.pagination.next_key);
 		}
 
-		for (var i = 0; i < result.dataList.length; i++) {
+		for (let i = 0; i < result.dataList.length; i++) {
 			totalItemList[index++] = result.dataList[i];
 		}
 
 		expect(totalItemList.length).to.be.equal(total);
 	});
 
-
 	it('Contract getContractLogAll', async () => {
 
-		var contractLogList = await firma.Contract.getContractLogAll();
-		expect(contractLogList.dataList.length).to.be.equal(contractLogList.dataList.length);
+		const contractLogList = await firma.Contract.getContractLogAll();
 
+		expect(contractLogList.dataList.length).to.be.equal(contractLogList.dataList.length);
 		expect(contractLogList.dataList.length).to.be.greaterThan(0);
 	});
 
 	it('Contract getContractLog', async () => {
 
 		const logId = "0";
+		const contractLog = await firma.Contract.getContractLog(logId);
 
-		var contractLog = await firma.Contract.getContractLog(logId);
 		expect(contractLog.id).to.be.equal(logId);
 	});
 
-
 	it('Contract getContractFileAll-pagination', async () => {
 
-		var result = await firma.Contract.getContractFileAll();
+		let result = await firma.Contract.getContractFileAll();
 
 		const total = result.pagination.total;
 
-		var totalItemList: ContractFileType[] = [];
-		var index = 0;
+		let totalItemList: ContractFileType[] = [];
+		let index = 0;
 
 		while (result.pagination.next_key != null) {
 
-			for (var i = 0; i < result.dataList.length; i++) {
+			for (let i = 0; i < result.dataList.length; i++) {
 				totalItemList[index++] = result.dataList[i];
 			}
 
 			result = await firma.Contract.getContractFileAll(result.pagination.next_key);
 		}
 
-		for (var i = 0; i < result.dataList.length; i++) {
+		for (let i = 0; i < result.dataList.length; i++) {
 			totalItemList[index++] = result.dataList[i];
 		}
 
 		expect(totalItemList.length).to.be.equal(total);
 	});
 
-
 	it('Contract getContractFileAll', async () => {
 
-		var contractFileList = await firma.Contract.getContractFileAll();
+		const contractFileList = await firma.Contract.getContractFileAll();
 
-		//  for(var i = 0; i < contractFileList.length; i++){
+		//  for(let i = 0; i < contractFileList.length; i++){
 		//  	console.log(contractFileList[i]);
 		//  }
 		//console.log("contractFileList:" + contractFileList.length);
@@ -95,37 +114,30 @@ describe('[02. Contract Query Test]', () => {
 
 	});
 
-	it.skip('Contract getContractFile', async () => {
+	it('Contract getContractFile', async () => {
 
-		const contractFileHash = "e3b0c44afbf4c8996fb92427ae41e4649b934ca495991b7852b85531231asddaqwqe";
-
-		var contractFile = await firma.Contract.getContractFile(contractFileHash);
-		expect(contractFile.fileHash).to.be.equal(contractFileHash);
+		const contractFile = await firma.Contract.getContractFile(fileHash);
+		expect(contractFile.fileHash).to.be.equal(fileHash);
 	});
 
 	it('Contract getContractListFromHash', async () => {
 
-		const contractHash = "0xsalkdjfasldkjf2";
-		var idList = await firma.Contract.getContractListFromHash(contractHash);
+		const idList = await firma.Contract.getContractListFromHash(fileHash);
 
 		for (let i = 0; i < idList.length; i++) {
-			var data = await firma.Contract.getContractLog(idList[i]);
+			const data = await firma.Contract.getContractLog(idList[i]);
 			//console.log(data);
 		}
 
 		expect(idList.length).to.be.greaterThan(0);
 	});
 
-	it.skip('Contract isContractOwner', async () => {
+	it('Contract isContractOwner', async () => {
 
-		const contractFileHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b85531231asddaqwqe";
-		const owner1 = "firma1nssuz67am2uwc2hjgvphg0fmj3k9l6cx65ux9u0kdjaaldlq";
-		const owner2 = "firma106a9nzxcxu526z4cx6nq4zqpx7ctrx65a020yk23kdjaaldlq";
-
-		var isOwner = await firma.Contract.isContractOwner(contractFileHash, owner1);
+		let isOwner = await firma.Contract.isContractOwner(fileHash, aliceAddress);
 		expect(isOwner).to.be.equal(true);
 
-		isOwner = await firma.Contract.isContractOwner(contractFileHash, owner2);
+		isOwner = await firma.Contract.isContractOwner(fileHash, bobAddress);
 		expect(isOwner).to.be.equal(true);
 	});
 
