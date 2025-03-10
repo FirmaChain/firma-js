@@ -1,22 +1,82 @@
-import { FirmaConfig } from "../sdk/FirmaConfig";
+import { Expires } from "../sdk/FirmaCosmWasmCw20";
+import { AccessConfig, AccessType } from "../sdk/FirmaCosmWasmService";
 import { FirmaSDK } from "../sdk/FirmaSDK"
-import { TestChainConfig } from './config_test';
+import { FirmaUtil } from "../sdk/FirmaUtil";
+import { FirmaWalletService } from "../sdk/FirmaWalletService";
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
+import fs from "fs";
 
 describe('[33. cw721 query Test]', () => {
 
 	let firma: FirmaSDK;
 
-	beforeEach(function() {
-		firma = new FirmaSDK(FirmaConfig.TestNetConfig);
+	let aliceWallet: FirmaWalletService;
+	let aliceAddress: string;
+	let bobWallet: FirmaWalletService;
+	let bobAddress: string;
+
+	let contractAddress = "";
+	let codeId = "";
+
+	const tokenId = "1";
+	const tokenUri = "https://meta.nft.io/uri";
+
+	beforeEach(async function() {
+		firma = new FirmaSDK(TestChainConfig);
+		
+		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		aliceAddress = await aliceWallet.getAddress();
+		bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		bobAddress = await bobWallet.getAddress();
 	})
 
-	let contractAddress = "firma17uh2wj875vt64x7pzzy08slsl5pqupfln0vw2k79knfshygy6ausxth5d2";
+	it('cw721 init contract address', async () => {
+
+		if (codeId === "") {
+			const wasmFile = fs.readFileSync("./test/sample/cw721_base.wasm");
+			const array = new Uint8Array(wasmFile.buffer);
+	
+			const instantiateGas = 3000000;
+			const instantiateFee = FirmaUtil.getUFCTFromFCT(0.3);
+	
+			const everyBodyAccessConfig: AccessConfig = { permission: AccessType.ACCESS_TYPE_EVERYBODY, address: "" };
+			//const onlyAddressAccessConfig: AccessConfig = { permission: AccessType.ACCESS_TYPE_ONLY_ADDRESS, address: aliceAddress };
+	
+			const result = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: instantiateGas, fee: instantiateFee });
+			const data = JSON.parse(result.rawLog!);
+	
+			codeId = data[0]["events"][1]["attributes"][1]["value"];
+		}
+
+		if (contractAddress === "") {
+			const admin = await aliceWallet.getAddress();
+			const label = "test1";
+	
+			const gas = 3000000;
+			const fee = FirmaUtil.getUFCTFromFCT(0.3);
+			const noFunds: any = [];
+	
+			const testData = JSON.stringify({
+				minter: aliceAddress,
+				name: "My Awesome NFT Collection",
+				symbol: "MAWESOME"			
+			});
+	
+			const result = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: gas, fee: fee });
+			const data = JSON.parse(result.rawLog!);
+			
+			contractAddress = data[0]["events"][0]["attributes"][0]["value"];
+		}
+	});
 
 	it('cw721 getOwnerFromNftID', async () => {
 
-		const tokenId = "1";
+		const gas = await firma.Cw721.getGasEstimationMint(aliceWallet, contractAddress, aliceAddress, tokenId, `${tokenUri}/${tokenId}`);
+		const fee = Math.ceil(gas * 0.1);
+
+		await firma.Cw721.mint(aliceWallet, contractAddress, aliceAddress, tokenId, `${tokenUri}/${tokenId}`, { gas, fee });
+
 		const owner = await firma.Cw721.getOwnerFromNftID(contractAddress, tokenId);
-		console.log(owner);
 	});
 
 	it('cw721 approval', async () => {
@@ -25,27 +85,19 @@ describe('[33. cw721 query Test]', () => {
 		// If spender is different, api call occurs error.
 		// So, I have to decide wrap error case on internal functions.
 
+		const expires: Expires = { never: {} };
+		await firma.Cw721.approve(aliceWallet, contractAddress, bobAddress, tokenId, expires);
+		
 		// A point in time in nanosecond precision
-         
-		// firma1lkly7qj4w2la2xxlatrtw6wynz8vxkctjlqkch
-		// firma13hcgnwfpe99htsr92v2keqsgx909rhkwfnxgwr
-
-		const tokenId = "1";
-		const spender = "firma1lkly7qj4w2la2xxlatrtw6wynz8vxkctjlqkch";
 		const isIncludeExpired = true;
-		const approval = await firma.Cw721.getApproval(contractAddress, tokenId, spender, isIncludeExpired);
+		const approval = await firma.Cw721.getApproval(contractAddress, tokenId, bobAddress, isIncludeExpired);
 
 		//console.log(approval.spender);
 		//console.log(approval.expires);
-
-		const expires = approval.expires;
-		console.log(expires);
-		
 	});
 
 	it('cw721 approvals', async () => {
 
-		const tokenId = "1";
 		const isIncludeExpired = true;
 		const approvals = await firma.Cw721.getApprovals(contractAddress, tokenId, isIncludeExpired);
 
@@ -55,18 +107,16 @@ describe('[33. cw721 query Test]', () => {
 			const approval = approvals[i];
 			const expires = approval.expires;
 
-			console.log(approval.spender);
-			console.log(expires);
-
+			// console.log(approval.spender);
+			// console.log(expires);
 		}
 	});
 
 	it('cw721 getAllOperators', async () => {
 
 		// operator : approve all user info
-		const owner = "firma13hcgnwfpe99htsr92v2keqsgx909rhkwfnxgwr";
 		const isIncludeExpired = false;
-		const operators = await firma.Cw721.getAllOperators(contractAddress, owner, isIncludeExpired);
+		const operators = await firma.Cw721.getAllOperators(contractAddress, aliceAddress, isIncludeExpired);
 		
 		//console.log(operators);
 	});
@@ -87,7 +137,6 @@ describe('[33. cw721 query Test]', () => {
 
 	it('cw721 getNftTokenUri', async () => {
 
-		const tokenId = "1";
 		const nftInfo = await firma.Cw721.getNftTokenUri(contractAddress, tokenId);
 
 		//console.log(nftInfo);
@@ -95,7 +144,6 @@ describe('[33. cw721 query Test]', () => {
 
 	it('cw721 getNftData', async () => {
 
-		const tokenId = "1";
 		const nftInfo = await firma.Cw721.getNftData(contractAddress, tokenId);
 
 		//console.log(nftInfo.access.owner);
@@ -106,10 +154,8 @@ describe('[33. cw721 query Test]', () => {
 
 	it('cw721 getNFTIdListOfOwner', async () => {
 
-		const owner = "firma13hcgnwfpe99htsr92v2keqsgx909rhkwfnxgwr";
-
-		const nftIdList = await firma.Cw721.getNFTIdListOfOwner(contractAddress, owner);
-		console.log(nftIdList);
+		const nftIdList = await firma.Cw721.getNFTIdListOfOwner(contractAddress, aliceAddress);
+		// console.log(nftIdList);
 	});
 
 	it('cw721 getAllNftIdList', async () => {

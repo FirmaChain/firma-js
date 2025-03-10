@@ -102,7 +102,7 @@ describe('[12. Staking Tx Test]', () => {
 	});
 
 	// NOTICE: not decide to include firma.js spec
-	it.skip('editValidator OK', async () => {
+	it('editValidator OK', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
 

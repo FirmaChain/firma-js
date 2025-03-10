@@ -1,6 +1,6 @@
-import { ProposalStatus } from '../sdk/firmachain/gov';
+import { ProposalStatus, VotingOption } from '../sdk/firmachain/gov';
 import { FirmaSDK } from "../sdk/FirmaSDK"
-import { TestChainConfig } from './config_test';
+import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
 
 describe('[17. Gov Query Test]', () => {
 
@@ -28,10 +28,14 @@ describe('[17. Gov Query Test]', () => {
 
 		let proposalList = await firma.Gov.getProposalList();
 
-		if (proposalList.length > 0) {
-			const id = "1";
-			let proposal = await firma.Gov.getProposal(id);
-			//console.log(proposal);
+		try {
+			if (proposalList.length > 0) {
+				const id = proposalList[proposalList.length - 1].proposal_id;
+				let proposal = await firma.Gov.getProposal(id);
+				//console.log(proposal);
+			}
+		} catch (error) {
+			console.log(error);
 		}
 	})
 
@@ -45,12 +49,27 @@ describe('[17. Gov Query Test]', () => {
 	// current tally info
 	it('get getCurrentVoteInfo', async () => {
 
-		let proposalList = await firma.Gov.getProposalList();
+		try {
+			const proposalList = await firma.Gov.getProposalList();
+			const lastProposalId = Number(proposalList[proposalList.length - 1].proposal_id) + 1;
 
-		if (proposalList.length > 0) {
-			const proposalId = "1";
-			let param = await firma.Gov.getCurrentVoteInfo(proposalId);
-			//	console.log(param);
+			const title = `Text proposal ${lastProposalId}`;
+			const description = `This is a text proposal(${lastProposalId})`;
+			const initialDeposit = 5000;
+
+			const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
+			await firma.Gov.submitTextProposal(validatorWallet, title, description, initialDeposit);
+
+			// Alice
+			const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+			const aliceVotingResult = await firma.Gov.vote(aliceWallet, lastProposalId, VotingOption.VOTE_OPTION_YES);
+			// Bob
+			const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+			const bobVotingResult = await firma.Gov.vote(bobWallet, lastProposalId, VotingOption.VOTE_OPTION_NO);
+
+			const voteInfo = await firma.Gov.getCurrentVoteInfo(lastProposalId.toString());
+		} catch (error) {
+			console.log(error);
 		}
 	})
 });

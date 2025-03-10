@@ -34,7 +34,7 @@ describe('[04. Bank Tx Test]', () => {
 		expect(result.code).to.equal(5);
 	});
 
-	it.skip('bank send Fail - Big fee remittance', async function () {
+	it('bank send Fail - Big fee remittance', async function () {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const targetWallet = await firma.Wallet.fromMnemonic(bobMnemonic);

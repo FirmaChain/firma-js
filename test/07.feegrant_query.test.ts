@@ -11,17 +11,15 @@ describe('[07. Feegrant Query Test]', () => {
 		firma = new FirmaSDK(TestChainConfig);
 	})
 
-	it.skip('feegrant getGranteeAllowance', async () => {
-
+	it('feegrant getGranteeAllowance', async () => {
 
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		const bobAddress = await bobWallet.getAddress();
 
-		var result = await firma.FeeGrant.getGranteeAllowance(await aliceWallet.getAddress(), await bobWallet.getAddress());
-		/*console.log(result['@type']);
-		console.log(result.spendLimit);
-		console.log(result.expiration);*/
-
+		await firma.FeeGrant.grantBasicAllowance(aliceWallet, bobAddress);
+		const result = await firma.FeeGrant.getGranteeAllowance(await aliceWallet.getAddress(), await bobWallet.getAddress());
+		await firma.FeeGrant.revokeAllowance(aliceWallet, bobAddress);
 	});
 
 	it('feegrant getGranteeAllowanceAll', async () => {
