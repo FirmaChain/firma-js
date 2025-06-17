@@ -1,11 +1,9 @@
 import { TxBodyEncodeObject, encodePubkey } from "@cosmjs/proto-signing";
 import { AuthInfo, SignerInfo } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import Long from "long";
 import { EncodeObject, Registry } from "@cosmjs/proto-signing";
 import { Int53 } from "@cosmjs/math";
 import { fromBase64 } from "@cosmjs/encoding";
 
-import { AminoTypes } from "../amino/aminotypes";
 import { AminoMsg, serializeSignDoc } from "../amino/signdoc";
 
 import { encodeSecp256k1Pubkey } from "../amino/encoding";
@@ -20,6 +18,7 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { FirmaUtil } from "../../FirmaUtil";
 import { SignAndBroadcastOptions } from "../common";
 import { Coin } from "../amino/coins";
+import { AminoTypes } from "@cosmjs/stargate";
 
 export interface LedgerWalletInterface {
     getAddress(): Promise<string>;
@@ -39,7 +38,7 @@ function makeSignerInfos(
             modeInfo: {
                 single: { mode: signMode },
             },
-            sequence: Long.fromNumber(sequence),
+            sequence: BigInt(sequence),
         }),
     );
 }
@@ -55,7 +54,7 @@ function makeAuthInfoBytes(
         signerInfos: makeSignerInfos(signers, signMode),
         fee: {
             amount: [...feeAmount],
-            gasLimit: Long.fromNumber(gasLimit),
+            gasLimit: BigInt(gasLimit),
             granter: granter,
         },
     };
@@ -78,8 +77,6 @@ export async function signFromLedger(ledger: LedgerWalletInterface, messages: En
     const sequence = Number.parseInt(signerData.sequence);
     const memo = option.memo;
 
-    //NOTICE: Amino Sign에는 granter빼고, 실제 authInfo에는 넣어야 동작. 어쩔 수 없다. 
-    //const fee = option.fee;
     const fee = { amount: option.fee.amount, gas: option.fee.gas };
 
     const signDoc = makeSignDocAmino(msgs, fee, chainId, memo, accountNumber, sequence);

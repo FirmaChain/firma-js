@@ -48,7 +48,7 @@ export interface AminoConverter {
   readonly fromAmino: (value: any) => any;
 }
 
-function omitDefault<T extends string | number | Long>(input: T): T | undefined {
+function omitDefault<T extends string | number | Long | BigInt>(input: T): T | undefined {
   if (typeof input === "string") {
     return input === "" ? undefined : input;
   }
@@ -181,7 +181,7 @@ function createDefaultTypes(prefix: string): Record<string, AminoConverter> {
         return {
           amount: Array.from(amount),
           depositor,
-          proposalId: Long.fromString(proposal_id),
+          proposalId: BigInt(proposal_id),
         };
       },
     },
@@ -197,7 +197,7 @@ function createDefaultTypes(prefix: string): Record<string, AminoConverter> {
       fromAmino: ({ option, proposal_id, voter }: AminoMsgVote["value"]): MsgVote => {
         return {
           option: voteOptionFromJSON(option),
-          proposalId: Long.fromString(proposal_id),
+          proposalId: BigInt(proposal_id),
           voter: voter,
         };
       },
@@ -494,19 +494,19 @@ function createDefaultTypes(prefix: string): Record<string, AminoConverter> {
         receiver,
         timeout_height,
         timeout_timestamp,
+        memo
       }: AminoMsgTransfer["value"]): MsgTransfer => ({
         sourcePort: source_port,
         sourceChannel: source_channel,
-        token: token,
+        token: token!,
         sender: sender,
         receiver: receiver,
-        timeoutHeight: timeout_height
-          ? {
-            revisionHeight: Long.fromString(timeout_height.revision_height || "0", true),
-            revisionNumber: Long.fromString(timeout_height.revision_number || "0", true),
-          }
-          : undefined,
-        timeoutTimestamp: Long.fromString(timeout_timestamp || "0", true),
+        timeoutHeight: {
+            revisionHeight: BigInt(timeout_height.revision_height || "0"),
+            revisionNumber: BigInt(timeout_height.revision_number || "0"),
+        },
+        timeoutTimestamp: BigInt(timeout_timestamp || "0"),
+        memo: memo!
       }),
     },
   };

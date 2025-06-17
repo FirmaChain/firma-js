@@ -5,6 +5,7 @@ import { Writer } from "protobufjs/minimal";
 
 import { Timestamp } from "../google/protobuf/timestamp";
 import { Any } from "../google/protobuf/any";
+import { BinaryWriter } from "cosmjs-types/binary";
 
 export interface GenericAuthorization {
   /** Msg, identified by it's type URL, to grant unrestricted permissions to execute */
@@ -64,7 +65,7 @@ function createBaseMsgGrant(): MsgGrant {
 }
 
 export const MsgGrant = {
-  encode(message: MsgGrant, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: MsgGrant, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.granter !== "") {
       writer.uint32(10).string(message.granter);
     }
@@ -112,7 +113,7 @@ function createBaseMsgExec(): MsgExec {
 }
 
 export const MsgExec = {
-  encode(message: MsgExec, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: MsgExec, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.grantee !== "") {
       writer.uint32(10).string(message.grantee);
     }
@@ -194,7 +195,7 @@ function createBaseGrant(): Grant {
 }
 
 export const Grant = {
-  encode(message: Grant, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: Grant, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.authorization !== undefined) {
       Any.encode(message.authorization, writer.uint32(10).fork()).ldelim();
     }
@@ -324,7 +325,7 @@ function createBaseStakeAuthorization(): StakeAuthorization {
 }
 
 export const StakeAuthorization = {
-  encode(message: StakeAuthorization, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: StakeAuthorization, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.maxTokens !== undefined) {
       Coin.encode(message.maxTokens, writer.uint32(10).fork()).ldelim();
     }
@@ -340,7 +341,6 @@ export const StakeAuthorization = {
     return writer;
   },
 
-  
   fromPartial(object : DeepPartial<StakeAuthorization>): StakeAuthorization {
     const message = createBaseStakeAuthorization();
     message.maxTokens =
@@ -365,7 +365,7 @@ function createBaseStakeAuthorization_Validators(): StakeAuthorization_Validator
 }
 
 export const StakeAuthorization_Validators = {
-  encode(message: StakeAuthorization_Validators, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: StakeAuthorization_Validators, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     for (const v of message.address) {
       writer.uint32(10).string(v!);
     }
@@ -389,7 +389,7 @@ function createBaseSendAuthorization(): SendAuthorization {
 }
 
 export const SendAuthorization = {
-  encode(message: SendAuthorization, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: SendAuthorization, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     for (const v of message.spendLimit) {
       Coin.encode(v!, writer.uint32(10).fork()).ldelim();
     }

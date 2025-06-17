@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
-describe('[04. Bank Tx Test]', () => {
+describe.only('[04. Bank Tx Test]', () => {
 
 	let firma: FirmaSDK;
 
@@ -10,14 +10,14 @@ describe('[04. Bank Tx Test]', () => {
 		firma = new FirmaSDK(TestChainConfig);
 	})
 
-	it('bank send OK', async () => {
+	it.only('bank send OK', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const targetWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		// const targetWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 		const amount = 1;
-		const memo = "test memo";
+		const memo = "TEST";
 
-		var result = await firma.Bank.send(wallet, await targetWallet.getAddress(), amount, { memo: memo });
+		var result = await firma.Bank.send(wallet, "firma1nw9x2t53c37krjfsmsuj3ty6czkctdjq924rpn", amount, { memo: memo });
 
 		expect(result.code).to.equal(0);
 	});

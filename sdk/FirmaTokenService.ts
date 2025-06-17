@@ -3,7 +3,7 @@ import { FirmaConfig } from "./FirmaConfig";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
+import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 
 export class TokenService {
 
@@ -152,7 +152,7 @@ export class TokenService {
     //./firmachaind tx token mint ukai 1000000 firma1jmg3kwy5hntx66nl93dyk2d92943394qsf6gcf  --from alice --fees 2000ufct --chain-id imperium-2
 
     async createToken(wallet: FirmaWalletService, tokenName: string, tokenSymbol: string, tokenURI: string, totalSupply: number, decimal: number, isMintable: boolean, isBurnable: boolean, txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
 
         try {
 
@@ -169,7 +169,7 @@ export class TokenService {
     }
 
     async mint(wallet: FirmaWalletService, tokenID: string, amount: number, decimal: number, toAddress: string, txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
 
         try {
             const newAmount = FirmaUtil.getUTokenFromToken(amount, decimal);
@@ -185,7 +185,7 @@ export class TokenService {
     }
 
     async burn(wallet: FirmaWalletService, tokenID: string, amount: number, decimal: number, txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
 
         try {
             const newAmount = FirmaUtil.getUTokenFromToken(amount, decimal);
@@ -201,7 +201,7 @@ export class TokenService {
     }
 
     async updateTokenURI(wallet: FirmaWalletService, tokenID: string, tokenURI: string, txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
 
         try {
             const txRaw = await this.getSignedTxUpdateTokenURI(wallet, tokenID, tokenURI, txMisc);

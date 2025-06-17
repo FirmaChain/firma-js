@@ -3,8 +3,8 @@ import { FirmaSDK } from "../sdk/FirmaSDK"
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
-import { ArbitraryVerifyData } from '../sdk/firmachain/common/signingaminostargateclient';
 import { BankTxClient } from '../sdk/firmachain/bank';
+import { ArbitraryVerifyData } from '../sdk/firmachain/common/signingstargateclient';
 
 describe('[27. arbitary sign]', () => {
 
@@ -70,9 +70,20 @@ describe('[27. arbitary sign]', () => {
 		let signDoc = FirmaUtil.parseSignDocValues(stringSignDoc);
 
 		const commonTxClient = FirmaUtil.getCommonTxClient(aliceWallet);
-		let extTxRaw = await commonTxClient.signDirectForSignDoc(aliceAddress, signDoc);
-
-		const valid = await FirmaUtil.verifyDirectSignature(aliceAddress, extTxRaw.signature, signDoc);
+		// let extTxRaw = await commonTxClient.signDirectForSignDoc(aliceAddress, signDoc);
+		let txRaw = await commonTxClient.sign(
+			[msgSend],
+			{
+				fee: {
+					amount: [],
+					gas: '',
+					granter: ''
+				},
+				memo: ""
+			});
+		
+		const signatureBase64 = FirmaUtil.arrayBufferToBase64(txRaw.signatures[0]);
+		const valid = await FirmaUtil.verifyDirectSignature(aliceAddress, signatureBase64, signDoc);
 		expect(valid).to.be.equal(true);
 	});
 
@@ -102,12 +113,23 @@ describe('[27. arbitary sign]', () => {
 		let newSignDoc = FirmaUtil.parseSignDocValues(stringSignDoc);
 
 		const commonTxClient = FirmaUtil.getCommonTxClient(aliceWallet);
-		let extTxRaw = await commonTxClient.signDirectForSignDoc(aliceAddress, newSignDoc);
+		// let extTxRaw = await commonTxClient.signDirectForSignDoc(aliceAddress, newSignDoc);
 
-		const valid = await FirmaUtil.verifyDirectSignature(aliceAddress, extTxRaw.signature, newSignDoc);
+		let txRaw = await commonTxClient.sign(
+			[msgSend],
+			{
+				fee: {
+					amount: [],
+					gas: '',
+					granter: ''
+				},
+				memo: ""
+			});
+		const signatureBase64 = FirmaUtil.arrayBufferToBase64(txRaw.signatures[0]);
+		const valid = await FirmaUtil.verifyDirectSignature(aliceAddress, signatureBase64, newSignDoc);
 
 		if (valid) {
-			let result = await commonTxClient.broadcast(extTxRaw.txRaw);
+			let result = await commonTxClient.broadcast(txRaw);
 			//console.log(result);
 
 			expect(result.code).to.be.equal(0);

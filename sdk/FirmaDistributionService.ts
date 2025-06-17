@@ -10,7 +10,7 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
-import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
+import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { DelegationInfo } from "./firmachain/staking";
 
@@ -168,7 +168,7 @@ export class FirmaDistributionService {
     }
 
     async setWithdrawAddress(wallet: FirmaWalletService, withdrawAddress: string, txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxSetWithdrawAddress(wallet, withdrawAddress, txMisc);
 
@@ -182,7 +182,7 @@ export class FirmaDistributionService {
     }
 
     async fundCommunityPool(wallet: FirmaWalletService, amount: number, txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxFundCommunityPool(wallet, amount, txMisc);
 
@@ -199,7 +199,7 @@ export class FirmaDistributionService {
 
     async withdrawValidatorCommission(wallet: FirmaWalletService,
         validatorAddres: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxWithdrawValidatorCommission(wallet, validatorAddres, txMisc);
 
@@ -242,7 +242,7 @@ export class FirmaDistributionService {
 
 
     async withdrawAllRewardsFromAllValidator(wallet: FirmaWalletService, delegationList: DelegationInfo[], txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
         try {
 
             const txRaw = await this.getSignedTxwithdrawAllRewardsFromAllValidator(wallet, delegationList, txMisc);
@@ -257,7 +257,7 @@ export class FirmaDistributionService {
     }
 
     async withdrawAllRewards(wallet: FirmaWalletService, validatorAddress: string, txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxWithdrawAllRewards(wallet, validatorAddress, txMisc);
 

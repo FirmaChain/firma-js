@@ -2,7 +2,7 @@ import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
+import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 import { Any } from "./firmachain/google/protobuf/any";
 import { AuthzQueryClient, AuthzTxClient, GrantGenericData, GrantSendData, GrantStakingData, Pagination, TxMisc } from "./firmachain/authz";
 import { AuthorizationType, SendAuthorization, GenericAuthorization, StakeAuthorization } from "./firmachain/authz/AuthzTxTypes";
@@ -187,7 +187,7 @@ export class FirmaAuthzService {
         granteeAddress: string,
         expirationDate: Date,
         maxTokens: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxGrantSendAutorization(wallet, granteeAddress, FirmaUtil.getUFCTStringFromFCT(maxTokens), expirationDate, txMisc);
 
@@ -223,7 +223,7 @@ export class FirmaAuthzService {
         type: AuthorizationType,
         expirationDate: Date,
         maxTokens: number = 0,
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxGrantStakeAutorization(wallet, granteeAddress, validatorAddressList, type, FirmaUtil.getUFCTStringFromFCT(maxTokens), expirationDate, txMisc);
 
@@ -255,7 +255,7 @@ export class FirmaAuthzService {
         granteeAddress: string,
         msg: string,
         expirationDate: Date,
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxGrantGenericAuthorization(wallet, granteeAddress, msg, expirationDate, txMisc);
 
@@ -285,7 +285,7 @@ export class FirmaAuthzService {
     async revokeGenericAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
         msgType: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxRevokeGenericAuthorization(wallet, granteeAddress, msgType, txMisc);
 
@@ -315,7 +315,7 @@ export class FirmaAuthzService {
 
     async revokeSendAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
 
             const msgType = "/cosmos.bank.v1beta1.MsgSend";
@@ -361,7 +361,7 @@ export class FirmaAuthzService {
     async revokeStakeAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
         type: AuthorizationType,
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
 
             let msgType = "";
@@ -407,7 +407,7 @@ export class FirmaAuthzService {
 
     async executeAllowance(wallet: FirmaWalletService,
         msgs: Any[],
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxExecuteAllowance(wallet, msgs, txMisc);
 

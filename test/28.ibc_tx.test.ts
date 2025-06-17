@@ -40,15 +40,15 @@ describe('[28. IBC Tx Test]', () => {
 		// Set target revision height : get revision height and add 1000 block (cli tx policy)
 		// issues: because of ibc version difference, can't get revision info directly.
 		const height: Height = Height.fromPartial({
-			revisionHeight: Long.fromString(revison_height, true).add(Long.fromNumber(1000)),
-			revisionNumber: Long.fromString(revison_number, true),
+			revisionHeight: BigInt(revison_height) + BigInt(1000),
+			revisionNumber: BigInt(revison_number),
 		});
 
 		// ways : 2
 		// for nano second(000000) and add 10min(600000) for timeout
 		var timeStamp = (Date.now() + 600000).toString() + "000000";
 
-		const timeoutTimeStamp = Long.fromString(timeStamp, true);
+		const timeoutTimeStamp = BigInt(timeStamp);
 		//console.log(timeStamp);
 
 		const gas = await firma.Ibc.getGasEstimationTransfer(aliceWallet, sourcePort, sourceChannel, denom, amount, receiver, height, timeoutTimeStamp);

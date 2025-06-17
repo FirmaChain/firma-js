@@ -12,7 +12,7 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { BasicAllowance, PeriodicAllowance } from "./firmachain/feegrant/FeeGrantTxTypes";
 import { FeeAllowanceType, FeeAllowanceType1, FeeGrantQueryClient } from "./firmachain/feegrant/FeeGrantQueryClient";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
-import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
+import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 import { Any } from "./firmachain/google/protobuf/any";
 
 export class FirmaFeeGrantService {
@@ -55,7 +55,7 @@ export class FirmaFeeGrantService {
     }
 
     async revokeAllowance(wallet: FirmaWalletService, granteeAddress: string, txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
 
         try {
             const txRaw = await this.getSignedTxRevokeAllowance(wallet, granteeAddress, txMisc);
@@ -199,7 +199,7 @@ export class FirmaFeeGrantService {
     async grantPeriodicAllowance(wallet: FirmaWalletService,
         granteeAddress: string,
         feegrantOption: PeriodicFeeGrantOption,
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
 
         try {
             const txRaw = await this.getSignedTxGrantPeriodicAllowance(wallet, granteeAddress, feegrantOption, txMisc);
@@ -217,7 +217,7 @@ export class FirmaFeeGrantService {
     async grantBasicAllowance(wallet: FirmaWalletService,
         granteeAddress: string,
         feegrantOption: BasicFeeGrantOption = DefaultBasicFeeGrantOption,
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxGrantBasicAllowance(wallet, granteeAddress, feegrantOption, txMisc);
 

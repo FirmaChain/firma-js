@@ -89,7 +89,7 @@ export interface ParamChangeOption {
 export interface SoftwareUpgradePlan {
     name: string;
     time?: Date;
-    height?: Long;
+    height?: bigint;
     info?: string,
     upgradedClientState?: Any;
 }

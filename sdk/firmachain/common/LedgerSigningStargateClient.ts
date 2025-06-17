@@ -1,16 +1,15 @@
-import { Bech32 } from "@cosmjs/encoding";
-
-import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
+import { fromBech32 } from "@cosmjs/encoding";
+import { CometClient, connectComet, Tendermint34Client } from "@cosmjs/tendermint-rpc";
+import { StargateClient, StargateClientOptions } from "./stargateclient";
 import { Account, accountFromAny } from "./accounts";
-
-import { StargateClient } from "./stargateclient";
 import Axios from "axios";
 import { Any } from "../google/protobuf/any";
 
+
 export interface SignerData {
-    readonly account_number: string;
-    readonly sequence: string;
-    readonly chain_id: string;
+  readonly account_number: string;
+  readonly sequence: string;
+  readonly chain_id: string;
 }
 
 export interface SequenceResponse {
@@ -19,79 +18,77 @@ export interface SequenceResponse {
 }
 
 export class LedgerSigningStargateClient extends StargateClient {
-
     private chainId: string | undefined;
     private static _endpoint = "";
 
     static async connectWithSigner(endpoint: string): Promise<LedgerSigningStargateClient> {
-
-        this._endpoint = endpoint;
-        const tmClient = await Tendermint34Client.connect(endpoint);
-        return new LedgerSigningStargateClient(tmClient);
+        LedgerSigningStargateClient._endpoint = endpoint;
+        const tempCometClient = await connectComet(endpoint);
+        return new LedgerSigningStargateClient(tempCometClient, {});
     }
 
-    protected constructor(tmClient: Tendermint34Client) {
-        super(tmClient);
+  protected constructor(cometClient: CometClient, options: StargateClientOptions) {
+    super(cometClient, options);
+  }
+  
+  async getSignerData(address: string): Promise<SignerData> {
+    const chainID = await this.getChainId();
+    const account = await this.getAccount(address);
+    
+    if (!account) throw new Error("Account not found");
+
+    return {
+      account_number: account.accountNumber.toString(),
+      sequence: account.sequence.toString(),
+      chain_id: chainID,
+    };
+  }
+
+  async getChainId(): Promise<string> {
+    if (!this.chainId) {
+      const status = await this.forceGetCometClient().status();
+      const chainId = status.nodeInfo.network;
+      
+      if (!chainId) throw new Error("Chain ID must not be empty");
+      this.chainId = chainId;
     }
+    return this.chainId;
+  }
 
-    async getSignerData(address: string): Promise<SignerData> {
+  private toAccAddress(address: string): Uint8Array {
+    return fromBech32(address).data;
+  }
 
-        let chainID = await this.getChainId();
-        let account = await this.getAccount(address);
+  async getAccount(address: string): Promise<Account | null> {
+    try {
+      const accAddress = this.toAccAddress(address);
+      const hexAccAddress = `0x01${Buffer.from(accAddress).toString("hex")}`;
 
-        if (account == null)
-            throw new Error("account is null");
+      const axios = Axios.create({
+        baseURL: LedgerSigningStargateClient._endpoint,
+        headers: { Accept: "application/json" },
+        timeout: 15000,
+      });
 
-        return { account_number: account.accountNumber.toString(), sequence: account.sequence.toString(), chain_id: chainID };
+      const path = "/abci_query";
+      const params = {
+        path: "/store/auth/key",
+        data: hexAccAddress,
+      };
+
+      const response = await axios.get(path, { params });
+
+      const base64Value = response.data.result.response.value;
+      if (!base64Value) return null;
+
+      const decoded = Buffer.from(base64Value, "base64");
+      const account = Any.decode(decoded);
+      const finalAccount = accountFromAny(account);
+
+      return finalAccount;
+    } catch (error) {
+      console.error("getAccount error:", error);
+      return null;
     }
-
-    async getChainId(): Promise<string> {
-        if (!this.chainId) {
-            const response = await this.forceGetTmClient().status();
-            const chainId = response.nodeInfo.network;
-            if (!chainId) throw new Error("Chain ID must not be empty");
-            this.chainId = chainId;
-        }
-
-        return this.chainId!;
-    }
-
-    /**
-   * Takes a bech32 encoded address and returns the data part. The prefix is ignored and discarded.
-   * This is called AccAddress in Cosmos SDK, which is basically an alias for raw binary data.
-   * The result is typically 20 bytes long but not restricted to that.
-   */
-    private toAccAddress(address: string): Uint8Array {
-        return Bech32.decode(address).data;
-    }
-
-    async getAccount(address: string): Promise<Account | undefined> {
-        // http://192.168.126.130:26657/abci_query?path=%22/store/acc/key%22&data=0x017763cada6ef547429c1c6088d663b55021bb6a43
-
-        try {
-
-            const accAddress = this.toAccAddress(address);
-            const hexAccAddress = `0x01${Buffer.from(accAddress).toString("hex")}`;
-
-            const axios = Axios.create({
-                baseURL: LedgerSigningStargateClient._endpoint,
-                headers: {
-                    Accept: "application/json",
-                },
-                timeout: 15000
-            });
-
-            const path = "/abci_query?path=\"/store/acc/key\"";
-            const result = await axios.get(path, { params: { data: hexAccAddress } });
-
-            const finalData = result.data.result.response.value;
-            const account = Any.decode(Buffer.from(finalData, "base64"));
-
-            const finalAccount = accountFromAny(account);
-
-            return finalAccount;
-        } catch (error) {
-            return undefined;
-        }
-    }
+  }
 }

@@ -1,4 +1,5 @@
-import { StdSignature, StdSignDoc } from "@cosmjs/amino";
+import { StdSignature } from "./signature";
+import { StdSignDoc } from "./signdoc";
 
 export type Algo = "secp256k1" | "ed25519" | "sr25519";
 

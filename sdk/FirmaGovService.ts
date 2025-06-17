@@ -15,14 +15,12 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
-import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
+import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 import { Any } from "./firmachain/google/protobuf/any";
 import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { CommunityPoolSpendProposal } from "cosmjs-types/cosmos/distribution/v1beta1/distribution";
 import { ParameterChangeProposal } from "cosmjs-types/cosmos/params/v1beta1/params";
 import { CancelSoftwareUpgradeProposal, SoftwareUpgradeProposal } from "cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
-
-import Long from "long";
 
 export class FirmaGovService {
 
@@ -34,9 +32,9 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const longId = Long.fromInt(proposalId);
+            const bigIntId = BigInt(proposalId);
 
-            const txRaw = await this.getSignedTxVote(wallet, longId, option, txMisc);
+            const txRaw = await this.getSignedTxVote(wallet, bigIntId, option, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -51,9 +49,9 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const longId = Long.fromInt(proposalId);
+            const bigIntId = BigInt(proposalId);
 
-            const txRaw = await this.getSignedTxDeposit(wallet, longId, amount, txMisc);
+            const txRaw = await this.getSignedTxDeposit(wallet, bigIntId, amount, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -88,7 +86,7 @@ export class FirmaGovService {
 
         try {
 
-            const upgradeHeight = Long.fromInt(height);
+            const upgradeHeight = BigInt(height);
 
             const plan = {
                 name: upgradeName,
@@ -209,7 +207,7 @@ export class FirmaGovService {
 
             const content = Any.fromPartial({
                 typeUrl: "/cosmos.upgrade.v1beta1.CancelSoftwareUpgradeProposal",
-                value: Uint8Array.from(SoftwareUpgradeProposal.encode(proposal).finish()),
+                value: Uint8Array.from(CancelSoftwareUpgradeProposal.encode(proposal).finish()),
             });
 
             const proposer = await wallet.getAddress();
@@ -355,7 +353,7 @@ export class FirmaGovService {
         title: string,
         description: string,
         initialDeposit: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxSubmitCancelSoftwareUpgradeProposal(wallet, title, description, initialDeposit, txMisc);
 
@@ -374,10 +372,10 @@ export class FirmaGovService {
         initialDeposit: number,
         upgradeName: string,
         height: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
 
-            const upgradeHeight = Long.fromInt(height);
+            const upgradeHeight = BigInt(height);
 
             const plan = {
                 name: upgradeName,
@@ -404,7 +402,7 @@ export class FirmaGovService {
         initialDeposit: number,
         upgradeName: string,
         upgradeTime: Date,
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
             const plan = {
                 name: upgradeName,
@@ -430,7 +428,7 @@ export class FirmaGovService {
         description: string,
         initialDeposit: number,
         paramList: ParamChangeOption[],
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
 
             const txRaw = await this.getSignedTxSubmitParameterChangeProposal(wallet, title, description, initialDeposit, paramList, txMisc);
@@ -450,7 +448,7 @@ export class FirmaGovService {
         initialDeposit: number,
         amount: number,
         recipient: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
 
             const txRaw = await this.getSignedTxSubmitCommunityPoolSpendProposal(wallet,
@@ -474,7 +472,7 @@ export class FirmaGovService {
         title: string,
         description: string,
         initialDeposit: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxSubmitTextProposal(wallet, title, description, initialDeposit, txMisc);
 
@@ -488,7 +486,7 @@ export class FirmaGovService {
     }
 
     private async getSignedTxVote(wallet: FirmaWalletService,
-        proposalId: Long,
+        proposalId: bigint,
         option: VotingOption,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
@@ -506,11 +504,11 @@ export class FirmaGovService {
     }
 
     async vote(wallet: FirmaWalletService, proposalId: number, option: VotingOption, txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
         try {
 
-            const longId = Long.fromInt(proposalId);
-            const txRaw = await this.getSignedTxVote(wallet, longId, option, txMisc);
+            const bigIntId = BigInt(proposalId);
+            const txRaw = await this.getSignedTxVote(wallet, bigIntId, option, txMisc);
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
@@ -522,7 +520,7 @@ export class FirmaGovService {
     }
 
     private async getSignedTxDeposit(wallet: FirmaWalletService,
-        proposalId: Long,
+        proposalId: bigint,
         amount: number,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
@@ -541,10 +539,10 @@ export class FirmaGovService {
     }
 
     async deposit(wallet: FirmaWalletService, proposalId: number, amount: number, txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
         try {
-            const longId = Long.fromInt(proposalId);
-            const txRaw = await this.getSignedTxDeposit(wallet, longId, amount, txMisc);
+            const bigIntId = BigInt(proposalId);
+            const txRaw = await this.getSignedTxDeposit(wallet, bigIntId, amount, txMisc);
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);

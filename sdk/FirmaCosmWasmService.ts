@@ -6,11 +6,10 @@ import { toUtf8 } from "@cosmjs/encoding";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
-import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
+import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 
 import pako from "pako";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
-import Long from "long";
 import { AccessConfig } from "cosmjs-types/cosmwasm/wasm/v1/types";
 import { EncodeObject } from "@cosmjs/proto-signing";
 
@@ -36,7 +35,7 @@ export class FirmaCosmWasmService {
     }
 
     async storeCode(wallet: FirmaWalletService, wasmCode: Uint8Array, accessConfig: AccessConfig, txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxStoreCode(wallet, wasmCode, accessConfig, txMisc);
 
@@ -61,7 +60,7 @@ export class FirmaCosmWasmService {
     }
 
     async updateAdmin(wallet: FirmaWalletService, contractAddress: string, adminAddress: string, txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxUpdateAdmin(wallet, contractAddress, adminAddress, txMisc);
 
@@ -86,7 +85,7 @@ export class FirmaCosmWasmService {
     }
 
     async clearAdmin(wallet: FirmaWalletService, contractAddress: string, txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxClearAdmin(wallet, contractAddress, txMisc);
 
@@ -111,7 +110,7 @@ export class FirmaCosmWasmService {
     }
 
     async migrateContract(wallet: FirmaWalletService, contractAddress: string, codeId: string, msg: string, txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxMigrateContract(wallet, contractAddress, codeId, msg, txMisc);
 
@@ -136,7 +135,7 @@ export class FirmaCosmWasmService {
     }
 
     async executeContract(wallet: FirmaWalletService, contractAddress: string, msg: string, funds: Coin[] = [], txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxExecuteContract(wallet, contractAddress, msg, funds, txMisc);
 
@@ -150,7 +149,7 @@ export class FirmaCosmWasmService {
     }
 
     async signAndBroadcast(wallet: FirmaWalletService, msgList: EncodeObject[], txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
         try {
             const txClient = new CosmWasmTxClient(wallet, this.config.rpcAddress);
             return await txClient.signAndBroadcast(msgList,
@@ -189,7 +188,7 @@ export class FirmaCosmWasmService {
     }
 
     async instantiateContract(wallet: FirmaWalletService, admin: string, codeId: string, label: string, msg: string, funds: Coin[], txMisc: TxMisc = DefaultTxMisc):
-        Promise<BroadcastTxResponse> {
+        Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxInstantiateContract(wallet, admin, codeId, label, msg, funds, txMisc);
 
@@ -207,7 +206,7 @@ export class FirmaCosmWasmService {
             const address = await wallet.getAddress();
             const utfMsg = toUtf8(msg);
 
-            const message = CosmWasmTxClient.msgInstantiateContract({ sender: address, admin: admin, codeId: Long.fromString(codeId), label: label, msg: utfMsg, funds: funds });
+            const message = CosmWasmTxClient.msgInstantiateContract({ sender: address, admin: admin, codeId: BigInt(codeId), label: label, msg: utfMsg, funds: funds });
 
             const txClient = new CosmWasmTxClient(wallet, this.config.rpcAddress);
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
@@ -252,7 +251,7 @@ export class FirmaCosmWasmService {
             const address = await wallet.getAddress();
             const utfMsg = toUtf8(msg);
 
-            const message = CosmWasmTxClient.msgMigrateContract({ sender: address, contract: contractAddress, codeId: Long.fromString(codeId), msg: utfMsg });
+            const message = CosmWasmTxClient.msgMigrateContract({ sender: address, contract: contractAddress, codeId: BigInt(codeId), msg: utfMsg });
 
             const txClient = new CosmWasmTxClient(wallet, this.config.rpcAddress);
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));

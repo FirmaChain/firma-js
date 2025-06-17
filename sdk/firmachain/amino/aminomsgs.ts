@@ -383,6 +383,8 @@ export interface AminoMsgTransfer extends AminoMsg {
      * 0 values must be omitted (https://github.com/cosmos/cosmos-sdk/blob/v0.42.7/x/ibc/applications/transfer/types/tx.pb.go#L52).
      */
     readonly timeout_timestamp?: string;
+
+    readonly memo?: string;
   };
 }
 

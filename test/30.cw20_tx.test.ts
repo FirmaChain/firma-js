@@ -39,7 +39,11 @@ describe('[30. cw20 tx Test]', () => {
 		const gas = 3000000;
 		const fee = FirmaUtil.getUFCTFromFCT(0.3);
 
-		const everyBodyAccessConfig: AccessConfig = { permission: AccessType.ACCESS_TYPE_EVERYBODY, address: "" };
+		const everyBodyAccessConfig: AccessConfig = {
+			permission: AccessType.ACCESS_TYPE_EVERYBODY,
+			address: "",
+			addresses: []
+		};
 		//const onlyAddressAccessConfig: AccessConfig = { permission: AccessType.ACCESS_TYPE_ONLY_ADDRESS, address: aliceAddress };
 
 		var result = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: gas, fee: fee });

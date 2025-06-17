@@ -6,7 +6,7 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from '
 
 // If test it, the properties of the chain change, so skip it.
 
-describe.skip('[16. Gov Tx Test]', () => {
+describe('[16. Gov Tx Test]', () => {
 
 	let firma: FirmaSDK;
 
@@ -70,18 +70,49 @@ describe.skip('[16. Gov Tx Test]', () => {
 		expect(result.code).to.equal(0);
 	});
 
-	it('SubmitSoftwareUpgradeProposalByHeight Test', async () => {
+	it.skip('SubmitSoftwareUpgradeProposalByHeight Test', async () => {
 
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
-		const initialDepositFCT = 10000;
-		const title = "Software Upgrade proposal1";
-		const description = "This is a software upgrade proposal";
+		const initialDepositFCT = 5000;
+		const title = "FIRMACHAIN v0.5.0 Upgrade";
+		const description = `## OVERVIEW
+This is a proposal on FIRMACHAIN Software Upgrade(v0.5.0-alpha1).
 
-		const upgradeName = "v0.2.7";
-		const upgradeHeight = 20000000;
+need form (comment)
 
-		var result = await firma.Gov.submitSoftwareUpgradeProposalByHeight(aliceWallet, title, description, initialDepositFCT, upgradeName, upgradeHeight);
+Once this proposal passes, the FIRMACHAIN network will be upgraded at block height [xxx,xxx].
+
+## Upgrade features
+Following are the details of this upgrade. 
+  - Cosmos SDK : v0.45.9 -> v0.50.12
+  - CometBFT : v0.34.21 -> v0.38.17
+  - Chain Binary : v0.4.0 -> v0.5.0
+  - IBC-go(IBC) : v4.4.0 -> v8.6.1
+  - Wasmd : v0.29.2 -> v0.54.0
+  - New Governance parameters
+	  - MinInitialDepositRatio : 0.5
+	  - ProposalCancelRatio : 0.5
+
+## Timeline
+need form (comment)
+
+If we are faced with any problems during the upgrade, a hasty and swift communication via Discord is necessary to solve the issue.
+Any FIRMACHAIN Validator who hasn't joined our Discord channel must contact us at contact@firmachain.org before this Software Upgrade.
+
+## Actions required by node operators
+Once this proposal passes and when the block height reaches xxxxx, any block creation activity on the FIRMACHAIN (Colosseum-1) network will be halted. 
+All Validators must upgrade using the manual binary switch or the Cosmovisor in order to conduct the FIRMACHAIN Software Upgrade.
+
+For a more detailed upgrade guide, please visit https://github.com/FirmaChain/mainnet/blob/main/docs/upgrade-notes-v0.5.0.md`;
+
+		const upgradeName = "v0.5.0";
+		const upgradeHeight = 558800;
+
+		const gas = await firma.Gov.getGasEstimationSubmitSoftwareUpgradeProposalByHeight(aliceWallet, title, description, initialDepositFCT, upgradeName, upgradeHeight);
+		const fee = Math.ceil(gas * 0.1);
+
+		var result = await firma.Gov.submitSoftwareUpgradeProposalByHeight(aliceWallet, title, description, initialDepositFCT, upgradeName, upgradeHeight, { gas, fee });
 
 		console.log(result);
 		expect(result.code).to.equal(0);
@@ -125,7 +156,7 @@ describe.skip('[16. Gov Tx Test]', () => {
 	});*/
 
 	// TODO: get recent gov proposal list and then set proposalId for below case
-	const tempProposalId = 1;
+	const tempProposalId = 13;
 
 	// more deposit after initial deposit case
 	it('Deposit OK', async () => {
@@ -147,6 +178,18 @@ describe.skip('[16. Gov Tx Test]', () => {
 		var result = await firma.Gov.vote(wallet, proposalId, VotingOption.VOTE_OPTION_YES);
 		//console.log(result);
 		expect(result.code).to.equal(0);
+
+		const validator1 = await firma.Wallet.fromMnemonic("angry water bunker where iron absurd cruise deliver clutch unique creek pyramid arch express flush pill lens concert absent enemy boring mom nuclear rose");
+		const validator2 = await firma.Wallet.fromMnemonic("stadium lonely midnight okay meat rib awesome wealth phone leisure turn prosper notable label fruit define little also father silver half drill bargain antique");
+		const validator3 = await firma.Wallet.fromMnemonic("uncle banana theme relax oak prosper volcano glad industry bicycle tower thrive jelly curious luggage frame that defy reason jewel figure begin nice moon");
+		const validator4 = await firma.Wallet.fromMnemonic("rebel engine situate catalog blood strong satisfy aerobic cupboard again vivid twice flag work taxi heart fruit island ribbon hungry cheap ordinary horse foam");
+		const validator5 = await firma.Wallet.fromMnemonic("ladder damage art company shield glance cushion float need layer rare toast intact grief wet point write season correct access mix bomb accident estate");
+
+		await firma.Gov.vote(validator1, tempProposalId, VotingOption.VOTE_OPTION_YES);
+		await firma.Gov.vote(validator2, tempProposalId, VotingOption.VOTE_OPTION_YES);
+		await firma.Gov.vote(validator3, tempProposalId, VotingOption.VOTE_OPTION_YES);
+		await firma.Gov.vote(validator4, tempProposalId, VotingOption.VOTE_OPTION_YES);
+		await firma.Gov.vote(validator5, tempProposalId, VotingOption.VOTE_OPTION_YES);
 	});
 
 	it('Vote - bob NO', async () => {
