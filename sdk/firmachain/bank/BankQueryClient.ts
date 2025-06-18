@@ -19,7 +19,7 @@ export class BankQueryClient {
     }
 
     async querySupplyOf(denom: string): Promise<string> {
-        const path = `/cosmos/bank/v1beta1/supply/${denom}`;
+        const path = `/cosmos/bank/v1beta1/supply/by_denom?denom=${denom}`;
 
         const result = await this.axios.get(path);
         return result.data.amount.amount;

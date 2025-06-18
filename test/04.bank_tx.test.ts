@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
-describe.only('[04. Bank Tx Test]', () => {
+describe('[04. Bank Tx Test]', () => {
 
 	let firma: FirmaSDK;
 
@@ -10,7 +10,7 @@ describe.only('[04. Bank Tx Test]', () => {
 		firma = new FirmaSDK(TestChainConfig);
 	})
 
-	it.only('bank send OK', async () => {
+	it('bank send OK', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		// const targetWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
