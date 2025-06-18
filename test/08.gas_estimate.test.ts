@@ -1,9 +1,9 @@
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { FirmaUtil } from '../sdk/FirmaUtil';
-import { aliceMnemonic, bobMnemonic, validatorMnemonic, TestChainConfig } from './config_test';
 import { VotingOption } from '../sdk/firmachain/common';
+import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from "./config_test";
 
-describe.skip('[08. Gas Estimation Test]', () => {
+describe('[08. Gas Estimation Test]', () => {
 
 	let firma: FirmaSDK;
 

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { FirmaConfig } from '../sdk/FirmaConfig';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { StakingValidatorStatus } from '../sdk/FirmaStakingService';
-import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
+import { aliceMnemonic, TestChainConfig } from './config_test';
 
 describe('[13. Staking Query Test]', () => {
 

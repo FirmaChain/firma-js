@@ -11,7 +11,7 @@ describe('[07. Feegrant Query Test]', () => {
 		firma = new FirmaSDK(TestChainConfig);
 	})
 
-	it.skip('feegrant getGranteeAllowance', async () => {
+	it('feegrant getGranteeAllowance', async () => {
 
 
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);

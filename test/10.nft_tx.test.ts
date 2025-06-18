@@ -3,11 +3,28 @@ import { NftTxClient } from '../sdk/firmachain/nft';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
+import { DeliverTxResponse } from '../sdk/firmachain/common/stargateclient';
 
 describe('[10. NFT Tx Test]', () => {
 
 	let firma: FirmaSDK;
+	
+	const extractAllNftIds = (events: readonly any[]) => {
+		const nftIds = [];
 
+		for (const event of events) {
+			if (event.type === 'message') {
+				for (const attr of event.attributes) {
+					if (attr.key === 'nftID') {
+						nftIds.push(attr.value);
+					}
+				}
+			}
+		}
+
+		return nftIds;
+	}
+	
 	beforeEach(function() {
 		firma = new FirmaSDK(TestChainConfig);
 	})
@@ -18,17 +35,15 @@ describe('[10. NFT Tx Test]', () => {
 		var result = await firma.Nft.mint(wallet, "https://naver.com");
 
 		// get nftId below code
-		var jsonData = JSON.parse(result.rawLog!);
-		var nftId = jsonData[0]["events"][0]["attributes"][2]["value"];
-
+		const nftId = extractAllNftIds(result.events);
+		// console.log(nftId);
+		
 		expect(result.code).to.be.equal(0);
 	});
 
 	it('NFT Mint - BULK', async () => {
 
 		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-
-		const address = await wallet.getAddress();
 
 		const tx1 = await firma.Nft.getUnsignedTxMint(wallet, "https://naver1.com" );
 		const tx2 = await firma.Nft.getUnsignedTxMint(wallet, "https://naver2.com" );
@@ -44,10 +59,8 @@ describe('[10. NFT Tx Test]', () => {
 		var result = await firma.Nft.signAndBroadcast(wallet, txList, {gas: gas, fee: fee});
 
 		// get nftId below code
-		var jsonData = JSON.parse(result.rawLog!);
-		var nftId = jsonData[0]["events"][0]["attributes"][2]["value"];
-
-		//console.log(nftId);
+		const nftIds = extractAllNftIds(result.events);
+		console.log(nftIds);
 
 		expect(result.code).to.be.equal(0);
 	});
@@ -66,16 +79,12 @@ describe('[10. NFT Tx Test]', () => {
 
 		let gas = await firma.Nft.getGasEstimationFromEncodeObject(wallet, txList);
 		const fee = Math.ceil(gas * 0.1);
-		//console.log("gas :" + gas);
-		//console.log("fee :" + fee);
 
 		var result = await firma.Nft.signAndBroadcast(wallet, txList, {gas: gas, fee: fee});
 
 		// get nftId below code
-		var jsonData = JSON.parse(result.rawLog!);
-		var nftId = jsonData[0]["events"][0]["attributes"][2]["value"];
-
-		//console.log(nftId);
+		const nftIds = extractAllNftIds(result.events);
+		console.log(nftIds);
 
 		expect(result.code).to.be.equal(0);
 	});
@@ -87,10 +96,9 @@ describe('[10. NFT Tx Test]', () => {
 
 		var result = await firma.Nft.mint(wallet, "https://naver.com");
 
-		var jsonData = JSON.parse(result.rawLog!);
-		var nftId = jsonData[0]["events"][0]["attributes"][2]["value"];
+		const nftIds = extractAllNftIds(result.events);
 
-		var result = await firma.Nft.transfer(wallet, await targetWallet.getAddress(), nftId);
+		var result = await firma.Nft.transfer(wallet, await targetWallet.getAddress(), nftIds[0]);
 		expect(result.code).to.be.equal(0);
 
 	});
@@ -100,10 +108,9 @@ describe('[10. NFT Tx Test]', () => {
 		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		var result = await firma.Nft.mint(wallet, "https://naver.com");
 
-		var jsonData = JSON.parse(result.rawLog!);
-		var nftId = jsonData[0]["events"][0]["attributes"][2]["value"];
+		const nftIds = extractAllNftIds(result.events);
 
-		var result = await firma.Nft.burn(wallet, nftId);
+		var result = await firma.Nft.burn(wallet, nftIds[0]);
 		expect(result.code).to.be.equal(0);
 	});
 });

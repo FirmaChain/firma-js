@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { FirmaUtil } from '../sdk/FirmaUtil';
-import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
+import { aliceMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
 
 describe('[12. Staking Tx Test]', () => {
 
@@ -31,12 +31,15 @@ describe('[12. Staking Tx Test]', () => {
 		const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
 		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
 
-		const amount = 5;
+		const amountFCT = 5;
 
 		// if there's 7 more list on undelegatelist, occur error below
 		// too many unbonding delegation entries for (delegator, validator) tuple
 
-		var result = await firma.Staking.undelegate(wallet, validatorAddress, amount);
+		const gas = await firma.Staking.getGasEstimationUndelegate(wallet, validatorAddress, amountFCT);
+		const fee = Math.ceil(gas * 0.1);
+
+		var result = await firma.Staking.undelegate(wallet, validatorAddress, amountFCT, { gas, fee });
 		expect(result.code).to.equal(0);
 	});
 
@@ -102,7 +105,7 @@ describe('[12. Staking Tx Test]', () => {
 	});
 
 	// NOTICE: not decide to include firma.js spec
-	it.skip('editValidator OK', async () => {
+	it('editValidator OK', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
 
@@ -127,7 +130,7 @@ describe('[12. Staking Tx Test]', () => {
 			moniker: "firma-node-3(gom)",
 			identity: "", // identity defines an optional identity signature (ex. UPort or Keybase).
 			website: "https://naver.com",
-			securityContact: "fly33499@gmail.com",
+			securityContact: "yhlee@firmainnovation.com",
 			details: "we're now testing to edit validator info"
 		};
 
