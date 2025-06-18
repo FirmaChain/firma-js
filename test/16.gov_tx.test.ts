@@ -2,11 +2,11 @@ import { expect } from 'chai';
 import Long from 'long';
 import { VotingOption } from '../sdk/firmachain/common';
 import { FirmaSDK } from "../sdk/FirmaSDK"
-import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 // If test it, the properties of the chain change, so skip it.
 
-describe('[16. Gov Tx Test]', () => {
+describe.skip('[16. Gov Tx Test]', () => {
 
 	let firma: FirmaSDK;
 
@@ -23,7 +23,7 @@ describe('[16. Gov Tx Test]', () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
-		const initialDepositFCT = 10;
+		const initialDepositFCT = 2500;
 		const title = "test submit proposal";
 		const description = "test description";
 
@@ -156,7 +156,7 @@ For a more detailed upgrade guide, please visit https://github.com/FirmaChain/ma
 	});*/
 
 	// TODO: get recent gov proposal list and then set proposalId for below case
-	const tempProposalId = 13;
+	const tempProposalId = 15;
 
 	// more deposit after initial deposit case
 	it('Deposit OK', async () => {
@@ -164,7 +164,7 @@ For a more detailed upgrade guide, please visit https://github.com/FirmaChain/ma
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
 		const proposalId = tempProposalId;
-		const amount = 1000;
+		const amount = 2500;
 		var result = await firma.Gov.deposit(wallet, proposalId, amount);
 		//console.log(result);
 		expect(result.code).to.equal(0);

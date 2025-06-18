@@ -1,6 +1,4 @@
-import { expect } from 'chai';
 import { AuthorizationType } from '../sdk/firmachain/authz/AuthzTxTypes';
-import { Timestamp } from '../sdk/firmachain/google/protobuf/timestamp';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 

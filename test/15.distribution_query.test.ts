@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { FirmaUtil } from '..';
 import { FirmaSDK } from "../sdk/FirmaSDK"
-import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
+import { aliceMnemonic, TestChainConfig } from './config_test';
 
 describe('[15. Distribution Query Test]', () => {
 

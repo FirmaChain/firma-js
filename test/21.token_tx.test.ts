@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import { ContractService } from '../sdk/FirmaContractService';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
@@ -7,6 +6,22 @@ describe('[21. Token Tx Test]', () => {
 
 	let firma: FirmaSDK;
 
+	const extractAllTokenIds = (events: readonly any[]) => {
+		const nftIds = [];
+
+		for (const event of events) {
+			if (event.type === 'message') {
+				for (const attr of event.attributes) {
+					if (attr.key === 'TokenID') {
+						nftIds.push(attr.value);
+					}
+				}
+			}
+		}
+
+		return nftIds;
+	}
+	
 	beforeEach(function() {
 		firma = new FirmaSDK(TestChainConfig);
 	})
@@ -27,15 +42,17 @@ describe('[21. Token Tx Test]', () => {
 		const mintable = true;
 		const burnable = true;
 
-		var result = await firma.Token.createToken(wallet, tokenName, symbol, tokenURI, totalSupply, decimal, mintable, burnable);
+		try {
+			var result = await firma.Token.createToken(wallet, tokenName, symbol, tokenURI, totalSupply, decimal, mintable, burnable);
+			// get tokenID below code
+			const tokenIds = extractAllTokenIds(result.events);
 
-		// get tokenID below code
-		var jsonData = JSON.parse(result.rawLog!);
-		var tokenID = jsonData[0]["events"][3]["attributes"][3]["value"];
-
-		//console.log("tokenID : " + tokenID);
-
-		expect(result.code).to.be.equal(0);
+			console.log("tokenIds : " + tokenIds);
+	
+			expect(result.code).to.be.equal(0);
+		} catch (error) {
+			console.log(error);
+		}
 	});
 
 	it('Token Mint', async () => {

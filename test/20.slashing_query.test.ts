@@ -1,5 +1,5 @@
 import { FirmaSDK } from "../sdk/FirmaSDK"
-import { TestChainConfig } from './config_test';
+import { TestChainConfig } from "./config_test";
 
 describe('[20. Slashing Query Test]', () => {
 

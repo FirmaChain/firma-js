@@ -169,7 +169,10 @@ describe('[23. Authz Tx Test]', () => {
 
 		const anyData = FirmaUtil.getAnyData(StakingTxClient.getRegistry(), msgUndelegate)
 
-		var result = await firma.Authz.executeAllowance(bobWallet, [anyData]);
+		const gas = await firma.Authz.getGasEstimationExecuteAllowance(bobWallet, [anyData]);
+		const fee = Math.ceil(gas * 0.1);
+
+		var result = await firma.Authz.executeAllowance(bobWallet, [anyData], { gas, fee });
 
 		//console.log(result);
 
