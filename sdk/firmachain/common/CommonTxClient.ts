@@ -20,8 +20,8 @@ const types = [
     ["/cosmos.bank.v1beta1.MsgSend", MsgSend],
     ["/cosmos.bank.v1beta1.MsgMultiSend", MsgMultiSend],
 
-    ["/firmachain.firmachain.contract.MsgCreateContractFile", MsgCreateContractFile],
-    ["/firmachain.firmachain.contract.MsgAddContractLog", MsgAddContractLog],
+    ["/firmachain.contract.MsgCreateContractFile", MsgCreateContractFile],
+    ["/firmachain.contract.MsgAddContractLog", MsgAddContractLog],
 
     ["/cosmwasm.wasm.v1.MsgStoreCode", MsgStoreCode],
     ["/cosmwasm.wasm.v1.MsgInstantiateContract", MsgInstantiateContract],
@@ -45,9 +45,9 @@ const types = [
 
     ["/ibc.applications.transfer.v1.MsgTransfer", MsgTransfer],
 
-    ["/firmachain.firmachain.nft.MsgTransfer", MsgTransfer],
-    ["/firmachain.firmachain.nft.MsgMint", MsgMint],
-    ["/firmachain.firmachain.nft.MsgBurn", MsgBurn],
+    ["/firmachain.nft.MsgTransfer", MsgTransfer],
+    ["/firmachain.nft.MsgMint", MsgMint],
+    ["/firmachain.nft.MsgBurn", MsgBurn],
 
     ["/cosmos.staking.v1beta1.MsgDelegate", MsgDelegate],
     ["/cosmos.staking.v1beta1.MsgUndelegate", MsgUndelegate],
@@ -55,10 +55,10 @@ const types = [
     ["/cosmos.staking.v1beta1.MsgEditValidator", MsgEditValidator],
     ["/cosmos.staking.v1beta1.MsgCreateValidator", MsgCreateValidator],
 
-    ["/firmachain.firmachain.token.MsgCreateToken", MsgCreateToken],
-    ["/firmachain.firmachain.token.MsgUpdateTokenURI", MsgUpdateTokenURI],
-    ["/firmachain.firmachain.token.MsgMint", MsgMint],
-    ["/firmachain.firmachain.token.MsgBurn", MsgBurn]
+    ["/firmachain.token.MsgCreateToken", MsgCreateToken],
+    ["/firmachain.token.MsgUpdateTokenURI", MsgUpdateTokenURI],
+    ["/firmachain.token.MsgMint", MsgMint],
+    ["/firmachain.token.MsgBurn", MsgBurn]
     
 ];
 
