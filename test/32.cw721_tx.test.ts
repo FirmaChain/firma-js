@@ -2,14 +2,13 @@ import { FirmaConfig } from "../sdk/FirmaConfig";
 import { FirmaSDK } from "../sdk/FirmaSDK"
 
 import { expect } from 'chai';
-import { aliceMnemonic, bobMnemonic } from './config_test';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from "./config_test";
 import { FirmaWalletService } from "../sdk/FirmaWalletService";
 import { Expires } from "../sdk/FirmaCosmWasmCw20";
 import { FirmaUtil } from "../sdk/FirmaUtil";
 
 import fs from "fs";
 import { AccessConfig, AccessType } from "../sdk/FirmaCosmWasmService";
-import { Cw721Expires } from "../sdk/FirmaCosmWasmCw721";
 
 describe('[32. cw721 tx Test]', () => {
 
@@ -20,8 +19,21 @@ describe('[32. cw721 tx Test]', () => {
 	let aliceAddress: string;
 	let bobAddress: string;
 
+	const extractValue = (events: readonly any[], eventType: string, attrKey: string) => {
+		for (const event of events) {
+			if (event.type === eventType) {
+				for (const attr of event.attributes) {
+					if (attr.key === attrKey) {
+						return attr.value;
+					}
+				}
+			}
+		}
+		return "";
+	};
+
 	beforeEach(async function () {
-		firma = new FirmaSDK(FirmaConfig.TestNetConfig);
+		firma = new FirmaSDK(TestChainConfig);
 
 		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
@@ -30,7 +42,7 @@ describe('[32. cw721 tx Test]', () => {
 		bobAddress = await bobWallet.getAddress();
 	})
 
-	let contractAddress = "";
+	let contractAddress = "firma1az885vpd2azjmepzhs3t9fftv4td44cyk526jykgpzseghtj44qq2gc4g3";
 	let codeId = "";
 
 	it.skip('CosmWasm Cw721 StoreCode', async () => {
@@ -48,9 +60,7 @@ describe('[32. cw721 tx Test]', () => {
 		//const onlyAddressAccessConfig: AccessConfig = { permission: AccessType.ACCESS_TYPE_ONLY_ADDRESS, address: aliceAddress };
 
 		var result = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: gas, fee: fee });
-		var data = JSON.parse(result.rawLog!);
-
-		codeId = data[0]["events"][1]["attributes"][1]["value"];
+		codeId = extractValue(result.events, "store_code", "code_id");
 
 		expect(result.code).to.be.equal(0);
 	});
@@ -71,18 +81,16 @@ describe('[32. cw721 tx Test]', () => {
 		});
 
 		var result = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: gas, fee: fee });
-		var data = JSON.parse(result.rawLog!);
-		
-		contractAddress = data[0]["events"][0]["attributes"][0]["value"];
+		contractAddress = extractValue(result.events, "instantiate", "_contract_address");
 		
 		expect(result.code).to.be.equal(0);
 	});
 
 
-	it.skip('Cw721 mint', async () => {
+	it('Cw721 mint', async () => {
 
 		const owner = aliceAddress;
-		const token_id = "5";
+		const token_id = "15";
 		const token_uri = "https://meta.nft.io/uri/" + token_id;
 
 		const gas = await firma.Cw721.getGasEstimationMint(aliceWallet, contractAddress, owner, token_id, token_uri);
@@ -91,15 +99,14 @@ describe('[32. cw721 tx Test]', () => {
 		var result = await firma.Cw721.mint(aliceWallet, contractAddress, owner, token_id, token_uri, { gas: gas, fee: fee });
 
 		const data = await firma.Cw721.getNftData(contractAddress, token_id);
-		console.log(data);
 
 		expect(result.code).to.be.equal(0);
 	});
 
-	it.skip('Cw721 burn', async () => {
+	it('Cw721 burn', async () => {
 
 		const owner = aliceAddress;
-		const token_id = "2";
+		const token_id = "10";
 
 		//const data1 = await firma.Cw721.getAllNftIdList(contractAddress);
 		//console.log(data1);
@@ -111,10 +118,10 @@ describe('[32. cw721 tx Test]', () => {
 		expect(result.code).to.be.equal(0);
 	});
 
-	it.skip('Cw721 transfer', async () => {
+	it('Cw721 transfer', async () => {
 
 		const owner = aliceAddress;
-		const token_id = "1";
+		const token_id = "10";
 
 		const gas = await firma.Cw721.getGasEstimationTransfer(aliceWallet, contractAddress, bobAddress, token_id);
 		const fee = Math.ceil(gas * 0.1);
@@ -126,10 +133,10 @@ describe('[32. cw721 tx Test]', () => {
 		console.log(data);
 	});
 
-	it.skip('Cw721 transfer', async () => {
+	it('Cw721 transfer', async () => {
 
 		const owner = aliceAddress;
-		const token_id = "1";
+		const token_id = "10";
 
 		const gas = await firma.Cw721.getGasEstimationTransfer(bobWallet, contractAddress, aliceAddress, token_id);
 		const fee = Math.ceil(gas * 0.1);
@@ -141,10 +148,10 @@ describe('[32. cw721 tx Test]', () => {
 		console.log(data);
 	});
 
-	it.skip('Cw721 approve', async () => {
+	it('Cw721 approve', async () => {
 
 		const owner = aliceAddress;
-		const token_id = "1";
+		const token_id = "11";
 
 		//const expires: Expires = { at_height: 7216240 };
 		//const expires: Expires = { at_time: "1852937600000000000" }; // unix timestamp nano seconds
@@ -162,7 +169,7 @@ describe('[32. cw721 tx Test]', () => {
 		console.log(data);
 	});
 
-	it.skip('Cw721 revoke', async () => {
+	it('Cw721 revoke', async () => {
 
 		const token_id = "1";
 
@@ -176,7 +183,7 @@ describe('[32. cw721 tx Test]', () => {
 		console.log(data.access);
 	});
 
-	it.skip('Cw721 approve_all', async () => {
+	it('Cw721 approve_all', async () => {
 
 		//const expires: Expires = { at_height: 7216240 };
 		//const expires: Cw721Expires = { at_time: "1852937600000000000" }; // unix timestamp nano seconds
@@ -196,7 +203,7 @@ describe('[32. cw721 tx Test]', () => {
 		console.log(data);
 	});
 
-	it.skip('Cw721 revoke_all', async () => {
+	it('Cw721 revoke_all', async () => {
 
 		const gas = await firma.Cw721.getGasEstimationRevokeAll(aliceWallet, contractAddress, bobAddress);
 		const fee = Math.ceil(gas * 0.1);
@@ -208,7 +215,7 @@ describe('[32. cw721 tx Test]', () => {
 		console.log(data);
 	});	
 
-	it.skip('Cw721 transfer ownership', async () => {
+	it('Cw721 transfer ownership', async () => {
 
 		const new_owner = bobAddress;
 
@@ -228,7 +235,7 @@ describe('[32. cw721 tx Test]', () => {
 		console.log(data);
 	});
 
-	it.skip	('Cw721 accept ownership', async () => {
+	it('Cw721 accept ownership', async () => {
 		
 		const gas = await firma.Cw721.getGasEstimationUpdateOwnerShipAccept(bobWallet, contractAddress);
 		const fee = Math.ceil(gas * 0.1);
@@ -269,10 +276,10 @@ describe('[32. cw721 tx Test]', () => {
 		console.log(data);
 	});
 
-	it.skip('Cw721 alice mint, approve, bob transfer', async () => {
+	it('Cw721 alice mint, approve, bob transfer', async () => {
 
 		const owner = aliceAddress;
-		const token_id = "4";
+		const token_id = "16";
 		const token_uri = "https://meta.nft.io/uri/" + token_id;
 
 		let gas = await firma.Cw721.getGasEstimationMint(aliceWallet, contractAddress, owner, token_id, token_uri);

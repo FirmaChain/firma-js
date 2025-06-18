@@ -2,7 +2,7 @@ import { FirmaConfig } from "../sdk/FirmaConfig";
 import { FirmaSDK } from "../sdk/FirmaSDK"
 
 import { expect } from 'chai';
-import { aliceMnemonic, bobMnemonic } from './config_test';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from "./config_test";
 import { FirmaWalletService } from "../sdk/FirmaWalletService";
 import { Expires } from "../sdk/FirmaCosmWasmCw20";
 import { FirmaUtil } from "../sdk/FirmaUtil";
@@ -19,8 +19,21 @@ describe('[30. cw20 tx Test]', () => {
 	let aliceAddress: string;
 	let bobAddress: string;
 
+	const extractValue = (events: readonly any[], eventType: string, attrKey: string) => {
+		for (const event of events) {
+			if (event.type === eventType) {
+				for (const attr of event.attributes) {
+					if (attr.key === attrKey) {
+						return attr.value;
+					}
+				}
+			}
+		}
+		return "";
+	};
+
 	beforeEach(async function () {
-		firma = new FirmaSDK(FirmaConfig.TestNetConfig);
+		firma = new FirmaSDK(TestChainConfig);
 
 		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
@@ -32,7 +45,7 @@ describe('[30. cw20 tx Test]', () => {
 	let contractAddress = "";
 	let codeId = "";
 
-	it.skip('CosmWasm Cw20 StoreCode', async () => {
+	it('CosmWasm Cw20 StoreCode', async () => {
 		const wasmFile = fs.readFileSync("./test/sample/cw20_base.wasm");
 		const array = new Uint8Array(wasmFile.buffer);
 
@@ -47,15 +60,12 @@ describe('[30. cw20 tx Test]', () => {
 		//const onlyAddressAccessConfig: AccessConfig = { permission: AccessType.ACCESS_TYPE_ONLY_ADDRESS, address: aliceAddress };
 
 		var result = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: gas, fee: fee });
-		var data = JSON.parse(result.rawLog!);
-
-		codeId = data[0]["events"][1]["attributes"][1]["value"];
-
+		codeId = extractValue(result.events, "store_code", "code_id");
+	
 		expect(result.code).to.be.equal(0);
 	});
 
-
-	it.skip('CosmWasm Cw20 InstantiateContract', async () => {
+	it('CosmWasm Cw20 InstantiateContract', async () => {
 		const admin = await aliceWallet.getAddress();
 		const label = "test1";
 
@@ -90,15 +100,12 @@ describe('[30. cw20 tx Test]', () => {
 		});
 
 		var result = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: gas, fee: fee });
-		var data = JSON.parse(result.rawLog!);
-
-		contractAddress = data[0]["events"][0]["attributes"][0]["value"];
+		contractAddress = extractValue(result.events, "instantiate", "_contract_address");
 
 		expect(result.code).to.be.equal(0);
 	});
 
-
-	it.skip('Cw20 transfer', async () => {
+	it('Cw20 transfer', async () => {
 
 		const aliceBalance = await firma.Cw20.getBalance(contractAddress, aliceAddress);
 		const bobBalance = await firma.Cw20.getBalance(contractAddress, bobAddress);
@@ -115,37 +122,7 @@ describe('[30. cw20 tx Test]', () => {
 		expect(result.code).to.be.equal(0);
 	});
 
-	it.skip('Cw20 transfer_form', async () => {
-
-		let aliceBalance = await firma.Cw20.getBalance(contractAddress, aliceAddress);
-		let bobBalance = await firma.Cw20.getBalance(contractAddress, bobAddress);
-
-		console.log("alice: " + aliceAddress + ", balance: " + aliceBalance);
-		console.log("bob: " + bobAddress + ", balance: " + bobBalance);
-
-		const allowance = await firma.Cw20.getAllowance(contractAddress, aliceAddress, bobAddress);
-		console.log(allowance);
-
-		const amount = "1000";
-		const gas = await firma.Cw20.getGasEstimationTransferFrom(bobWallet, contractAddress, aliceAddress, bobAddress, amount);
-		const fee = Math.ceil(gas * 0.1);
-
-		var result = await firma.Cw20.transferFrom(bobWallet, contractAddress, aliceAddress, bobAddress, amount, { gas, fee })
-
-		aliceBalance = await firma.Cw20.getBalance(contractAddress, aliceAddress);
-		bobBalance = await firma.Cw20.getBalance(contractAddress, bobAddress);
-
-		console.log("alice: " + aliceAddress + ", balance: " + aliceBalance);
-		console.log("bob: " + bobAddress + ", balance: " + bobBalance);
-
-		const allowance1 = await firma.Cw20.getAllowance(contractAddress, aliceAddress, bobAddress);
-		console.log(allowance1);
-
-		expect(result.code).to.be.equal(0);
-	});
-
-
-	it.skip('Cw20 mint', async () => {
+	it('Cw20 mint', async () => {
 
 		const aliceBalance = await firma.Cw20.getBalance(contractAddress, aliceAddress);
 		const bobBalance = await firma.Cw20.getBalance(contractAddress, bobAddress);
@@ -178,7 +155,7 @@ describe('[30. cw20 tx Test]', () => {
 
 	});
 
-	it.skip('Cw20 burn', async () => {
+	it('Cw20 burn', async () => {
 
 		const info = await firma.Cw20.getTokenInfo(contractAddress)
 		console.log(info);
@@ -200,30 +177,7 @@ describe('[30. cw20 tx Test]', () => {
 		expect(result.code).to.be.equal(0);
 	});
 
-	it.skip('Cw20 burn_from', async () => {
-
-		const info = await firma.Cw20.getTokenInfo(contractAddress)
-		console.log(info);
-
-		const aliceBalance = await firma.Cw20.getBalance(contractAddress, aliceAddress);
-		const bobBalance = await firma.Cw20.getBalance(contractAddress, bobAddress);
-
-		console.log("alice: " + aliceAddress + ", balance: " + aliceBalance);
-		console.log("bob: " + bobAddress + ", balance: " + bobBalance);
-
-		const amount = "1000";
-
-		const gas = await firma.Cw20.getGasEstimationBurnFrom(bobWallet, contractAddress, aliceAddress, amount);
-		const fee = Math.ceil(gas * 0.1);
-
-		var result = await firma.Cw20.burnFrom(bobWallet, contractAddress, aliceAddress, amount, { gas, fee })
-		console.log(result);
-
-		expect(result.code).to.be.equal(0);
-	});
-
-
-	it.skip('Cw20 increase_allowance', async () => {
+	it('Cw20 increase_allowance', async () => {
 
 		const aliceBalance = await firma.Cw20.getBalance(contractAddress, aliceAddress);
 		const bobBalance = await firma.Cw20.getBalance(contractAddress, bobAddress);
@@ -255,7 +209,57 @@ describe('[30. cw20 tx Test]', () => {
 
 	});
 
-	it.skip('Cw20 decrease_allowance', async () => {
+	it('Cw20 transfer_from', async () => {
+
+		let aliceBalance = await firma.Cw20.getBalance(contractAddress, aliceAddress);
+		let bobBalance = await firma.Cw20.getBalance(contractAddress, bobAddress);
+
+		console.log("alice: " + aliceAddress + ", balance: " + aliceBalance);
+		console.log("bob: " + bobAddress + ", balance: " + bobBalance);
+
+		const allowance = await firma.Cw20.getAllowance(contractAddress, aliceAddress, bobAddress);
+		console.log(allowance);
+
+		const amount = "1000";
+		const gas = await firma.Cw20.getGasEstimationTransferFrom(bobWallet, contractAddress, aliceAddress, bobAddress, amount);
+		const fee = Math.ceil(gas * 0.1);
+
+		var result = await firma.Cw20.transferFrom(bobWallet, contractAddress, aliceAddress, bobAddress, amount, { gas, fee })
+
+		aliceBalance = await firma.Cw20.getBalance(contractAddress, aliceAddress);
+		bobBalance = await firma.Cw20.getBalance(contractAddress, bobAddress);
+
+		console.log("alice: " + aliceAddress + ", balance: " + aliceBalance);
+		console.log("bob: " + bobAddress + ", balance: " + bobBalance);
+
+		const allowance1 = await firma.Cw20.getAllowance(contractAddress, aliceAddress, bobAddress);
+		console.log(allowance1);
+
+		expect(result.code).to.be.equal(0);
+	});
+
+	it('Cw20 burn_from', async () => {
+
+		const info = await firma.Cw20.getTokenInfo(contractAddress)
+
+		const aliceBalance = await firma.Cw20.getBalance(contractAddress, aliceAddress);
+		const bobBalance = await firma.Cw20.getBalance(contractAddress, bobAddress);
+
+		console.log("alice: " + aliceAddress + ", balance: " + aliceBalance);
+		console.log("bob: " + bobAddress + ", balance: " + bobBalance);
+
+		const amount = "1000";
+
+		const gas = await firma.Cw20.getGasEstimationBurnFrom(bobWallet, contractAddress, aliceAddress, amount);
+		const fee = Math.ceil(gas * 0.1);
+
+		var result = await firma.Cw20.burnFrom(bobWallet, contractAddress, aliceAddress, amount, { gas, fee })
+		console.log(result);
+
+		expect(result.code).to.be.equal(0);
+	});
+
+	it('Cw20 decrease_allowance', async () => {
 
 		const aliceBalance = await firma.Cw20.getBalance(contractAddress, aliceAddress);
 		const bobBalance = await firma.Cw20.getBalance(contractAddress, bobAddress);
@@ -287,7 +291,7 @@ describe('[30. cw20 tx Test]', () => {
 
 	});
 
-	it.skip('Cw20 update_minter', async () => {
+	it('Cw20 update_minter', async () => {
 
 		let minter = await firma.Cw20.getMinter(contractAddress)
 		console.log(minter);
@@ -302,7 +306,7 @@ describe('[30. cw20 tx Test]', () => {
 		console.log(minter);
 	});
 
-	it.skip('Cw20 update_marketing', async () => {
+	it('Cw20 update_marketing', async () => {
 
 		const info = await firma.Cw20.getTokenInfo(contractAddress)
 		console.log(info);
@@ -324,7 +328,7 @@ describe('[30. cw20 tx Test]', () => {
 		console.log(marketingInfo);
 	});
 
-	it.skip('Cw20 update_logo', async () => {
+	it('Cw20 update_logo', async () => {
 
 		const minter = await firma.Cw20.getMinter(contractAddress);
 		console.log(minter);
@@ -347,7 +351,6 @@ describe('[30. cw20 tx Test]', () => {
 		marketingInfo = await firma.Cw20.getMarketingInfo(contractAddress)
 		console.log(marketingInfo);
 	});
-
 
 	it.skip('Cw20 send', async () => {
 

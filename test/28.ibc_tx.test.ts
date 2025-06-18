@@ -1,9 +1,7 @@
-import { expect } from 'chai';
 import { Height } from 'cosmjs-types/ibc/core/client/v1/client';
-import Long from 'long';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { FirmaUtil } from '../sdk/FirmaUtil';
-import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
+import { aliceMnemonic, TestChainConfig } from "./config_test";
 
 describe('[28. IBC Tx Test]', () => {
 

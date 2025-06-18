@@ -1,13 +1,13 @@
 import { FirmaConfig } from "../sdk/FirmaConfig";
 import { FirmaSDK } from "../sdk/FirmaSDK"
-import { TestChainConfig } from './config_test';
+import { TestChainConfig } from "./config_test";
 
 describe('[33. cw721 query Test]', () => {
 
 	let firma: FirmaSDK;
 
 	beforeEach(function() {
-		firma = new FirmaSDK(FirmaConfig.TestNetConfig);
+		firma = new FirmaSDK(TestChainConfig);
 	})
 
 	let contractAddress = "firma17uh2wj875vt64x7pzzy08slsl5pqupfln0vw2k79knfshygy6ausxth5d2";
