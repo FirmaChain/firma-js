@@ -1,4 +1,3 @@
-import { FirmaConfig } from "../sdk/FirmaConfig";
 import { FirmaSDK } from "../sdk/FirmaSDK"
 
 import { expect } from 'chai';

@@ -178,18 +178,6 @@ For a more detailed upgrade guide, please visit https://github.com/FirmaChain/ma
 		var result = await firma.Gov.vote(wallet, proposalId, VotingOption.VOTE_OPTION_YES);
 		//console.log(result);
 		expect(result.code).to.equal(0);
-
-		const validator1 = await firma.Wallet.fromMnemonic("angry water bunker where iron absurd cruise deliver clutch unique creek pyramid arch express flush pill lens concert absent enemy boring mom nuclear rose");
-		const validator2 = await firma.Wallet.fromMnemonic("stadium lonely midnight okay meat rib awesome wealth phone leisure turn prosper notable label fruit define little also father silver half drill bargain antique");
-		const validator3 = await firma.Wallet.fromMnemonic("uncle banana theme relax oak prosper volcano glad industry bicycle tower thrive jelly curious luggage frame that defy reason jewel figure begin nice moon");
-		const validator4 = await firma.Wallet.fromMnemonic("rebel engine situate catalog blood strong satisfy aerobic cupboard again vivid twice flag work taxi heart fruit island ribbon hungry cheap ordinary horse foam");
-		const validator5 = await firma.Wallet.fromMnemonic("ladder damage art company shield glance cushion float need layer rare toast intact grief wet point write season correct access mix bomb accident estate");
-
-		await firma.Gov.vote(validator1, tempProposalId, VotingOption.VOTE_OPTION_YES);
-		await firma.Gov.vote(validator2, tempProposalId, VotingOption.VOTE_OPTION_YES);
-		await firma.Gov.vote(validator3, tempProposalId, VotingOption.VOTE_OPTION_YES);
-		await firma.Gov.vote(validator4, tempProposalId, VotingOption.VOTE_OPTION_YES);
-		await firma.Gov.vote(validator5, tempProposalId, VotingOption.VOTE_OPTION_YES);
 	});
 
 	it('Vote - bob NO', async () => {

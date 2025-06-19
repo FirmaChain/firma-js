@@ -1,5 +1,3 @@
-import { expect } from 'chai';
-import { FirmaConfig } from '../sdk/FirmaConfig';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { StakingValidatorStatus } from '../sdk/FirmaStakingService';
 import { aliceMnemonic, TestChainConfig } from './config_test';
