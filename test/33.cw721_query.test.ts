@@ -1,16 +1,27 @@
-import { FirmaConfig } from "../sdk/FirmaConfig";
 import { FirmaSDK } from "../sdk/FirmaSDK"
-import { TestChainConfig } from "./config_test";
+import { FirmaWalletService } from "../sdk/FirmaWalletService";
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from "./config_test";
 
 describe('[33. cw721 query Test]', () => {
 
 	let firma: FirmaSDK;
 
-	beforeEach(function() {
+	let aliceWallet: FirmaWalletService;
+	let bobWallet: FirmaWalletService;
+	let aliceAddress: string;
+	let bobAddress: string;
+
+	beforeEach(async function() {
 		firma = new FirmaSDK(TestChainConfig);
+
+		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+
+		aliceAddress = await aliceWallet.getAddress();
+		bobAddress = await bobWallet.getAddress();
 	})
 
-	let contractAddress = "firma17uh2wj875vt64x7pzzy08slsl5pqupfln0vw2k79knfshygy6ausxth5d2";
+	let contractAddress = "";
 
 	it('cw721 getOwnerFromNftID', async () => {
 
@@ -31,9 +42,9 @@ describe('[33. cw721 query Test]', () => {
 		// firma13hcgnwfpe99htsr92v2keqsgx909rhkwfnxgwr
 
 		const tokenId = "1";
-		const spender = "firma1lkly7qj4w2la2xxlatrtw6wynz8vxkctjlqkch";
+		
 		const isIncludeExpired = true;
-		const approval = await firma.Cw721.getApproval(contractAddress, tokenId, spender, isIncludeExpired);
+		const approval = await firma.Cw721.getApproval(contractAddress, tokenId, bobAddress, isIncludeExpired);
 
 		//console.log(approval.spender);
 		//console.log(approval.expires);
@@ -64,9 +75,8 @@ describe('[33. cw721 query Test]', () => {
 	it('cw721 getAllOperators', async () => {
 
 		// operator : approve all user info
-		const owner = "firma13hcgnwfpe99htsr92v2keqsgx909rhkwfnxgwr";
 		const isIncludeExpired = false;
-		const operators = await firma.Cw721.getAllOperators(contractAddress, owner, isIncludeExpired);
+		const operators = await firma.Cw721.getAllOperators(contractAddress, aliceAddress, isIncludeExpired);
 		
 		//console.log(operators);
 	});
@@ -106,9 +116,7 @@ describe('[33. cw721 query Test]', () => {
 
 	it('cw721 getNFTIdListOfOwner', async () => {
 
-		const owner = "firma13hcgnwfpe99htsr92v2keqsgx909rhkwfnxgwr";
-
-		const nftIdList = await firma.Cw721.getNFTIdListOfOwner(contractAddress, owner);
+		const nftIdList = await firma.Cw721.getNFTIdListOfOwner(contractAddress, aliceAddress);
 		console.log(nftIdList);
 	});
 

@@ -1,4 +1,3 @@
-import { FirmaConfig } from "../sdk/FirmaConfig";
 import { FirmaSDK } from "../sdk/FirmaSDK"
 
 import { expect } from 'chai';
@@ -42,10 +41,10 @@ describe('[32. cw721 tx Test]', () => {
 		bobAddress = await bobWallet.getAddress();
 	})
 
-	let contractAddress = "firma1az885vpd2azjmepzhs3t9fftv4td44cyk526jykgpzseghtj44qq2gc4g3";
+	let contractAddress = "";
 	let codeId = "";
 
-	it.skip('CosmWasm Cw721 StoreCode', async () => {
+	it('CosmWasm Cw721 StoreCode', async () => {
 		const wasmFile = fs.readFileSync("./test/sample/cw721_base.wasm");
 		const array = new Uint8Array(wasmFile.buffer);
 
@@ -65,8 +64,7 @@ describe('[32. cw721 tx Test]', () => {
 		expect(result.code).to.be.equal(0);
 	});
 
-
-	it.skip('CosmWasm Cw721 InstantiateContract', async () => {
+	it('CosmWasm Cw721 InstantiateContract', async () => {
 		const admin = await aliceWallet.getAddress();
 		const label = "test1";
 
@@ -86,7 +84,6 @@ describe('[32. cw721 tx Test]', () => {
 		expect(result.code).to.be.equal(0);
 	});
 
-
 	it('Cw721 mint', async () => {
 
 		const owner = aliceAddress;
@@ -98,7 +95,8 @@ describe('[32. cw721 tx Test]', () => {
 
 		var result = await firma.Cw721.mint(aliceWallet, contractAddress, owner, token_id, token_uri, { gas: gas, fee: fee });
 
-		const data = await firma.Cw721.getNftData(contractAddress, token_id);
+		const nftData = await firma.Cw721.getNftData(contractAddress, token_id);
+		console.log(nftData);
 
 		expect(result.code).to.be.equal(0);
 	});
