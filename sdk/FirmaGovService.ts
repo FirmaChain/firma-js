@@ -349,6 +349,36 @@ export class FirmaGovService {
         }
     }
 
+    private async getSignedCancelProposal(wallet: FirmaWalletService,
+        proposalId: number,
+        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+
+        // TODO
+        // send message using cosmos sdk /cosmos.gov.v1.MsgCancelProposal
+        // using given wallet & proposal_id
+
+        // but The current environment cosmjs-types does not have the MsgCancelProposal message type,
+        // so implementation is not possible.
+        // we need to add the proto/type file directly,
+        // or update the relevant package.
+
+        // example code
+        /*
+        import { MsgCancelProposal } from "cosmjs-types/cosmos/gov/v1/tx"; // if exists
+
+        const proposer = await wallet.getAddress();
+        const message = {
+          typeUrl: "/cosmos.gov.v1.MsgCancelProposal",
+          value: MsgCancelProposal.fromPartial({
+            proposalId: proposalId,
+            proposer: proposer
+          })
+        };
+        const txClient = new GovTxClient(wallet, this.config.rpcAddress);
+        return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+        */
+    }
+
     async submitCancelSoftwareUpgradeProposal(wallet: FirmaWalletService,
         title: string,
         description: string,
@@ -479,6 +509,20 @@ export class FirmaGovService {
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async cancelProposal(wallet: FirmaWalletService,
+        proposalId: number,
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
+        try {
+            const txRaw = await this.getSignedCancelProposal(wallet, proposalId, txMisc);
+
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
+            return await txClient.broadcast(txRaw);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
