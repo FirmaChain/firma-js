@@ -10,17 +10,18 @@ import {
     ProposalParam,
     CurrentVoteInfo
 } from "./firmachain/gov";
-import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { TxRaw } from "@kintsugi-tech/cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 import { Any } from "./firmachain/google/protobuf/any";
-import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
-import { CommunityPoolSpendProposal } from "cosmjs-types/cosmos/distribution/v1beta1/distribution";
-import { ParameterChangeProposal } from "cosmjs-types/cosmos/params/v1beta1/params";
-import { CancelSoftwareUpgradeProposal, SoftwareUpgradeProposal } from "cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
+import { TextProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1beta1/gov";
+import { CommunityPoolSpendProposal } from "@kintsugi-tech/cosmjs-types/cosmos/distribution/v1beta1/distribution";
+import { ParameterChangeProposal } from "@kintsugi-tech/cosmjs-types/cosmos/params/v1beta1/params";
+import { CancelSoftwareUpgradeProposal, SoftwareUpgradeProposal } from "@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
+import { MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 
 export class FirmaGovService {
 
@@ -353,30 +354,18 @@ export class FirmaGovService {
         proposalId: number,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
-        // TODO
-        // send message using cosmos sdk /cosmos.gov.v1.MsgCancelProposal
-        // using given wallet & proposal_id
-
-        // but The current environment cosmjs-types does not have the MsgCancelProposal message type,
-        // so implementation is not possible.
-        // we need to add the proto/type file directly,
-        // or update the relevant package.
-
-        // example code
-        /*
-        import { MsgCancelProposal } from "cosmjs-types/cosmos/gov/v1/tx"; // if exists
-
         const proposer = await wallet.getAddress();
         const message = {
           typeUrl: "/cosmos.gov.v1.MsgCancelProposal",
           value: MsgCancelProposal.fromPartial({
-            proposalId: proposalId,
+            proposalId: BigInt(proposalId),
             proposer: proposer
           })
         };
+
         const txClient = new GovTxClient(wallet, this.config.rpcAddress);
         return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
-        */
+    
     }
 
     async submitCancelSoftwareUpgradeProposal(wallet: FirmaWalletService,
