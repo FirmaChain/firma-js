@@ -37,18 +37,6 @@ describe('[06. Feegrant Tx Test]', () => {
 		}
 	});
 
-	it.skip('feegrant RevokeAllowanec tx1', async () => {
-
-		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
-
-		var result = await firma.FeeGrant.revokeAllowance(aliceWallet, await bobWallet.getAddress());
-		//console.log(result);
-
-		expect(result.code).to.equal(0);
-	});
-
-
 	it('feegrant GrantBasicAllowance tx', async () => {
 
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
