@@ -11,7 +11,7 @@ describe('[28. IBC Tx Test]', () => {
 		firma = new FirmaSDK(TestChainConfig);
 	})
 
-	it.skip('IBC transfer', async () => {
+	it('IBC transfer', async () => {
 		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		
 		const sourcePort = "transfer";

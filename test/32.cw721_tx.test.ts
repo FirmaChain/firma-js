@@ -215,6 +215,7 @@ describe('[32. cw721 tx Test]', () => {
 	});
 
 	// give up all ownership.
+	// This unit test verifies contract ownership renunciation and is skipped by default
 	it.skip('Cw721 renounce ownership', async () => {
 		
 		const gas = await firma.Cw721.getGasEstimationUpdateOwnerShipRenounce(aliceWallet, contractAddress);
