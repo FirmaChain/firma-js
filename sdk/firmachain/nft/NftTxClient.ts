@@ -4,25 +4,25 @@ import { ITxClient } from "../common/ITxClient";
 import { FirmaWalletService } from "../../FirmaWalletService";
 
 const types = [
-    ["/firmachain.firmachain.nft.MsgTransfer", MsgTransfer],
-    ["/firmachain.firmachain.nft.MsgMint", MsgMint],
-    ["/firmachain.firmachain.nft.MsgBurn", MsgBurn]
+    ["/firmachain.nft.MsgTransfer", MsgTransfer],
+    ["/firmachain.nft.MsgMint", MsgMint],
+    ["/firmachain.nft.MsgBurn", MsgBurn]
 ];
 
 const registry = new Registry(types as any);
 
 export interface MsgNftTransferEncodeObject extends EncodeObject {
-    readonly typeUrl: "/firmachain.firmachain.nft.MsgTransfer";
+    readonly typeUrl: "/firmachain.nft.MsgTransfer";
     readonly value: Partial<MsgTransfer>;
 }
 
 export interface MsgNftMintEncodeObject extends EncodeObject {
-    readonly typeUrl: "/firmachain.firmachain.nft.MsgMint";
+    readonly typeUrl: "/firmachain.nft.MsgMint";
     readonly value: Partial<MsgMint>;
 }
 
 export interface MsgNftBurnEncodeObject extends EncodeObject {
-    readonly typeUrl: "/firmachain.firmachain.nft.MsgBurn";
+    readonly typeUrl: "/firmachain.nft.MsgBurn";
     readonly value: Partial<MsgBurn>;
 }
 
@@ -37,14 +37,14 @@ export class NftTxClient extends ITxClient {
     }
 
     static msgTransfer(data: MsgTransfer): MsgNftTransferEncodeObject {
-        return { typeUrl: "/firmachain.firmachain.nft.MsgTransfer", value: data };
+        return { typeUrl: "/firmachain.nft.MsgTransfer", value: data };
     }
 
     static msgMint(data: MsgMint): MsgNftMintEncodeObject {
-        return { typeUrl: "/firmachain.firmachain.nft.MsgMint", value: data };
+        return { typeUrl: "/firmachain.nft.MsgMint", value: data };
     }
 
     static msgBurn(data: MsgBurn): MsgNftBurnEncodeObject {
-        return { typeUrl: "/firmachain.firmachain.nft.MsgBurn", value: data };
+        return { typeUrl: "/firmachain.nft.MsgBurn", value: data };
     }
 }

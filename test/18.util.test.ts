@@ -1,10 +1,17 @@
 import { expect } from 'chai';
 import { FirmaUtil } from '../sdk/FirmaUtil';
+import { FirmaSDK } from '../sdk/FirmaSDK';
+import { TestChainConfig } from './config_test';
 
 describe('[18. util Test]', () => {
 
-	// getHashFromString
+	let firma: FirmaSDK;
 
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
+
+	// getHashFromString
 	it('getSha1HashFromString test', async () => {
 
 		const contractName = "testContract1234";

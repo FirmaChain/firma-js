@@ -27,7 +27,10 @@ export class FirmaAuthzService {
                 })).finish()),
             });
 
-            const timestamp = Timestamp.fromPartial({ seconds: expirationDate.getTime() / 1000 });
+            const seconds = Math.floor(expirationDate.getTime() / 1000);
+            const nanos = (expirationDate.getMilliseconds() % 1000) * 1_000_000;
+
+            const timestamp = Timestamp.fromPartial({ seconds, nanos });
 
             const message = AuthzTxClient.msgGrantAllowance({
                 granter: address,
@@ -67,7 +70,10 @@ export class FirmaAuthzService {
                 })).finish()),
             });
 
-            const timestamp = Timestamp.fromPartial({ seconds: expirationDate.getTime() / 1000 });
+            const seconds = Math.floor(expirationDate.getTime() / 1000);
+            const nanos = (expirationDate.getMilliseconds() % 1000) * 1_000_000;
+
+            const timestamp = Timestamp.fromPartial({ seconds, nanos });
 
             const message = AuthzTxClient.msgGrantAllowance({
                 granter: address,
@@ -103,7 +109,10 @@ export class FirmaAuthzService {
                 })).finish()),
             });
 
-            const timestamp = Timestamp.fromPartial({ seconds: expirationDate.getTime() / 1000 });
+            const seconds = Math.floor(expirationDate.getTime() / 1000);
+            const nanos = (expirationDate.getMilliseconds() % 1000) * 1_000_000;
+
+            const timestamp = Timestamp.fromPartial({ seconds, nanos });
 
             const message = AuthzTxClient.msgGrantAllowance({
                 granter: address,

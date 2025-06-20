@@ -25,6 +25,7 @@ import Long from "long";
 
 import {
   AminoMsgBeginRedelegate,
+  AminoMsgCancelProposal,
   AminoMsgCreateValidator,
   AminoMsgDelegate,
   AminoMsgDeposit,
@@ -41,6 +42,7 @@ import {
   AminoMsgWithdrawValidatorCommission,
 } from "./aminomsgs";
 import { decodeBech32Pubkey, encodeBech32Pubkey } from "./encoding";
+import { MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 
 export interface AminoConverter {
   readonly aminoType: string;
@@ -267,8 +269,27 @@ function createDefaultTypes(prefix: string): Record<string, AminoConverter> {
       },
     },
 
-    // staking
+    // cancel proposal
+    "/cosmos.gov.v1.MsgCancelProposal": {
+      aminoType: "cosmos-sdk/MsgCancelProposal",
+      toAmino: ({
+        proposalId,
+        proposer,
+      }: MsgCancelProposal): AminoMsgCancelProposal["value"] => {
+        return {
+          proposalId: proposalId.toString(),
+          proposer: proposer,
+        };
+      },
+      fromAmino: ({ proposalId, proposer }: AminoMsgCancelProposal["value"]): MsgCancelProposal => {
+        return {
+          proposalId: BigInt(proposalId),
+          proposer: proposer,
+        };
+      }
+    },
 
+    // staking
     "/cosmos.staking.v1beta1.MsgBeginRedelegate": {
       aminoType: "cosmos-sdk/MsgBeginRedelegate",
       toAmino: ({

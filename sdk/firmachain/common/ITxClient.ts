@@ -72,4 +72,16 @@ export class ITxClient {
 
     return await this.broadcast(txRaw);
   }
+
+  public async signDirectForSignDocTxRaw(signerAddress: string, signDoc: SignDoc): Promise<TxRaw> {
+    const signatureResponse = await this.rawWallet.signDirect(signerAddress, signDoc);
+
+    const txRaw: TxRaw = TxRaw.fromPartial({
+      bodyBytes: signDoc.bodyBytes,
+      authInfoBytes: signDoc.authInfoBytes,
+      signatures: [fromBase64(signatureResponse.signature.signature)],
+    });
+
+    return txRaw;
+  }
 }

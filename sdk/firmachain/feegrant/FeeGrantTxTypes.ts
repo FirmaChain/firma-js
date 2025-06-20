@@ -188,9 +188,11 @@ export const BasicAllowance = {
 };
 
 function toTimestamp(date: Date): Timestamp {
-    const seconds = date.getTime() / 1_000;
-    const nanos = (date.getTime() % 1_000) * 1_000_000;
-    return { seconds, nanos };
+    const millis = date.getTime();
+    return {
+        seconds: Math.floor(millis / 1000),
+        nanos: (millis % 1000) * 1_000_000,
+    };
 }
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined | Long;

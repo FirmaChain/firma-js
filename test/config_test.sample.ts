@@ -1,4 +1,4 @@
-import { FirmaConfig } from "../sdk/FirmaConfig"
+import { FirmaConfig } from '../sdk/FirmaConfig'
 
 export let TestChainConfig: FirmaConfig = FirmaConfig.TestNetConfig;
 

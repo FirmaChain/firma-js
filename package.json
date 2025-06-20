@@ -1,6 +1,6 @@
 {
   "name": "@firmachain/firma-js",
-  "version": "0.2.64",
+  "version": "0.3.0",
   "description": "The Official FirmaChain Javascript SDK written in Typescript",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -36,6 +36,7 @@
     "@cosmjs/proto-signing": "0.33.1",
     "@cosmjs/stargate": "0.33.1",
     "@cosmjs/tendermint-rpc": "0.33.1",
+    "@kintsugi-tech/cosmjs-types": "^0.10.0",
     "@tharsis/address-converter": "0.1.8",
     "@types/pako": "2.0.0",
     "axios": "0.27.2",
