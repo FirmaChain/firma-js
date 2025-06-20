@@ -125,6 +125,11 @@
   dependencies:
     "@cspotcode/source-map-consumer" "0.8.0"
 
+"@kintsugi-tech/cosmjs-types@^0.10.0":
+  "integrity" "sha512-+unSRABrrulxIQpaI6GZ3P3vl2GSQneC8i+b5CX5Ld3FOdDKgJ+whWlr+YY9NbfVPqt5SlzU8ld37UO+cvbH/A=="
+  "resolved" "https://registry.npmjs.org/@kintsugi-tech/cosmjs-types/-/cosmjs-types-0.10.0.tgz"
+  "version" "0.10.0"
+
 "@noble/hashes@^1":
   "integrity" "sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A=="
   "resolved" "https://registry.npmjs.org/@noble/hashes/-/hashes-1.8.0.tgz"

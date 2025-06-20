@@ -36,6 +36,7 @@
     "@cosmjs/proto-signing": "0.33.1",
     "@cosmjs/stargate": "0.33.1",
     "@cosmjs/tendermint-rpc": "0.33.1",
+    "@kintsugi-tech/cosmjs-types": "^0.10.0",
     "@tharsis/address-converter": "0.1.8",
     "@types/pako": "2.0.0",
     "axios": "0.27.2",

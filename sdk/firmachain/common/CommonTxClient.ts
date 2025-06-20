@@ -4,6 +4,8 @@ import { MsgFundCommunityPool, MsgSetWithdrawAddress, MsgWithdrawDelegatorReward
 import { MsgDeposit, MsgSubmitProposal, MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { MsgBeginRedelegate, MsgCreateValidator, MsgDelegate, MsgEditValidator, MsgUndelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 import { MsgStoreCode, MsgInstantiateContract, MsgExecuteContract, MsgUpdateAdmin, MsgClearAdmin, MsgMigrateContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
+import { MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
+
 import { FirmaWalletService } from "../../FirmaWalletService";
 import { MsgExec, MsgGrant, MsgRevoke } from "../authz/AuthzTxTypes";
 import { MsgCreateContractFile, MsgAddContractLog } from "../contract/ContractTxTypes";
@@ -11,6 +13,7 @@ import { MsgGrantAllowance, MsgRevokeAllowance } from "../feegrant/FeeGrantTxTyp
 import { MsgTransfer, MsgMint, MsgBurn } from "../nft/NftTxTypes";
 import { MsgCreateToken, MsgUpdateTokenURI } from "../token/TokenTxTypes";
 import { ITxClient } from "./ITxClient";
+
 
 const types = [
     ["/cosmos.authz.v1beta1.MsgExec", MsgExec],
@@ -42,6 +45,7 @@ const types = [
     ["/cosmos.gov.v1beta1.MsgDeposit", MsgDeposit],
     ["/cosmos.gov.v1beta1.MsgSubmitProposal", MsgSubmitProposal],
     ["/cosmos.gov.v1beta1.MsgVote", MsgVote],
+    ["/cosmos.gov.v1.MsgCancelProposal", MsgCancelProposal],
 
     ["/ibc.applications.transfer.v1.MsgTransfer", MsgTransfer],
 

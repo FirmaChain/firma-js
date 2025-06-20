@@ -1,18 +1,38 @@
 import { expect } from 'chai';
-import Long from 'long';
+
 import { VotingOption } from '../sdk/firmachain/common';
 import { FirmaSDK } from "../sdk/FirmaSDK"
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
+import { FirmaWalletService } from '../sdk/FirmaWalletService';
 
 // If test it, the properties of the chain change, so skip it.
 
-describe.skip('[16. Gov Tx Test]', () => {
+describe('[16. Gov Tx Test]', () => {
 
 	let firma: FirmaSDK;
 
-	beforeEach(function() {
+	let aliceWallet: FirmaWalletService;
+	let aliceAddress: string;
+
+	const extractValue = (events: readonly any[], eventType: string, attrKey: string) => {
+		for (const event of events) {
+			if (event.type === eventType) {
+				for (const attr of event.attributes) {
+					if (attr.key === attrKey) {
+						return attr.value;
+					}
+				}
+			}
+		}
+		return "";
+	};
+
+	beforeEach(async function() {
 		firma = new FirmaSDK(TestChainConfig);
-	})
+
+		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		aliceAddress = await aliceWallet.getAddress();
+	});
 
 	// Test order
 	// 1. submitProposal
@@ -118,7 +138,7 @@ For a more detailed upgrade guide, please visit https://github.com/FirmaChain/ma
 		expect(result.code).to.equal(0);
 	});
 
-	it('SubmitCancelSoftwareUpgradeProposal Test', async () => {
+	it.skip('SubmitCancelSoftwareUpgradeProposal Test', async () => {
 
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
@@ -130,6 +150,47 @@ For a more detailed upgrade guide, please visit https://github.com/FirmaChain/ma
 
 		console.log(result);
 		expect(result.code).to.equal(0);
+	});
+
+	it.only('SubmitTextProposal & CancelProposal Test', async () => {
+
+		
+
+		const initialDeposit = 5000;
+		const title = "CancelProposal test proposal";
+		const description = "This is a Text & CancelProposal";
+
+		let aliceAmount = await firma.Bank.getBalance(aliceAddress);
+		console.log(`Gov Prev amount: ${aliceAmount}`);
+		const governanceCancelFeeFoundationAddress = "firma1kvlelvv6u7h4jasqlpu956czt4543xqzc37h2v";
+		let foundationAmount = await firma.Bank.getBalance(governanceCancelFeeFoundationAddress);
+		console.log(`Gov Prev FoundationAmount: ${foundationAmount}`);
+
+		// Submit TextProposal
+		let gas = await firma.Gov.getGasEstimationSubmitTextProposal(aliceWallet, title, description, initialDeposit);
+		let fee = Math.ceil(gas * 0.1);
+
+		let result = await firma.Gov.submitTextProposal(aliceWallet, title, description, initialDeposit, { gas, fee});
+		const proposal_id = extractValue(result.events, "submit_proposal", "proposal_id");
+		console.log(`Proposal ID: ${proposal_id}`);
+		expect(result.code).to.be.equal(0);
+
+		aliceAmount = await firma.Bank.getBalance(aliceAddress);
+		console.log(`Gov After amount: ${aliceAmount}`);
+
+		// CancelProposal
+		gas = await firma.Gov.getGasEstimationCancelProposal(aliceWallet, proposal_id);
+		fee = Math.ceil(gas * 0.1);
+
+		result = await firma.Gov.cancelProposal(aliceWallet, proposal_id);
+		
+		aliceAmount = await firma.Bank.getBalance(aliceAddress);
+		console.log(`Cancel After amount: ${aliceAmount}`);
+		
+		foundationAmount = await firma.Bank.getBalance(governanceCancelFeeFoundationAddress);
+		console.log(`Cancel After FoundationAmount: ${foundationAmount}`);
+
+		expect(result.code).to.be.equal(0);
 	});
 
 	// NOTICE: time-based upgrades have been deprecated in the SDK: invalid request

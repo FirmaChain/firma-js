@@ -1,4 +1,5 @@
 import { EncodeObject, GeneratedType } from "@cosmjs/proto-signing";
+
 import {
   MsgDeposit as V1MsgDeposit,
   MsgSubmitProposal as V1MsgSubmitProposal,
@@ -7,6 +8,7 @@ import {
   MsgVoteWeighted as V1MsgVoteWeighted,
 } from "cosmjs-types/cosmos/gov/v1/tx";
 import { MsgDeposit, MsgSubmitProposal, MsgVote, MsgVoteWeighted } from "cosmjs-types/cosmos/gov/v1beta1/tx";
+import { MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 
 export const govTypes: ReadonlyArray<[string, GeneratedType]> = [
   ["/cosmos.gov.v1.MsgDeposit", V1MsgDeposit],
@@ -19,6 +21,7 @@ export const govTypes: ReadonlyArray<[string, GeneratedType]> = [
   ["/cosmos.gov.v1beta1.MsgSubmitProposal", MsgSubmitProposal],
   ["/cosmos.gov.v1beta1.MsgVote", MsgVote],
   ["/cosmos.gov.v1beta1.MsgVoteWeighted", MsgVoteWeighted],
+  ["/cosmos.gov.v1.MsgCancelProposal", MsgCancelProposal as GeneratedType], // Temporary type casting
 ];
 
 // There are no EncodeObject implementations for the new v1 message types because
@@ -66,4 +69,13 @@ export interface MsgVoteWeightedEncodeObject extends EncodeObject {
 
 export function isMsgVoteWeightedEncodeObject(object: EncodeObject): object is MsgVoteWeightedEncodeObject {
   return (object as MsgVoteWeightedEncodeObject).typeUrl === "/cosmos.gov.v1beta1.MsgVoteWeighted";
+}
+
+export interface MsgCancelProposalEncodeObject extends EncodeObject {
+  readonly typeUrl: "/cosmos.gov.v1.MsgCancelProposal";
+  readonly value: Partial<MsgCancelProposal>;
+}
+
+export function isMsgCancelProposalEncodeObject(object: EncodeObject): object is MsgCancelProposalEncodeObject {
+  return (object as MsgCancelProposalEncodeObject).typeUrl === "/cosmos.gov.v1.MsgCancelProposal";
 }
