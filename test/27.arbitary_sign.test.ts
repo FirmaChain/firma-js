@@ -65,10 +65,10 @@ describe('[27. arbitary sign]', () => {
 		const txRaw = await commonTxClient.signDirectForSignDocTxRaw(aliceAddress, signDoc);
 		
 		// 3. Verify the signature against the original signDoc
-    const signatureBase64 = FirmaUtil.arrayBufferToBase64(txRaw.signatures[0]);
+		const signatureBase64 = FirmaUtil.arrayBufferToBase64(txRaw.signatures[0]);
 
-    const valid = await FirmaUtil.verifyDirectSignature(aliceAddress, signatureBase64, signDoc);
-    expect(valid).to.be.equal(true);
+		const valid = await FirmaUtil.verifyDirectSignature(aliceAddress, signatureBase64, signDoc);
+		expect(valid).to.be.equal(true);
 	});
 
 	it('direct sign & verify & send basic test', async () => {

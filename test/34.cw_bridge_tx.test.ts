@@ -72,7 +72,7 @@ describe('[34. Bridge tx Test]', () => {
 
 		const testData = JSON.stringify({
 			owner: admin,
-      cw721_address: cw721ContractAddress
+			cw721_address: cw721ContractAddress
 		});
 
 		const result = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: gas, fee: fee });
