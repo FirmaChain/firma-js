@@ -1,13 +1,11 @@
-import { FirmaSDK } from "../sdk/FirmaSDK"
-
+import fs from 'fs';
 import { expect } from 'chai';
-import { aliceMnemonic, bobMnemonic, TestChainConfig } from "./config_test";
-import { FirmaWalletService } from "../sdk/FirmaWalletService";
-import { Expires } from "../sdk/FirmaCosmWasmCw20";
-import { FirmaUtil } from "../sdk/FirmaUtil";
-
-import fs from "fs";
-import { AccessConfig, AccessType } from "../sdk/FirmaCosmWasmService";
+import { FirmaSDK } from '../sdk/FirmaSDK'
+import { FirmaWalletService } from '../sdk/FirmaWalletService';
+import { Expires } from '../sdk/FirmaCosmWasmCw20';
+import { FirmaUtil } from '../sdk/FirmaUtil';
+import { AccessConfig, AccessType } from '../sdk/FirmaCosmWasmService';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[32. cw721 tx Test]', () => {
 

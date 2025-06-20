@@ -1,12 +1,11 @@
-import { FirmaSDK } from "../sdk/FirmaSDK"
 
+import fs from 'fs';
 import { expect } from 'chai';
-import fs from "fs";
-
-import { aliceMnemonic, bobMnemonic, TestChainConfig } from "./config_test";
-import { FirmaWalletService } from "../sdk/FirmaWalletService";
-import { FirmaUtil } from "../sdk/FirmaUtil";
-import { AccessConfig, AccessType } from "../sdk/FirmaCosmWasmService";
+import { FirmaSDK } from '../sdk/FirmaSDK';
+import { FirmaWalletService } from '../sdk/FirmaWalletService';
+import { FirmaUtil } from '../sdk/FirmaUtil';
+import { AccessConfig, AccessType } from '../sdk/FirmaCosmWasmService';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[34. Bridge tx Test]', () => {
 

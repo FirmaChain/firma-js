@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { FirmaSDK } from "../sdk/FirmaSDK"
+import { FirmaSDK } from '../sdk/FirmaSDK';
 import { TestChainConfig } from './config_test';
 
 describe('[09. IPFS Test]', () => {

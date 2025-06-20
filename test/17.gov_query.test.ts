@@ -1,5 +1,5 @@
 import { ProposalStatus } from '../sdk/firmachain/gov';
-import { FirmaSDK } from "../sdk/FirmaSDK"
+import { FirmaSDK } from '../sdk/FirmaSDK';
 import { TestChainConfig } from './config_test';
 
 describe('[17. Gov Query Test]', () => {

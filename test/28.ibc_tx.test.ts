@@ -1,7 +1,7 @@
 import { Height } from 'cosmjs-types/ibc/core/client/v1/client';
-import { FirmaSDK } from "../sdk/FirmaSDK"
+import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaUtil } from '../sdk/FirmaUtil';
-import { aliceMnemonic, TestChainConfig } from "./config_test";
+import { aliceMnemonic, TestChainConfig } from './config_test';
 
 describe('[28. IBC Tx Test]', () => {
 

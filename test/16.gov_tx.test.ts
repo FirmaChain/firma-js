@@ -1,9 +1,8 @@
 import { expect } from 'chai';
-
 import { VotingOption } from '../sdk/firmachain/common';
-import { FirmaSDK } from "../sdk/FirmaSDK"
-import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
+import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 // If test it, the properties of the chain change, so skip it.
 

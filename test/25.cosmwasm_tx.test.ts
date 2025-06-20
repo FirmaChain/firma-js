@@ -1,8 +1,7 @@
+import fs from 'fs';
 import { expect } from 'chai';
-import { FirmaSDK } from "../sdk/FirmaSDK"
+import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaUtil } from '../sdk/FirmaUtil';
-
-import fs from "fs";
 import { Coin } from '@cosmjs/proto-signing';
 import { AccessConfig, AccessType } from '../sdk/FirmaCosmWasmService';
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';

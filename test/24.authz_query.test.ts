@@ -1,5 +1,5 @@
 import { AuthorizationType } from '../sdk/firmachain/authz/AuthzTxTypes';
-import { FirmaSDK } from "../sdk/FirmaSDK"
+import { FirmaSDK } from '../sdk/FirmaSDK';
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[24. Authz query Test]', () => {

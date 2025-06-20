@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { FirmaSDK } from "../sdk/FirmaSDK"
+import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { aliceMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
 
@@ -62,8 +62,7 @@ describe('[12. Staking Tx Test]', () => {
 		expect(result.code).to.equal(0);
 
 		// NOTICE: there's a case for use more than 200000 gas here.
-		let result1 = await firma.Staking.redelegate(wallet, srcValidatorAddress, dstValidatorAddress, amount,
-			{ gas: 300000, fee: 30000 });
+		let result1 = await firma.Staking.redelegate(wallet, srcValidatorAddress, dstValidatorAddress, amount, { gas: 300000, fee: 30000 });
 
 		expect(result1.code).to.equal(0);
 	});

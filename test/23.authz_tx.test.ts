@@ -3,7 +3,7 @@ import { AuthorizationType } from '../sdk/firmachain/authz';
 import { BankTxClient } from '../sdk/firmachain/bank';
 import { DistributionTxClient } from '../sdk/firmachain/distribution';
 import { StakingTxClient } from '../sdk/firmachain/staking';
-import { FirmaSDK } from "../sdk/FirmaSDK"
+import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 

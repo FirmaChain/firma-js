@@ -1,6 +1,6 @@
-import { FirmaSDK } from "../sdk/FirmaSDK"
-import { FirmaWalletService } from "../sdk/FirmaWalletService";
-import { aliceMnemonic, bobMnemonic, TestChainConfig } from "./config_test";
+import { FirmaSDK } from '../sdk/FirmaSDK';
+import { FirmaWalletService } from '../sdk/FirmaWalletService';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[31. cw20 query Test]', () => {
 
