@@ -1,4 +1,4 @@
-import { FirmaSDK } from "../sdk/FirmaSDK"
+import { FirmaSDK } from '../sdk/FirmaSDK';
 import { TestChainConfig } from './config_test';
 
 describe('[19. chain Test]', () => {

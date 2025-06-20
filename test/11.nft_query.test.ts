@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { FirmaSDK } from "../sdk/FirmaSDK"
+import { FirmaSDK } from '../sdk/FirmaSDK';
 import { NftItemType } from '../sdk/firmachain/nft';
 import { aliceMnemonic, TestChainConfig } from './config_test';
 

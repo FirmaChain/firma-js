@@ -1,7 +1,8 @@
 import { expect } from 'chai';
-import { FirmaSDK } from "../sdk/FirmaSDK"
-import { FirmaUtil } from "../sdk/FirmaUtil"
+import { FirmaSDK } from '../sdk/FirmaSDK';
+import { FirmaUtil } from '../sdk/FirmaUtil';
 import { ContractFileType, ContractLogType } from '../sdk/firmachain/contract';
+
 import { TestChainConfig } from './config_test';
 
 describe('[02. Contract Query Test]', () => {

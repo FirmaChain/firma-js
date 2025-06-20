@@ -1,7 +1,7 @@
-import { FirmaSDK } from "../sdk/FirmaSDK"
+import { FirmaSDK } from '../sdk/FirmaSDK'
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { VotingOption } from '../sdk/firmachain/common';
-import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from "./config_test";
+import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
 
 describe('[08. Gas Estimation Test]', () => {
 

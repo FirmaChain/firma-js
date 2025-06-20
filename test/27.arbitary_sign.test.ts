@@ -1,10 +1,9 @@
 import { expect } from 'chai';
-import { FirmaSDK } from "../sdk/FirmaSDK"
+import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaUtil } from '../sdk/FirmaUtil';
-import { aliceMnemonic, bobMnemonic, TestChainConfig } from "./config_test";
-
 import { BankTxClient } from '../sdk/firmachain/bank';
 import { ArbitraryVerifyData } from '../sdk/firmachain/common/signingstargateclient';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[27. arbitary sign]', () => {
 

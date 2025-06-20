@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { FirmaSDK } from "../sdk/FirmaSDK"
-import { FirmaUtil } from "../sdk/FirmaUtil"
+import { FirmaSDK } from '../sdk/FirmaSDK';
+import { FirmaUtil } from '../sdk/FirmaUtil';
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[03. Contract scenario base test]', () => {

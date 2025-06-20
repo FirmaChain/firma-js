@@ -1,8 +1,7 @@
-import { FirmaSDK } from "../sdk/FirmaSDK"
-
 import { expect } from 'chai';
-import { aliceMnemonic, bobMnemonic, TestChainConfig } from "./config_test";
-import { FirmaWalletService } from "../sdk/FirmaWalletService";
+import { FirmaSDK } from '../sdk/FirmaSDK';
+import { FirmaWalletService } from '../sdk/FirmaWalletService';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[35. Bridge tx low Test]', () => {
 

@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import { NftTxClient } from '../sdk/firmachain/nft';
-import { FirmaSDK } from "../sdk/FirmaSDK"
-
+import { FirmaSDK } from '../sdk/FirmaSDK';
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[10. NFT Tx Test]', () => {
