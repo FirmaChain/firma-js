@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { FirmaSDK } from '../sdk/FirmaSDK';
-import { FirmaUtil } from '../sdk/FirmaUtil';
+import { FirmaSDK } from "../sdk/FirmaSDK"
+import { FirmaUtil } from "../sdk/FirmaUtil"
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[03. Contract scenario base test]', () => {
@@ -18,7 +18,7 @@ describe('[03. Contract scenario base test]', () => {
 	const signer3Mnemonic = "stock vapor planet van asthma upgrade scheme fuel cushion before brief knee kick lesson gun spatial protect danger they stem stay chunk critic cram";
 	const signer4Mnemonic = "tomorrow hospital bottom lucky insane play concert casual truly certain antique airport safe envelope relax matter cute zone boring calm pudding eyebrow mouse spawn";
 	
-	const contractHash = "0xtestcontract" + Math.round(+new Date() / 1000);
+	const contractHash = "0xtestcontract" + Math.round(+new Date() / 1000);	
 
 	it('CreateContract add', async () => {
 
@@ -88,7 +88,6 @@ describe('[03. Contract scenario base test]', () => {
 		let msgArray = [msg1, msg2, msg3, msg4, msg1, msg2, msg3, msg4, msg1];
 
 		let gas = await firma.Contract.getGasEstimationSignAndBroadcast(donueWallet, msgArray);
-		//console.log(gas);
 
 		let fee = Math.ceil(gas * 0.1);
 
@@ -165,7 +164,6 @@ describe('[03. Contract scenario base test]', () => {
 
 		var result = await firma.Contract.addContractLog(donueWallet, contractHash, timeStamp, eventName, ownerAddress1, jsonString);
 		expect(result.code).equal(0);
-
 	});
 
 	it('DestroyContract - after reject, destroy contract', async () => {
@@ -182,7 +180,6 @@ describe('[03. Contract scenario base test]', () => {
 
 		var result = await firma.Contract.addContractLog(donueWallet, contractHash, timeStamp, eventName, creatorAddress, jsonString);
 		expect(result.code).equal(0);
-
 	});
 
 	it('CompleteContract - all user complte sign and make fileHash, write to chain', async () => {
@@ -199,7 +196,6 @@ describe('[03. Contract scenario base test]', () => {
 
 		var result = await firma.Contract.addContractLog(donueWallet, contractHash, timeStamp, eventName, creatorAddress, jsonString);
 		expect(result.code).equal(0);
-
 	});
 
 	it('CryptoJS.AES.encrypt Test - after CompleteContract, encrypt fileHash by signer private key', async () => {
@@ -227,7 +223,6 @@ describe('[03. Contract scenario base test]', () => {
 		encryptHash = signer4Wallet.encryptData(ipfsFileHash);
 		decryptHash = signer4Wallet.decryptData(encryptHash);
 		expect(ipfsFileHash).equal(decryptHash);
-
 	});
 
 	it('createContractFile - CompleteContract, after private sign, write to chain by new message', async () => {
@@ -247,8 +242,6 @@ describe('[03. Contract scenario base test]', () => {
 		let timeStamp = Math.round(+new Date() / 1000);;
 		let fileHash = await FirmaUtil.getFileHash("./test/sample/sample_contract.pdf") + timeStamp;
 
-		//console.log("fileHash : " + fileHash);
-
 		let ipfsHash = await firma.Ipfs.addJson(fileHash);
 
 		let encryptHash1 = signer1Wallet.encryptData(ipfsHash);
@@ -259,7 +252,7 @@ describe('[03. Contract scenario base test]', () => {
 		var jsonData = {
 			"storage": "ipfs",
 			"encryptIpfsHash": [encryptHash1, encryptHash2, encryptHash3, encryptHash4]
-		}
+		};
 
 		let jsonString = JSON.stringify(jsonData);
 
@@ -279,8 +272,6 @@ describe('[03. Contract scenario base test]', () => {
 		expect(decryptHash3).equal(ipfsHash);
 		let decryptHash4 = signer4Wallet.decryptData(metaData.encryptIpfsHash[3]);
 		expect(decryptHash4).equal(ipfsHash);
-
-		//console.log("contract file url:" + firma.Ipfs.getURLFromHash(decryptHash1));
 	});
 
 	it('createContractFile - CompleteContract, after private sign, write to chain by new message. error scenario (duplicate)', async () => {
@@ -321,7 +312,7 @@ describe('[03. Contract scenario base test]', () => {
 			expect(contractFile.fileHash).equal(fileHash);
 		}
 		catch (e) {
-
+			expect(true).to.be.equal(false);
 		}
 	});
 });

@@ -7,40 +7,20 @@ describe('[19. chain Test]', () => {
 
 	beforeEach(function() {
 		firma = new FirmaSDK(TestChainConfig);
-	})
+	});
 
 	it('getChainStatus test', async () => {
 		const result = await firma.BlockChain.getChainSyncInfo();
-		//console.log(result);
-	})
+	});
 
+	// This test requires a meaningful transaction hash, so it is skipped by default.
 	it.skip('getTransactionByHash test', async () => {
 		const txHash = "0x5DA9D094D15660D21947C9EEF1329CCB70117E7BCD3A451F27E5C7AFF5DB6DF0";
 		const result = await firma.BlockChain.getTransactionByHash(txHash);
-
-		//console.log(result);
-		//console.log(result.tx_result.events[0]);
-
-		// base64 decode to utf8
-		//const key = Buffer.from(result.tx_result.events[0].attributes[0].key, "base64");
-		//const value = Buffer.from(result.tx_result.events[0].attributes[0].value, "base64");
-
-		// key: spender
-		// value: firma1jmg3kwy5hntx66nl93dyk2d92943394qsf6gcf
-		//console.log("key: " + key);
-		//console.log("value: " + value);
-	})
+	});
 
 	it('getChainInfo test', async () => {
 		const result = await firma.BlockChain.getChainInfo();
-		//console.log(result);
-		/*
-		{
-		chainId: 'imperium-4',
-		appVersion: '0.3.5-beta3-1-g4a1ba1c',
-		cosmosVersion: 'v0.45.9'
-		}
-		*/
 
-	})
+	});
 });

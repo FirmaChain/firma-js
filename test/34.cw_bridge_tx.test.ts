@@ -57,9 +57,8 @@ describe('[34. Bridge tx Test]', () => {
 		};
 		//const onlyAddressAccessConfig: AccessConfig = { permission: AccessType.ACCESS_TYPE_ONLY_ADDRESS, address: aliceAddress };
 
-		var result = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: gas, fee: fee });
+		const result = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: gas, fee: fee });
 		codeId = extractValue(result.events, "store_code", "code_id");
-
 		expect(result.code).to.be.equal(0);
 	});
 
@@ -78,7 +77,6 @@ describe('[34. Bridge tx Test]', () => {
 
 		const result = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: gas, fee: fee });
 		bridgeContractAddress = extractValue(result.events, "instantiate", "_contract_address");
-
 		expect(result.code).to.be.equal(0);
 	});
 
@@ -92,7 +90,6 @@ describe('[34. Bridge tx Test]', () => {
 		const fee = Math.ceil(gas * 0.1);
 
 		const result = await firma.Cw721.mint(aliceWallet, cw721ContractAddress, owner, new_token_id, new_token_uri, { gas: gas, fee: fee });
-
 		expect(result.code).to.be.equal(0);
 	});
 
@@ -103,11 +100,8 @@ describe('[34. Bridge tx Test]', () => {
 		const gas = await firma.CwBridge.getGasEstimationAddAuthorizedUser(aliceWallet, bridgeContractAddress, user);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.CwBridge.addAuthorizedUser(aliceWallet, bridgeContractAddress, user, { gas: gas, fee: fee });
+		const result = await firma.CwBridge.addAuthorizedUser(aliceWallet, bridgeContractAddress, user, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.CwBridge.getAuthorizedUsers(bridgeContractAddress);
-		console.log(data);
 	});
 
 	it('Cw bridge remove_authorized_user', async () => {
@@ -117,11 +111,8 @@ describe('[34. Bridge tx Test]', () => {
 		const gas = await firma.CwBridge.getGasEstimationRemoveAuthorizedUser(aliceWallet, bridgeContractAddress, user);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.CwBridge.removeAuthorizedUser(aliceWallet, bridgeContractAddress, user, { gas: gas, fee: fee });
+		const result = await firma.CwBridge.removeAuthorizedUser(aliceWallet, bridgeContractAddress, user, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.CwBridge.getAuthorizedUsers(bridgeContractAddress);
-		console.log(data);
 	});
 
 	it('Cw bridge lock', async () => {
@@ -131,11 +122,8 @@ describe('[34. Bridge tx Test]', () => {
 		const gas = await firma.CwBridge.getGasEstimationLock(aliceWallet, bridgeContractAddress, cw721ContractAddress, token_id);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.CwBridge.lock(aliceWallet, bridgeContractAddress, cw721ContractAddress, token_id, { gas: gas, fee: fee });
+		const result = await firma.CwBridge.lock(aliceWallet, bridgeContractAddress, cw721ContractAddress, token_id, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.Cw721.getNftData(cw721ContractAddress, token_id);
-		console.log(data);
 	});
 
 	it('cw bridge lock bulk', async () => {
@@ -149,11 +137,8 @@ describe('[34. Bridge tx Test]', () => {
 		const gas = await firma.CwBridge.getGasEstimationSignAndBroadcast(aliceWallet, [tx1, tx2]);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.CwBridge.signAndBroadcast(aliceWallet, [tx1, tx2], { gas: gas, fee: fee });
+		const result = await firma.CwBridge.signAndBroadcast(aliceWallet, [tx1, tx2], { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.Cw721.getNFTIdListOfOwner(cw721ContractAddress, aliceAddress);
-		console.log(data);
 	});
 
 	it('Cw bridge unlock', async () => {
@@ -163,11 +148,8 @@ describe('[34. Bridge tx Test]', () => {
 		const gas = await firma.CwBridge.getGasEstimationUnlock(aliceWallet, bridgeContractAddress, token_id);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.CwBridge.unlock(aliceWallet, bridgeContractAddress, token_id, { gas: gas, fee: fee });
+		const result = await firma.CwBridge.unlock(aliceWallet, bridgeContractAddress, token_id, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.Cw721.getNftData(cw721ContractAddress, token_id);
-		console.log(data);
 	});
 
 	it('Cw bridge unlock bulk', async () => {
@@ -181,11 +163,8 @@ describe('[34. Bridge tx Test]', () => {
 		const gas = await firma.CwBridge.getGasEstimationSignAndBroadcast(aliceWallet, [tx1, tx2]);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.CwBridge.signAndBroadcast(aliceWallet, [tx1, tx2], { gas: gas, fee: fee });
+		const result = await firma.CwBridge.signAndBroadcast(aliceWallet, [tx1, tx2], { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.Cw721.getNFTIdListOfOwner(cw721ContractAddress, aliceAddress);
-		console.log(data);
 	});
 
 	it('Cw bridge deposit', async () => {
@@ -195,11 +174,8 @@ describe('[34. Bridge tx Test]', () => {
 		const gas = await firma.CwBridge.getGasEstimationDeposit(aliceWallet, bridgeContractAddress, cw721ContractAddress, token_id, bobAddress);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.CwBridge.deposit(aliceWallet, bridgeContractAddress, cw721ContractAddress, token_id, bobAddress, { gas: gas, fee: fee });
+		const result = await firma.CwBridge.deposit(aliceWallet, bridgeContractAddress, cw721ContractAddress, token_id, bobAddress, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.Cw721.getNftData(cw721ContractAddress, token_id);
-		console.log(data);
 	});
 
 	it('Cw bridge deposit bulk', async () => {
@@ -213,11 +189,8 @@ describe('[34. Bridge tx Test]', () => {
 		const gas = await firma.CwBridge.getGasEstimationSignAndBroadcast(aliceWallet, [tx1, tx2]);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.CwBridge.signAndBroadcast(aliceWallet, [tx1, tx2], { gas: gas, fee: fee });
+		const result = await firma.CwBridge.signAndBroadcast(aliceWallet, [tx1, tx2], { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.Cw721.getNFTIdListOfOwner(cw721ContractAddress, bobAddress);
-		console.log(data);
 	});
 
 	it('Cw bridge withdraw', async () => {
@@ -227,11 +200,8 @@ describe('[34. Bridge tx Test]', () => {
 		const gas = await firma.CwBridge.getGasEstimationWithdraw(bobWallet, bridgeContractAddress, token_id);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.CwBridge.withdraw(bobWallet, bridgeContractAddress, token_id, { gas: gas, fee: fee });
+		const result = await firma.CwBridge.withdraw(bobWallet, bridgeContractAddress, token_id, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.Cw721.getNftData(cw721ContractAddress, token_id);
-		console.log(data);
 	});
 
 	it('Cw bridge withdraw bulk', async () => {
@@ -245,11 +215,8 @@ describe('[34. Bridge tx Test]', () => {
 		const gas = await firma.CwBridge.getGasEstimationSignAndBroadcast(bobWallet, [tx1, tx2]);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.CwBridge.signAndBroadcast(bobWallet, [tx1, tx2], { gas: gas, fee: fee });
+		const result = await firma.CwBridge.signAndBroadcast(bobWallet, [tx1, tx2], { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.Cw721.getNFTIdListOfOwner(cw721ContractAddress, aliceAddress);
-		console.log(data);
 	});
 
 	it('Cw bridge chage_owner', async () => {
@@ -259,10 +226,7 @@ describe('[34. Bridge tx Test]', () => {
 		const gas = await firma.CwBridge.getGasEstimationChangeOwner(bobWallet, bridgeContractAddress, new_owner);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.CwBridge.changeOwner(bobWallet, bridgeContractAddress, new_owner, { gas: gas, fee: fee });
+		const result = await firma.CwBridge.changeOwner(bobWallet, bridgeContractAddress, new_owner, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.CwBridge.getOwner(bridgeContractAddress);
-		console.log(data);
 	});
 });

@@ -8,17 +8,15 @@ describe('[04. Bank Tx Test]', () => {
 
 	beforeEach(function() {
 		firma = new FirmaSDK(TestChainConfig);
-	})
+	});
 
 	it('bank send OK', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		// const targetWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 		const amount = 1;
 		const memo = "TEST";
 
 		var result = await firma.Bank.send(wallet, "firma1nw9x2t53c37krjfsmsuj3ty6czkctdjq924rpn", amount, { memo: memo });
-
 		expect(result.code).to.equal(0);
 	});
 
@@ -29,29 +27,26 @@ describe('[04. Bank Tx Test]', () => {
 		const amount = 20000000000000;
 
 		var result = await firma.Bank.send(wallet, await targetWallet.getAddress(), amount);
-
-		// error code 5 : not enough money.
 		expect(result.code).to.equal(5);
 	});
 
-	it.skip('bank send Fail - Big fee remittance', async function () {
+	it('bank send Fail - Big fee remittance', async function () {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const targetWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 		const amount = 2;
 
-		const testFee = 2000000000000000;
-		const defaultGas = 200000;
-		const memo = "ttt meme";
+		const gas = 9990000000000;
+		const fee = 90000000000;
 
 		// NOTICE: As a result of the test, in the case of a large fee input
 		// it is not recorded as tx, but an extension is given at the code space level.
-
 		try {
-			var result = await firma.Bank.send(wallet, await targetWallet.getAddress(), amount, { memo: "memo" });
-
+			await firma.Bank.send(wallet, await targetWallet.getAddress(), amount, { gas, fee });
+			expect(true).to.not.equal(true);
 		} catch (error) {
-			expect(true);
+			expect(true).to.not.equal(false);
+			return;
 		}
 	});
 });

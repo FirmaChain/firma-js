@@ -29,86 +29,64 @@ describe('[10. NFT Tx Test]', () => {
 
 	it('NFT Mint', async () => {
 
-		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		var result = await firma.Nft.mint(wallet, "https://naver.com");
-
-		// get nftId below code
-		const nftId = extractAllNftIds(result.events);
-		// console.log(nftId);
-		
+		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		var result = await firma.Nft.mint(aliceWallet, "https://naver.com");
 		expect(result.code).to.be.equal(0);
 	});
 
 	it('NFT Mint - BULK', async () => {
 
-		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
-		const tx1 = await firma.Nft.getUnsignedTxMint(wallet, "https://naver1.com" );
-		const tx2 = await firma.Nft.getUnsignedTxMint(wallet, "https://naver2.com" );
-		const tx3 = await firma.Nft.getUnsignedTxMint(wallet, "https://naver3.com" );
-		
+		const tx1 = await firma.Nft.getUnsignedTxMint(aliceWallet, "https://naver1.com" );
+		const tx2 = await firma.Nft.getUnsignedTxMint(aliceWallet, "https://naver2.com" );
+		const tx3 = await firma.Nft.getUnsignedTxMint(aliceWallet, "https://naver3.com" );
 		const txList = [tx1, tx2, tx3, tx1, tx2, tx3, tx1, tx2, tx3, tx1, tx2, tx3];
 
-		let gas = await firma.Nft.getGasEstimationFromEncodeObject(wallet, txList);
+		const gas = await firma.Nft.getGasEstimationFromEncodeObject(aliceWallet, txList);
 		const fee = Math.ceil(gas * 0.1);
-		console.log("gas :" + gas);
-		console.log("fee :" + fee);
 
-		var result = await firma.Nft.signAndBroadcast(wallet, txList, {gas: gas, fee: fee});
-
-		// get nftId below code
-		const nftIds = extractAllNftIds(result.events);
-		console.log(nftIds);
-
+		var result = await firma.Nft.signAndBroadcast(aliceWallet, txList, {gas: gas, fee: fee});
 		expect(result.code).to.be.equal(0);
 	});
 
 	it('NFT Mint - BULK low level', async () => {
 
-		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-
-		const address = await wallet.getAddress();
+		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const address = await aliceWallet.getAddress();
 
 		const tx1 = NftTxClient.msgMint({ owner: address, tokenURI: "https://naver1.com" });
 		const tx2 = NftTxClient.msgMint({ owner: address, tokenURI: "https://naver2.com" });
 		const tx3 = NftTxClient.msgMint({ owner: address, tokenURI: "https://naver3.com" });
-		
 		const txList = [tx1, tx2, tx3, tx1, tx2, tx3, tx1, tx2, tx3, tx1, tx2, tx3];
 
-		let gas = await firma.Nft.getGasEstimationFromEncodeObject(wallet, txList);
+		const gas = await firma.Nft.getGasEstimationFromEncodeObject(aliceWallet, txList);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.Nft.signAndBroadcast(wallet, txList, {gas: gas, fee: fee});
-
-		// get nftId below code
-		const nftIds = extractAllNftIds(result.events);
-		console.log(nftIds);
-
+		var result = await firma.Nft.signAndBroadcast(aliceWallet, txList, {gas: gas, fee: fee});
 		expect(result.code).to.be.equal(0);
 	});
 
 	it('NFT Transfer', async () => {
 
-		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		let targetWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
-		var result = await firma.Nft.mint(wallet, "https://naver.com");
-
+		var result = await firma.Nft.mint(aliceWallet, "https://naver.com");
 		const nftIds = extractAllNftIds(result.events);
 
-		var result = await firma.Nft.transfer(wallet, await targetWallet.getAddress(), nftIds[0]);
+		var result = await firma.Nft.transfer(aliceWallet, await targetWallet.getAddress(), nftIds[0]);
 		expect(result.code).to.be.equal(0);
-
 	});
 
 	it('NFT Burn', async () => {
 
-		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		var result = await firma.Nft.mint(wallet, "https://naver.com");
+		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		var result = await firma.Nft.mint(aliceWallet, "https://naver.com");
 
 		const nftIds = extractAllNftIds(result.events);
 
-		var result = await firma.Nft.burn(wallet, nftIds[0]);
+		var result = await firma.Nft.burn(aliceWallet, nftIds[0]);
 		expect(result.code).to.be.equal(0);
 	});
 });

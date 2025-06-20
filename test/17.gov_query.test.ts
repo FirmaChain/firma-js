@@ -13,15 +13,12 @@ describe('[17. Gov Query Test]', () => {
 	it('get getProposalList', async () => {
 
 		let proposalList = await firma.Gov.getProposalList();
-		//console.log(proposalList);
 	})
 
 	it('get getProposalListByStatus', async () => {
 
 		let status = ProposalStatus.PROPOSAL_STATUS_REJECTED;
 		let proposalList = await firma.Gov.getProposalListByStatus(status);
-
-		//console.log(proposalList);
 	})
 
 	it('get getProposal', async () => {
@@ -31,7 +28,6 @@ describe('[17. Gov Query Test]', () => {
 		if (proposalList.length > 0) {
 			const id = "1";
 			let proposal = await firma.Gov.getProposal(id);
-			//console.log(proposal);
 		}
 	})
 
@@ -39,7 +35,6 @@ describe('[17. Gov Query Test]', () => {
 	it('get params', async () => {
 
 		let param = await firma.Gov.getParam();
-		//console.log(param);
 	})
 
 	// current tally info
@@ -50,7 +45,6 @@ describe('[17. Gov Query Test]', () => {
 		if (proposalList.length > 0) {
 			const proposalId = "1";
 			let param = await firma.Gov.getCurrentVoteInfo(proposalId);
-			//	console.log(param);
 		}
 	})
 });

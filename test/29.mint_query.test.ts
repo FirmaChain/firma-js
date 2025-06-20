@@ -11,9 +11,6 @@ describe('[29. Mint Query Test]', () => {
 
 	it('Mint getInflation()', async () => {
 
-		var result = await firma.Mint.getInflation();
-		//console.log(result);
-		//expect(result).to.be.equal("0");
+		const result = await firma.Mint.getInflation();
 	});
-	
 });

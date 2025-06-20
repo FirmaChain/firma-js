@@ -89,6 +89,7 @@ describe('[16. Gov Tx Test]', () => {
 		expect(result.code).to.equal(0);
 	});
 
+	// This unit test needs specific option setup, so it’s skipped by default.
 	it.skip('SubmitSoftwareUpgradeProposalByHeight Test', async () => {
 
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
@@ -137,6 +138,7 @@ For a more detailed upgrade guide, please visit https://github.com/FirmaChain/ma
 		expect(result.code).to.equal(0);
 	});
 
+	// This unit test needs specific option setup, so it’s skipped by default.
 	it.skip('SubmitCancelSoftwareUpgradeProposal Test', async () => {
 
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
@@ -151,7 +153,7 @@ For a more detailed upgrade guide, please visit https://github.com/FirmaChain/ma
 		expect(result.code).to.equal(0);
 	});
 
-	it.only('SubmitTextProposal & CancelProposal Test', async () => {
+	it('SubmitTextProposal & CancelProposal Test', async () => {
 
 		
 

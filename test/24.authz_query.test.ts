@@ -15,16 +15,7 @@ describe('[24. Authz query Test]', () => {
 		const granter = await (await firma.Wallet.fromMnemonic(aliceMnemonic)).getAddress();
 		const grantee = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
-		let result = await firma.Authz.getSendGrantData(granter, grantee);
-
-		//console.log(result);
-
-		/*console.log(result.dataList[0].authorization['@type']);
-		console.log(result.dataList[0].authorization.spend_limit[0].denom);
-		console.log(result.dataList[0].authorization.spend_limit[0].amount);
-
-		let timeDate = Date.parse(result.dataList[0].expiration);
-		console.log(timeDate);*/
+		const result = await firma.Authz.getSendGrantData(granter, grantee);
 	});
 
 	it('Authz getGenericGrantData', async () => {
@@ -34,13 +25,7 @@ describe('[24. Authz query Test]', () => {
 
 		const msg = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward";
 
-		let result = (await firma.Authz.getGenericGrantData(granter, grantee, msg)).dataList;
-
-		/*console.log(result[0].authorization['@type']);
-		console.log(result[0].authorization.msg);
-
-		let timeDate = Date.parse(result[0].expiration);
-		console.log(timeDate);*/
+		const result = (await firma.Authz.getGenericGrantData(granter, grantee, msg)).dataList;
 	});
 
 	it('Authz getStakingGrantData - delegate', async () => {
@@ -48,17 +33,7 @@ describe('[24. Authz query Test]', () => {
 		const granter = await (await firma.Wallet.fromMnemonic(aliceMnemonic)).getAddress();
 		const grantee = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
-		let result = (await firma.Authz.getStakingGrantData(granter, grantee, AuthorizationType.AUTHORIZATION_TYPE_DELEGATE)).dataList;
-
-		/*console.log(result[0].authorization['@type']);
-		console.log(result[0].authorization.allow_list.address[0]);
-		console.log(result[0].authorization.authorization_type);
-
-		console.log(result[0].authorization.max_tokens.denom);
-		console.log(result[0].authorization.max_tokens.amount);
-		
-		let timeDate = Date.parse(result[0].expiration);
-		console.log(timeDate);*/
+		const result = (await firma.Authz.getStakingGrantData(granter, grantee, AuthorizationType.AUTHORIZATION_TYPE_DELEGATE)).dataList;
 	});
 
 	it('Authz getStakingGrantData - redelegate', async () => {
@@ -66,17 +41,7 @@ describe('[24. Authz query Test]', () => {
 		const granter = await (await firma.Wallet.fromMnemonic(aliceMnemonic)).getAddress();
 		const grantee = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
-		let result = (await firma.Authz.getStakingGrantData(granter, grantee, AuthorizationType.AUTHORIZATION_TYPE_REDELEGATE)).dataList;
-
-		/*console.log(result[0].authorization['@type']);
-		console.log(result[0].authorization.allow_list.address[0]);
-		console.log(result[0].authorization.authorization_type);
-
-		console.log(result[0].authorization.max_tokens.denom);
-		console.log(result[0].authorization.max_tokens.amount);
-		
-		let timeDate = Date.parse(result[0].expiration);
-		console.log(timeDate);*/
+		const result = (await firma.Authz.getStakingGrantData(granter, grantee, AuthorizationType.AUTHORIZATION_TYPE_REDELEGATE)).dataList;
 	});
 
 	it('Authz getStakingGrantData - undelegate', async () => {
@@ -84,16 +49,6 @@ describe('[24. Authz query Test]', () => {
 		const granter = await (await firma.Wallet.fromMnemonic(aliceMnemonic)).getAddress();
 		const grantee = await (await firma.Wallet.fromMnemonic(bobMnemonic)).getAddress();
 
-		let result = (await firma.Authz.getStakingGrantData(granter, grantee, AuthorizationType.AUTHORIZATION_TYPE_UNDELEGATE)).dataList;
-
-		/*console.log(result[0].authorization['@type']);
-		console.log(result[0].authorization.allow_list.address[0]);
-		console.log(result[0].authorization.authorization_type);
-
-		console.log(result[0].authorization.max_tokens.denom);
-		console.log(result[0].authorization.max_tokens.amount);
-		
-		let timeDate = Date.parse(result[0].expiration);
-		console.log(timeDate);*/
+		const result = (await firma.Authz.getStakingGrantData(granter, grantee, AuthorizationType.AUTHORIZATION_TYPE_UNDELEGATE)).dataList;
 	});
 });

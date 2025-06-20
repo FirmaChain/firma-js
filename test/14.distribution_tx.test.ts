@@ -17,7 +17,7 @@ describe('[14. Distribution Tx Test]', () => {
 		const delegationList = (await firma.Staking.getTotalDelegationInfo(await wallet.getAddress())).dataList;
 		const validatorAddress = delegationList[0].delegation.validator_address;
 
-		var result = await firma.Distribution.withdrawAllRewards(wallet, validatorAddress);
+		const result = await firma.Distribution.withdrawAllRewards(wallet, validatorAddress);
 		expect(result.code).to.equal(0);
 	});
 
@@ -25,28 +25,19 @@ describe('[14. Distribution Tx Test]', () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const delegationList = (await firma.Staking.getTotalDelegationInfo(await wallet.getAddress())).dataList;
+		const gasEstimation = await firma.Distribution.getGasEstimationWithdrawAllRewardsFromAllValidator(wallet, delegationList);
 
-		// console.log(delegationList);
-
-		var gasEstimation = await firma.Distribution.getGasEstimationWithdrawAllRewardsFromAllValidator(wallet, delegationList);
-		//console.log("gasEstimation: " + gasEstimation);
-
-		var result = await firma.Distribution.withdrawAllRewardsFromAllValidator(wallet, delegationList, { gas: gasEstimation, fee: gasEstimation });
+		const result = await firma.Distribution.withdrawAllRewardsFromAllValidator(wallet, delegationList, { gas: gasEstimation, fee: gasEstimation });
 		expect(result.code).to.equal(0);
-
-		//console.log(result);
-
 	});
 
 	it('withdrawAllRewards for validator side', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
 		const address = await wallet.getAddress();
+		const validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(address);
 
-		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(address);
-
-		var result = await firma.Distribution.withdrawAllRewards(wallet, validatorAddress);
-
+		const result = await firma.Distribution.withdrawAllRewards(wallet, validatorAddress);
 		expect(result.code).to.equal(0);
 	});
 
@@ -54,14 +45,11 @@ describe('[14. Distribution Tx Test]', () => {
 
 		// CHECK : validatorMnemonic only valid on dev stage.
 		// this command is only valid for validator not delegator.
-
 		const wallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
 		const address = await wallet.getAddress();
+		const validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(address);
 
-		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(address);
-
-		var result = await firma.Distribution.withdrawValidatorCommission(wallet, validatorAddress);
-
+		const result = await firma.Distribution.withdrawValidatorCommission(wallet, validatorAddress);
 		expect(result.code).to.equal(0);
 	});
 
@@ -69,7 +57,7 @@ describe('[14. Distribution Tx Test]', () => {
 		const wallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
 		const amount = 1;
 
-		var result = await firma.Distribution.fundCommunityPool(wallet, amount);
+		const result = await firma.Distribution.fundCommunityPool(wallet, amount);
 		expect(result.code).to.equal(0);
 	});
 
@@ -78,23 +66,13 @@ describe('[14. Distribution Tx Test]', () => {
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
-		//console.log(await aliceWallet.getAddress());
-		//console.log(await bobWallet.getAddress());
-
-		//console.log(await firma.Bank.getBalance(await aliceWallet.getAddress()));
-		//console.log(await firma.Bank.getBalance(await bobWallet.getAddress()));
-
-		var result = await firma.Distribution.setWithdrawAddress(aliceWallet, await bobWallet.getAddress());
+		const result = await firma.Distribution.setWithdrawAddress(aliceWallet, await bobWallet.getAddress());
 		expect(result.code).to.equal(0);
 
 		const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
-		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
+		const validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
 
-		var result1 = await firma.Distribution.withdrawAllRewards(aliceWallet, validatorAddress);
-		//console.log(result1);
+		const result1 = await firma.Distribution.withdrawAllRewards(aliceWallet, validatorAddress);
 		expect(result1.code).to.equal(0);
-
-		//console.log(await firma.Bank.getBalance(await aliceWallet.getAddress()));
-		//console.log(await firma.Bank.getBalance(await bobWallet.getAddress()));
 	});
 });

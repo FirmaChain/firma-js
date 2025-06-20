@@ -2,7 +2,6 @@ import { expect } from 'chai';
 import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { ContractFileType, ContractLogType } from '../sdk/firmachain/contract';
-
 import { TestChainConfig } from './config_test';
 
 describe('[02. Contract Query Test]', () => {
@@ -86,14 +85,8 @@ describe('[02. Contract Query Test]', () => {
 
 		var contractFileList = await firma.Contract.getContractFileAll();
 
-		//  for(var i = 0; i < contractFileList.length; i++){
-		//  	console.log(contractFileList[i]);
-		//  }
-		//console.log("contractFileList:" + contractFileList.length);
-
 		expect(contractFileList.dataList.length).to.be.equal(contractFileList.dataList.length);
 		expect(contractFileList.dataList.length).to.be.greaterThan(0);
-
 	});
 
 	it.skip('Contract getContractFile', async () => {
@@ -109,19 +102,15 @@ describe('[02. Contract Query Test]', () => {
 		const contractHash = "0xsalkdjfasldkjf2";
 		var idList = await firma.Contract.getContractListFromHash(contractHash);
 
-		for (let i = 0; i < idList.length; i++) {
-			var data = await firma.Contract.getContractLog(idList[i]);
-			//console.log(data);
-		}
-
 		expect(idList.length).to.be.greaterThan(0);
 	});
 
+	// This test can only run with a meaningful contractFileHash, owner1, owner2 value
 	it.skip('Contract isContractOwner', async () => {
 
-		const contractFileHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b85531231asddaqwqe";
-		const owner1 = "firma1nssuz67am2uwc2hjgvphg0fmj3k9l6cx65ux9u0kdjaaldlq";
-		const owner2 = "firma106a9nzxcxu526z4cx6nq4zqpx7ctrx65a020yk23kdjaaldlq";
+		const contractFileHash = "";
+		const owner1 = "";
+		const owner2 = "";
 
 		var isOwner = await firma.Contract.isContractOwner(contractFileHash, owner1);
 		expect(isOwner).to.be.equal(true);

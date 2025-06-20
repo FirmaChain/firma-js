@@ -13,51 +13,54 @@ describe('[15. Distribution Query Test]', () => {
 
 	it('get communityPool', async () => {
 
-		var poolAmount = await firma.Distribution.getCommunityPool();
-		//console.log("communityPool :" + poolAmount);
+		const poolAmount = await firma.Distribution.getCommunityPool();
+		expect(poolAmount).to.not.equal("");
 	})
 
 	it('get validator commission', async () => {
 
-		let validatorList = (await firma.Staking.getValidatorList()).dataList;
-		let validatorAddress = validatorList[0].operator_address;
+		const validatorList = (await firma.Staking.getValidatorList()).dataList;
+		const validatorAddress = validatorList[0].operator_address;
 
-		var result = await firma.Distribution.getValidatorCommission(validatorAddress);
-		//console.log(result[0]);
+		const result = await firma.Distribution.getValidatorCommission(validatorAddress);
+		if (result.length > 0) {
+			expect(result[0].amount).to.not.equal("");
+		} else {
+			expect(true).to.be.equal(true);
+		}
 	})
 
 	it('get validator outstanding_rewards', async () => {
 
-		let validatorList = (await firma.Staking.getValidatorList()).dataList;
-		let validatorAddress = validatorList[0].operator_address;
+		const validatorList = (await firma.Staking.getValidatorList()).dataList;
+		const validatorAddress = validatorList[0].operator_address;
 
-		var result = await firma.Distribution.getValidatorOutStandingReward(validatorAddress);
-		//console.log(result[0]);
+		const result = await firma.Distribution.getValidatorOutStandingReward(validatorAddress);
+		if (result.length > 0) {
+			expect(result[0].amount).to.not.equal("");
+		} else {
+			expect(true).to.be.equal(true);
+		}
 	})
 
 	it('get validator self delegator\'s reward', async () => {
 
-		let validatorList = (await firma.Staking.getValidatorList()).dataList;
-		let validatorAddress = validatorList[0].operator_address;
+		const validatorList = (await firma.Staking.getValidatorList()).dataList;
+		const validatorAddress = validatorList[0].operator_address;
 
-		let address = FirmaUtil.getAccAddressFromValOperAddress(validatorAddress);
-		let result = await firma.Distribution.getTotalRewardInfo(address);
-
-		//console.log("validatorAddress: " + validatorAddress);
-		//console.log("address: " + address);
-		//console.log(result);
+		const address = FirmaUtil.getAccAddressFromValOperAddress(validatorAddress);
+		const result = await firma.Distribution.getTotalRewardInfo(address);
 	})
 
 	it('get commission from self delegator', async () => {
 
-		let validatorList = (await firma.Staking.getValidatorList()).dataList;
-		let validatorAddress = validatorList[0].operator_address;
+		const validatorList = (await firma.Staking.getValidatorList()).dataList;
+		const validatorAddress = validatorList[0].operator_address;
 
-		let address = FirmaUtil.getAccAddressFromValOperAddress(validatorAddress);
-		let newValidatorAddress = FirmaUtil.getValOperAddressFromAccAddress(address);
+		const address = FirmaUtil.getAccAddressFromValOperAddress(validatorAddress);
+		const newValidatorAddress = FirmaUtil.getValOperAddressFromAccAddress(address);
 
-		let commission = await firma.Distribution.getValidatorCommission(newValidatorAddress);
-		//console.log(commission[0]);
+		const commission = await firma.Distribution.getValidatorCommission(newValidatorAddress);
 	})
 
 	// Total Reward based user side
@@ -67,15 +70,8 @@ describe('[15. Distribution Query Test]', () => {
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
 		// INFO: All the validator information and interests information that the user needs to receive can be viewed here.
-		var result = await firma.Distribution.getTotalRewardInfo(await wallet.getAddress());
-
-		for (var i = 0; i < result.rewards.length; i++) {
-			//console.log("validator_address: " + result.rewards[i].validator_address);
-			//console.log("reward: " + result.rewards[i].amount);
-		}
-
-		var totalReward = result.total;
-		//console.log("totalReward: " + totalReward);
+		const result = await firma.Distribution.getTotalRewardInfo(await wallet.getAddress());
+		const totalReward = result.total;
 	})
 
 	// reward per validator
@@ -83,29 +79,23 @@ describe('[15. Distribution Query Test]', () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
-		var totalReward = await firma.Distribution.getTotalRewardInfo(await wallet.getAddress());
+		const totalReward = await firma.Distribution.getTotalRewardInfo(await wallet.getAddress());
 
 		const validatorAddress = totalReward.rewards[0].validator_address;
-		var amount = await firma.Distribution.getRewardInfo(await wallet.getAddress(), validatorAddress);
-
-		//console.log("validator_address: " + validatorAddress);
-		//console.log("reward: " + amount);
+		const amount = await firma.Distribution.getRewardInfo(await wallet.getAddress(), validatorAddress);
 	})
 
 	it('get withdrawAddress', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		var withdrawAddress = await firma.Distribution.getWithdrawAddress(await wallet.getAddress());
-
-		//console.log("withdrawAddress: " + withdrawAddress);
+		const withdrawAddress = await firma.Distribution.getWithdrawAddress(await wallet.getAddress());
 	})
-
 
 	it('get getTotalRewardInfo from no balance user', async () => {
 
 		const wallet = await firma.Wallet.newWallet();
 
-		var result = await firma.Distribution.getTotalRewardInfo(await wallet.getAddress());
+		const result = await firma.Distribution.getTotalRewardInfo(await wallet.getAddress());
 		expect(result.total).to.equal("");
 	})
 
@@ -114,7 +104,7 @@ describe('[15. Distribution Query Test]', () => {
 
 		const wallet = await firma.Wallet.newWallet();
 
-		var totalReward = await firma.Distribution.getTotalRewardInfo(await wallet.getAddress());
+		const totalReward = await firma.Distribution.getTotalRewardInfo(await wallet.getAddress());
 		expect(totalReward.rewards.length).to.equal(0);
 	})
 });

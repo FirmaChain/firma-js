@@ -13,41 +13,38 @@ describe('[12. Staking Tx Test]', () => {
 
 	it('delegate OK', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
-		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
+		const validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
 
 		const amountFCT = 60;
 
-		var result = await firma.Staking.delegate(wallet, validatorAddress, amountFCT);
-		//console.log(result);
-
+		const result = await firma.Staking.delegate(aliceWallet, validatorAddress, amountFCT);
 		expect(result.code).to.equal(0);
 	});
 
 	it('undelegate OK', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
-		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
+		const validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
 
 		const amountFCT = 5;
 
 		// if there's 7 more list on undelegatelist, occur error below
 		// too many unbonding delegation entries for (delegator, validator) tuple
 
-		const gas = await firma.Staking.getGasEstimationUndelegate(wallet, validatorAddress, amountFCT);
+		const gas = await firma.Staking.getGasEstimationUndelegate(aliceWallet, validatorAddress, amountFCT);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.Staking.undelegate(wallet, validatorAddress, amountFCT, { gas, fee });
+		const result = await firma.Staking.undelegate(aliceWallet, validatorAddress, amountFCT, { gas, fee });
 		expect(result.code).to.equal(0);
 	});
 
 	it('redelegate OK', async () => {
 
 		//INFO: need two validators but starport serve support only one validator.
-
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const validatorList = (await firma.Staking.getValidatorList()).dataList;
 
 		if (validatorList.length < 2)
@@ -58,19 +55,18 @@ describe('[12. Staking Tx Test]', () => {
 
 		const amount = 10;
 
-		let result = await firma.Staking.delegate(wallet, srcValidatorAddress, amount);
+		const result = await firma.Staking.delegate(aliceWallet, srcValidatorAddress, amount);
 		expect(result.code).to.equal(0);
 
 		// NOTICE: there's a case for use more than 200000 gas here.
-		let result1 = await firma.Staking.redelegate(wallet, srcValidatorAddress, dstValidatorAddress, amount, { gas: 300000, fee: 30000 });
-
+		const result1 = await firma.Staking.redelegate(aliceWallet, srcValidatorAddress, dstValidatorAddress, amount, { gas: 300000, fee: 30000 });
 		expect(result1.code).to.equal(0);
 	});
 
 	// new case added. if succeed, the dapp needs to prevent zero amount input from users.
 	it('staking send Fail - send zero money', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
 		const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
 		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
@@ -78,35 +74,31 @@ describe('[12. Staking Tx Test]', () => {
 		const amount = 0;
 
 		try {
-			var result = await firma.Staking.delegate(wallet, validatorAddress, amount);
+			var result = await firma.Staking.delegate(aliceWallet, validatorAddress, amount);
+			expect(result.code).to.equal(5);
 		}
 		catch (error) {
-
-		}
-
-		//expect(result.code).to.equal(5);
+			expect(false).to.not.equal(true);
+		}		
 	});
-
 
 	it('staking send Fail - send lots of money', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
 		const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
 		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
 
 		const amount = 20000000000000;
 
-		var result = await firma.Staking.delegate(wallet, validatorAddress, amount);
-
-		// error code 5 : not enough money.
+		var result = await firma.Staking.delegate(aliceWallet, validatorAddress, amount);
 		expect(result.code).to.equal(5);
 	});
 
 	// NOTICE: not decide to include firma.js spec
 	it('editValidator OK', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
+		const aliceWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
 
 		const validatorWallet = await firma.Wallet.fromMnemonic(validatorMnemonic);
 		let validatorAddress = FirmaUtil.getValOperAddressFromAccAddress(await validatorWallet.getAddress());
@@ -133,8 +125,7 @@ describe('[12. Staking Tx Test]', () => {
 			details: "we're now testing to edit validator info"
 		};
 
-		var result = await firma.Staking.editValidator(wallet, validatorAddress, description, commissionRate, minSelfDelegation);
-
+		var result = await firma.Staking.editValidator(aliceWallet, validatorAddress, description, commissionRate, minSelfDelegation);
 		expect(result.code).to.equal(0);
 	});
 });

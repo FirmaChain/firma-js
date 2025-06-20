@@ -53,11 +53,8 @@ describe('[35. Bridge tx low Test]', () => {
 		const gas = await firma.Cw721.getGasEstimationSendNft(aliceWallet, cw721ContractAddress, bridgeContractAddress, token_id, msg);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.Cw721.sendNft(aliceWallet, cw721ContractAddress, bridgeContractAddress, token_id, msg, { gas: gas, fee: fee });
+		const result = await firma.Cw721.sendNft(aliceWallet, cw721ContractAddress, bridgeContractAddress, token_id, msg, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.Cw721.getNftData(cw721ContractAddress, token_id);
-		console.log(data);
 	});
 
 	it('[low] cw bridge unlock', async () => {
@@ -74,19 +71,13 @@ describe('[35. Bridge tx low Test]', () => {
 		const gas = await firma.CosmWasm.getGasEstimationExecuteContract(aliceWallet, bridgeContractAddress, msgData, noFunds);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result =  await firma.CosmWasm.executeContract(aliceWallet, bridgeContractAddress, msgData, noFunds, { gas: gas, fee: fee });
+		const result =  await firma.CosmWasm.executeContract(aliceWallet, bridgeContractAddress, msgData, noFunds, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.Cw721.getNftData(cw721ContractAddress, token_id);
-		console.log(data);
 	});
 
 	it('[low] Cw721 send_nft & deposit', async () => {
 
 		const tokenId = "102";
-
-		const data1 = await firma.Cw721.getNftData(cw721ContractAddress, tokenId);
-		console.log(data1);
 
 		const msg = {
 			action: "deposit",
@@ -101,11 +92,8 @@ describe('[35. Bridge tx low Test]', () => {
 		let gas = await firma.Cw721.getGasEstimationSendNft(aliceWallet, cw721ContractAddress, bridgeContractAddress, tokenId, msg);
 		let fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.Cw721.sendNft(aliceWallet, cw721ContractAddress, bridgeContractAddress, tokenId, msg, { gas, fee });
+		const result = await firma.Cw721.sendNft(aliceWallet, cw721ContractAddress, bridgeContractAddress, tokenId, msg, { gas, fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.Cw721.getNftData(cw721ContractAddress, tokenId);
-		console.log(data);
 	});
 
 	it('[low] cw bridge withdraw', async () => {
@@ -122,11 +110,8 @@ describe('[35. Bridge tx low Test]', () => {
 		const gas = await firma.CosmWasm.getGasEstimationExecuteContract(bobWallet, bridgeContractAddress, msgData, noFunds);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result =  await firma.CosmWasm.executeContract(bobWallet, bridgeContractAddress, msgData, noFunds, { gas: gas, fee: fee });
+		const result =  await firma.CosmWasm.executeContract(bobWallet, bridgeContractAddress, msgData, noFunds, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.Cw721.getNftData(cw721ContractAddress, token_id);
-		console.log(data);
 	});
 
 	it('[low] cw721 send_nft & bridge lock bulk', async () => {
@@ -142,11 +127,8 @@ describe('[35. Bridge tx low Test]', () => {
 		const gas = await firma.Cw721.getGasEstimationSignAndBroadcast(aliceWallet, [tx1, tx2]);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.Cw721.signAndBroadcast(aliceWallet, [tx1, tx2], { gas: gas, fee: fee });
+		const result = await firma.Cw721.signAndBroadcast(aliceWallet, [tx1, tx2], { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.Cw721.getNFTIdListOfOwner(cw721ContractAddress, aliceAddress);
-		console.log(data);
 	});
 
 	it('[low] cw721 send_nft & bridge deposit bulk', async () => {
@@ -162,10 +144,7 @@ describe('[35. Bridge tx low Test]', () => {
 		const gas = await firma.Cw721.getGasEstimationSignAndBroadcast(aliceWallet, [tx1, tx2]);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.Cw721.signAndBroadcast(aliceWallet, [tx1, tx2], { gas: gas, fee: fee });
+		const result = await firma.Cw721.signAndBroadcast(aliceWallet, [tx1, tx2], { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.Cw721.getNFTIdListOfOwner(cw721ContractAddress, aliceAddress);
-		console.log(data);
 	});
 });

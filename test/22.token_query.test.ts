@@ -13,31 +13,23 @@ describe('[22. Token query Test]', () => {
 	it('Token getTokenDataListFromOwner', async () => {
 
 		const address = await (await firma.Wallet.fromMnemonic(aliceMnemonic)).getAddress();
-		var tokenDataList = await firma.Token.getTokenDataListFromOwner(address);
-		//console.log(totalData);
+		const tokenDataList = await firma.Token.getTokenDataListFromOwner(address);
 		expect(tokenDataList.length).to.be.greaterThan(0);
 	});
 
 	it('Token getTokenData', async () => {
 
 		const address = await (await firma.Wallet.fromMnemonic(aliceMnemonic)).getAddress();
-		var tokenDataList = await firma.Token.getTokenDataListFromOwner(address);
-
+		const tokenDataList = await firma.Token.getTokenDataListFromOwner(address);
 		const tokenID = tokenDataList[0];
 
-		var totalData = await firma.Token.getTokenData(tokenID);
-		//console.log(totalData);
-
+		const totalData = await firma.Token.getTokenData(tokenID);
 		expect(totalData.tokenID).to.be.equal(tokenID);
 	});
 
 	it('Token getTokenDataAll', async () => {
 
-		var totalDataList = await firma.Token.getTokenDataAll();
-		//console.log(totalDataList.dataList);
-		//console.log(totalDataList.pagination);
-
+		const totalDataList = await firma.Token.getTokenDataAll();
 		expect(totalDataList.dataList.length).to.be.greaterThan(0);
-		//expect(totalNft).to.be.greaterThan(0);
 	});
 });
