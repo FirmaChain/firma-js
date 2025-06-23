@@ -179,7 +179,7 @@ export class FirmaFeeGrantService {
 
 
             //console.log('Any.fromJSON(allowanceAnyData)');
-            //console.log(Any.fromJSON(allowanceAnyData));
+            //console.log('Any.fromJSON(allowanceAnyData)');
             //console.log('Any.fromJSON(allowanceAnyData)---');
 
             const message = FeeGrantTxClient.msgGrantAllowance({

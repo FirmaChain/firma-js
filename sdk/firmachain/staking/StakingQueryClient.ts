@@ -109,7 +109,7 @@ export class StakingQueryClient {
         const result = await this.axios.get(path);
 
         // If there is no data in the list, throw 404 exception.
-        //console.log(result);
+        // console.log(result);
 
         return result.data.unbond;
     }
