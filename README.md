@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/%40firmachain%2Ffirma-js.svg)](https://badge.fury.io/js/%40firmachain%2Ffirma-js)
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/firmachain/firma-js)](https://github.com/firmachain/firma-js/releases)
 [![license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/firmachain/firma-js/blob/master/LICENSE)
-![Lines of code](https://img.shields.io/tokei/lines/github/firmachain/firma-js)
+[![](https://tokei.rs/b1/github/XAMPPRocky/tokei)](https://github.com/FirmaChain/firma-js)
 
 The Javascript & TypeScript SDK for FirmaChain
 
