@@ -5,6 +5,7 @@ import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { Expires } from '../sdk/FirmaCosmWasmCw20';
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { AccessConfig, AccessType } from '../sdk/FirmaCosmWasmService';
+
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[32. cw721 tx Test]', () => {
@@ -12,8 +13,8 @@ describe('[32. cw721 tx Test]', () => {
 	let firma: FirmaSDK;
 
 	let aliceWallet: FirmaWalletService;
-	let bobWallet: FirmaWalletService;
 	let aliceAddress: string;
+	let bobWallet: FirmaWalletService;
 	let bobAddress: string;
 
 	const extractValue = (events: readonly any[], eventType: string, attrKey: string) => {
@@ -94,18 +95,12 @@ describe('[32. cw721 tx Test]', () => {
 		const result = await firma.Cw721.mint(aliceWallet, contractAddress, owner, token_id, token_uri, { gas: gas, fee: fee });
 
 		const nftData = await firma.Cw721.getNftData(contractAddress, token_id);
-		console.log(nftData);
-
 		expect(result.code).to.be.equal(0);
 	});
 
 	it('Cw721 burn', async () => {
 
-		const owner = aliceAddress;
 		const token_id = "10";
-
-		//const data1 = await firma.Cw721.getAllNftIdList(contractAddress);
-		//console.log(data1);
 
 		const gas = await firma.Cw721.getGasEstimationBurn(aliceWallet, contractAddress, token_id);
 		const fee = Math.ceil(gas * 0.1);
@@ -116,7 +111,6 @@ describe('[32. cw721 tx Test]', () => {
 
 	it('Cw721 transfer', async () => {
 
-		const owner = aliceAddress;
 		const token_id = "10";
 
 		const gas = await firma.Cw721.getGasEstimationTransfer(aliceWallet, contractAddress, bobAddress, token_id);
@@ -124,9 +118,6 @@ describe('[32. cw721 tx Test]', () => {
 
 		const result = await firma.Cw721.transfer(aliceWallet, contractAddress, bobAddress, token_id, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
-
-		const data = await firma.Cw721.getNftData(contractAddress, token_id);
-		console.log(data);
 	});
 
 	it('Cw721 transfer', async () => {
@@ -142,7 +133,6 @@ describe('[32. cw721 tx Test]', () => {
 
 	it('Cw721 approve', async () => {
 
-		
 		//const expires: Expires = { at_height: 7216240 };
 		//const expires: Expires = { at_time: "1852937600000000000" }; // unix timestamp nano seconds
 		//const expires: Expires = { never: {} };

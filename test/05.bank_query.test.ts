@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { FirmaSDK } from '../sdk/FirmaSDK';
+
 import { aliceMnemonic, firmaFeeMnemonic, TestChainConfig } from './config_test';
 
 describe('[05. Bank test]', () => {
@@ -25,6 +26,8 @@ describe('[05. Bank test]', () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(firmaFeeMnemonic);
 		const result = await firma.Bank.getBalance(await wallet.getAddress());
+
+		expect(result).to.not.equal("");
 	});
 
 	it('Bank getTokenBalance()', async () => {
@@ -33,6 +36,8 @@ describe('[05. Bank test]', () => {
 		const tokenID = "ukomx6"
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const result = await firma.Bank.getTokenBalance(await aliceWallet.getAddress(), tokenID);
+
+		expect(result).to.not.equal("");
 	});
 
 	it('Bank getTokenBalance() - not exist tokenID', async () => {
@@ -40,7 +45,9 @@ describe('[05. Bank test]', () => {
 		// for single usage
 		const tokenID = "ukomx6sdfakljfd"
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		
 		const result = await firma.Bank.getTokenBalance(await aliceWallet.getAddress(), tokenID);
+		expect(result).to.not.equal("");
 	});
 
 
@@ -49,15 +56,19 @@ describe('[05. Bank test]', () => {
 		// for wallet application
 		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const result = await firma.Bank.getTokenBalanceList(await aliceWallet.getAddress());
+
+		expect(result).to.not.equal(null);
 	});
 
 	it('Bank getSupply()', async () => {
 
 		const result = await firma.Bank.getSupply();
+		expect(result).to.not.equal("0");
 	});
 
 	it('Bank getTokenSupply()', async () => {
 
 		const result = await firma.Bank.getTokenSupply("ukomx1670550348");
+		expect(result).to.not.equal("");
 	});
 });

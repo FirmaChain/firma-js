@@ -1,8 +1,9 @@
 
 import { expect } from 'chai';
 import { FirmaSDK } from '../sdk/FirmaSDK';
-import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 import { FirmaUtil } from '../sdk/FirmaUtil';
+
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[07. Feegrant Query Test]', () => {
 
@@ -18,7 +19,10 @@ describe('[07. Feegrant Query Test]', () => {
 		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
 		try {
-			var result = await firma.FeeGrant.getGranteeAllowance(await aliceWallet.getAddress(), await bobWallet.getAddress());
+			await firma.FeeGrant.grantBasicAllowance(aliceWallet, await bobWallet.getAddress());
+			const result = await firma.FeeGrant.getGranteeAllowance(await aliceWallet.getAddress(), await bobWallet.getAddress());
+			await firma.FeeGrant.revokeAllowance(aliceWallet, await bobWallet.getAddress());
+			
 			expect(result).to.not.equal(null);
 		} catch (error) {
 			expect(false).to.be.equal(true);
@@ -29,7 +33,7 @@ describe('[07. Feegrant Query Test]', () => {
 
 		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
-		var result = await firma.FeeGrant.getGranteeAllowanceAll(await bobWallet.getAddress());
+		const result = await firma.FeeGrant.getGranteeAllowanceAll(await bobWallet.getAddress());
 
 		if (result.length === 0) {
 			expect(true).to.be.equal(true);

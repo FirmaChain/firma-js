@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import { FirmaSDK } from '../sdk/FirmaSDK';
-import { aliceMnemonic, TestChainConfig } from './config_test';
 import { FirmaUtil } from '../sdk/FirmaUtil';
+
+import { aliceMnemonic, TestChainConfig } from './config_test';
 
 describe('[13. Staking Query Test]', () => {
 
@@ -22,7 +23,7 @@ describe('[13. Staking Query Test]', () => {
 
 		const validatorList = (await firma.Staking.getValidatorList()).dataList;
 		const result = await firma.Staking.getValidator(validatorList[0].operator_address);
-		expect(FirmaUtil.isValidAddress(result.operator_address)).to.not.equal(true);
+		expect(FirmaUtil.isValidAddress(result.operator_address)).to.be.equal(true);
 	});
 
 	it('3.get getDelegationListFromValidator', async () => {
@@ -38,8 +39,8 @@ describe('[13. Staking Query Test]', () => {
 
 	it('4.get getUndelegationListFromValidator', async () => {
 
-		var validatorList = (await firma.Staking.getValidatorList()).dataList;
-		var result = await firma.Staking.getUndelegationListFromValidator(validatorList[0].operator_address);
+		const validatorList = (await firma.Staking.getValidatorList()).dataList;
+		const result = await firma.Staking.getUndelegationListFromValidator(validatorList[0].operator_address);
 		if (result.dataList.length > 0) {
 			expect(FirmaUtil.isValidAddress(result.dataList[0].delegator_address)).to.be.equal(true);
 		} else {
@@ -50,14 +51,14 @@ describe('[13. Staking Query Test]', () => {
 	// param side
 	it('5.get staking total pool', async () => {
 
-		var result = await firma.Staking.getPool();
+		const result = await firma.Staking.getPool();
 		expect(result.bonded_tokens).to.not.equal("");
 	});
 
 
 	it('6.get getParams', async () => {
 
-		var result = await firma.Staking.getParams();
+		const result = await firma.Staking.getParams();
 		expect(result.max_validators).to.not.equal(0);
 	});
 

@@ -1,6 +1,8 @@
+import { expect } from 'chai';
 import { Height } from 'cosmjs-types/ibc/core/client/v1/client';
 import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaUtil } from '../sdk/FirmaUtil';
+
 import { aliceMnemonic, TestChainConfig } from './config_test';
 
 describe('[28. IBC Tx Test]', () => {
@@ -29,7 +31,6 @@ describe('[28. IBC Tx Test]', () => {
 		// There're two ways to set timeout values (height vs timestamp)
 
 		let clientState = await firma.Ibc.getClientState(sourceChannel, sourcePort);
-		//console.log(clientState);
 
 		let revison_height = clientState.identified_client_state.client_state.latest_height.revision_height;
 		let revison_number = clientState.identified_client_state.client_state.latest_height.revision_number;
@@ -47,12 +48,11 @@ describe('[28. IBC Tx Test]', () => {
 		var timeStamp = (Date.now() + 600000).toString() + "000000";
 
 		const timeoutTimeStamp = BigInt(timeStamp);
-		//console.log(timeStamp);
 
 		const gas = await firma.Ibc.getGasEstimationTransfer(aliceWallet, sourcePort, sourceChannel, denom, amount, receiver, height, timeoutTimeStamp);
 		const fee = FirmaUtil.getUFCTFromFCT(gas * 0.1);
 
-		var result = await firma.Ibc.transfer(aliceWallet, sourcePort, sourceChannel, denom, amount, receiver, height, timeoutTimeStamp,  { gas: gas, fee: fee });
-		//console.log(result);
+		const result = await firma.Ibc.transfer(aliceWallet, sourcePort, sourceChannel, denom, amount, receiver, height, timeoutTimeStamp,  { gas: gas, fee: fee });
+		expect(result.code).to.be.equal(0);
 	});
 });

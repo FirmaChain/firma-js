@@ -1,24 +1,31 @@
 import { expect } from 'chai';
 import { FirmaSDK } from '../sdk/FirmaSDK';
+
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
+import { FirmaWalletService } from '../sdk/FirmaWalletService';
 
 describe('[06. Feegrant Tx Test]', () => {
 
 	let firma: FirmaSDK;
+	let aliceWallet: FirmaWalletService;
+	let aliceAddress: string;
+	let bobWallet: FirmaWalletService;
+	let bobAddress: string;
 
-	beforeEach(function() {
+	beforeEach(async function() {
 		firma = new FirmaSDK(TestChainConfig);
+		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		aliceAddress = await aliceWallet.getAddress();
+		bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		bobAddress = await bobWallet.getAddress();
 	})
 
 	it('feegrant GrantPeriodicAllowance tx', async () => {
-
-		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 		
 		const expirationDate = new Date();
 		expirationDate.setMinutes(expirationDate.getMinutes() + 20);
 
-		let periodicAllowanceData = {
+		const periodicAllowanceData = {
 			// basicSpendLimit: undefined,
 			// basicExpiration: undefined,
 			periodSeconds: 30,
@@ -27,47 +34,39 @@ describe('[06. Feegrant Tx Test]', () => {
 			periodReset: expirationDate
 		};
 
-		try {
-			var result = await firma.FeeGrant.grantPeriodicAllowance(aliceWallet, await bobWallet.getAddress(), periodicAllowanceData);
-			expect(result.code).to.equal(0);
-		} catch (error) {
-			console.log(error);
-		}
+		const result = await firma.FeeGrant.grantPeriodicAllowance(aliceWallet, bobAddress, periodicAllowanceData);
+		expect(result.code).to.equal(0);
 	});
 
 	it('feegrant GrantBasicAllowance tx', async () => {
 
-		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
-
-		var expirationDate = new Date();
+		const expirationDate = new Date();
 		expirationDate.setMonth(12);
 
 		// var spendLimit = 200000;
 		// var result = await firma.FeeGrant.GrantBasicAllowance(aliceWallet, await bobWallet.getAddress(), {spendLimit : spendLimit, expiration : expirationDate});
 		// var result = await firma.FeeGrant.GrantBasicAllowance(aliceWallet, await bobWallet.getAddress(), {expiration : expirationDate});
 		// var result = await firma.FeeGrant.GrantBasicAllowance(aliceWallet, await bobWallet.getAddress(), {spendLimit : spendLimit});
-		var result = await firma.FeeGrant.grantBasicAllowance(aliceWallet, await bobWallet.getAddress());
-		expect(result.code).to.equal(0);
+		const data = await firma.FeeGrant.getGranteeAllowance(aliceAddress, bobAddress);
+		if (data === null) {
+			const result = await firma.FeeGrant.grantBasicAllowance(aliceWallet, bobAddress, { expiration : expirationDate});
+			expect(result.code).to.be.equal(0);
+		} else {
+			// Already grant target
+			expect(true).to.be.equal(true);
+		}
 	});
 
 	it('feegrant send tx', async () => {
 
-		const alicewallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 		const amount = 1;
-
-		var result = await firma.Bank.send(bobWallet, await alicewallet.getAddress(), amount, { feeGranter: await alicewallet.getAddress() });
+		const result = await firma.Bank.send(bobWallet, aliceAddress, amount, { feeGranter: aliceAddress });
 		expect(result.code).to.equal(0);
 	});
 
-
 	it('feegrant RevokeAllowance tx', async () => {
 
-		const alicewallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
-
-		var result = await firma.FeeGrant.revokeAllowance(alicewallet, await bobWallet.getAddress());
+		const result = await firma.FeeGrant.revokeAllowance(aliceWallet, await bobWallet.getAddress());
 		expect(result.code).to.equal(0);
 	});
 });

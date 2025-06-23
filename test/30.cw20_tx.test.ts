@@ -202,14 +202,13 @@ describe('[30. cw20 tx Test]', () => {
 
 	it('Cw20 update_minter', async () => {
 
-		const oldMinter = await firma.Cw20.getMinter(contractAddress)
-		console.log(oldMinter);
+		const oldMinter = await firma.Cw20.getMinter(contractAddress);
 
 		const gas = await firma.Cw20.getGasEstimationUpdateMinter(aliceWallet, contractAddress, bobAddress);
 		const fee = Math.ceil(gas * 0.1);
 
 		const result = await firma.Cw20.updateMinter(aliceWallet, contractAddress, bobAddress, { gas, fee })
-		expect(result.code).to.be.equal(0);console.log(result);
+		expect(result.code).to.be.equal(0);
 
 		const newMinter = await firma.Cw20.getMinter(contractAddress);
 		expect(oldMinter).to.not.equal(newMinter);
