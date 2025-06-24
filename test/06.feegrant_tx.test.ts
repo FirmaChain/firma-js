@@ -54,6 +54,9 @@ describe('[06. Feegrant Tx Test]', () => {
 		// var result = await firma.FeeGrant.GrantBasicAllowance(aliceWallet, await bobWallet.getAddress(), {spendLimit : spendLimit});
 		const result = await firma.FeeGrant.grantBasicAllowance(aliceWallet, bobAddress, { expiration : expirationDate});
 		expect(result.code).to.be.equal(0);
+
+		const revokeResult = await firma.FeeGrant.revokeAllowance(aliceWallet, bobAddress);
+		expect(revokeResult.code).to.be.equal(0);
 	});
 
 	it('feegrant send tx', async () => {
@@ -71,9 +74,9 @@ describe('[06. Feegrant Tx Test]', () => {
 			periodCanSpend: 200000,
 			periodReset: expirationDate
 		};
-		await firma.FeeGrant.revokeAllowance(aliceWallet, bobAddress);
-		await firma.FeeGrant.grantPeriodicAllowance(aliceWallet, bobAddress, periodicAllowanceData);
-		
+		const grantResult = await firma.FeeGrant.grantPeriodicAllowance(aliceWallet, bobAddress, periodicAllowanceData);
+		expect(grantResult.code).to.equal(0);
+
 		const sendResult = await firma.Bank.send(bobWallet, aliceAddress, amount, { feeGranter: aliceAddress });
 		expect(sendResult.code).to.equal(0);
 		
