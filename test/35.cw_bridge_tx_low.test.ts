@@ -1,12 +1,14 @@
+import fs from 'fs';
 import { expect } from 'chai';
 import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
+import { AccessConfig, AccessType } from '../sdk/FirmaCosmWasmService';
+import { FirmaUtil } from '../sdk/FirmaUtil';
 
 describe('[35. Bridge tx low Test]', () => {
 
 	let firma: FirmaSDK;
-
 	let aliceWallet: FirmaWalletService;
 	let bobWallet: FirmaWalletService;
 	let aliceAddress: string;
@@ -14,19 +16,106 @@ describe('[35. Bridge tx low Test]', () => {
 
 	beforeEach(async function () {
 		firma = new FirmaSDK(TestChainConfig);
-
 		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
-
 		aliceAddress = await aliceWallet.getAddress();
 		bobAddress = await bobWallet.getAddress();
 	})
+
+	const extractValue = (events: readonly any[], eventType: string, attrKey: string) => {
+		for (const event of events) {
+			if (event.type === eventType) {
+				for (const attr of event.attributes) {
+					if (attr.key === attrKey) {
+						return attr.value;
+					}
+				}
+			}
+		}
+		return "";
+	};
 
 	let cw721ContractAddress = "";
 	let bridgeContractAddress = "";
 
 	// low level test
 	//----------------------------------------------------------------------
+
+	it('[low] Cw721 contract setup', async () => {
+
+		// Cw721 store code
+		const wasmFile = fs.readFileSync("./test/sample/cw721_base.wasm");
+		const array = new Uint8Array(wasmFile.buffer);
+
+		const storeGas = 3000000;
+		const storeFee = FirmaUtil.getUFCTFromFCT(0.3);
+
+		const everyBodyAccessConfig: AccessConfig = {
+			permission: AccessType.ACCESS_TYPE_EVERYBODY,
+			address: "",
+			addresses: []
+		};
+
+		const storeCodeResult = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: storeGas, fee: storeFee });
+		const codeId = extractValue(storeCodeResult.events, "store_code", "code_id");
+		expect(storeCodeResult.code).to.be.equal(0);
+
+		// Cw721 instantiate
+		const admin = await aliceWallet.getAddress();
+		const label = "test1";
+
+		const instantiateGas = 3000000;
+		const instantiateFee = FirmaUtil.getUFCTFromFCT(0.3);
+		const noFunds: any = [];
+
+		const testData = JSON.stringify({
+			minter: aliceAddress,
+			name: "My Awesome NFT Collection",
+			symbol: "MAWESOME"			
+		});
+
+		const instantiateResult = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: instantiateGas, fee: instantiateFee });
+		cw721ContractAddress = extractValue(instantiateResult.events, "instantiate", "_contract_address");
+		expect(instantiateResult.code).to.be.equal(0);
+	});
+
+	it('[low] Cw bridge contract setup', async () => {
+
+		// Cw bridge store code
+		const wasmFile = fs.readFileSync("./test/sample/bridge_contract.wasm");
+		const array = new Uint8Array(wasmFile.buffer);
+
+		const storeCodeGas = 3000000;
+		const storeCodeFee = FirmaUtil.getUFCTFromFCT(0.3);
+
+		const everyBodyAccessConfig: AccessConfig = {
+			permission: AccessType.ACCESS_TYPE_EVERYBODY,
+			address: "",
+			addresses: []
+		};
+		//const onlyAddressAccessConfig: AccessConfig = { permission: AccessType.ACCESS_TYPE_ONLY_ADDRESS, address: aliceAddress };
+
+		const storeCodeResult = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: storeCodeGas, fee: storeCodeFee });
+		const codeId = extractValue(storeCodeResult.events, "store_code", "code_id");
+		expect(storeCodeResult.code).to.be.equal(0);
+
+		// Cw bridge instantiate
+		const admin = aliceAddress;
+		const label = "CwBridge";
+
+		const instantiateGas = 3000000;
+		const instantiateFee = FirmaUtil.getUFCTFromFCT(0.3);
+		const noFunds: any = [];
+
+		const testData = JSON.stringify({
+			owner: admin,
+			cw721_address: cw721ContractAddress
+		});
+
+		const instantiateResult = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: instantiateGas, fee: instantiateFee });
+		bridgeContractAddress = extractValue(instantiateResult.events, "instantiate", "_contract_address");
+		expect(instantiateResult.code).to.be.equal(0);
+	});
 
 	it('[low] Cw721 prepare nfts (mint bulk)', async () => {
 		const tokenIds = ["101", "102", "103", "104", "105", "106", "107", "108", "109", "110"];

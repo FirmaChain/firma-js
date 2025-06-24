@@ -1,8 +1,11 @@
+import fs from 'fs';
+import { expect } from 'chai';
+import { AccessConfig, AccessType } from '../sdk/FirmaCosmWasmService';
 import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
+
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
-import { expect } from 'chai';
 
 describe('[36. Bridge query Test]', () => {
 
@@ -20,7 +23,97 @@ describe('[36. Bridge query Test]', () => {
 		bobAddress = await bobWallet.getAddress();
 	})
 
-	let bridgeContractAddress = "firma1wqchrjh07e3kxaee59yrpzckwr94j03zchmdslypvkv6ps0684msjne5yu";
+	const extractValue = (events: readonly any[], eventType: string, attrKey: string) => {
+		for (const event of events) {
+			if (event.type === eventType) {
+				for (const attr of event.attributes) {
+					if (attr.key === attrKey) {
+						return attr.value;
+					}
+				}
+			}
+		}
+		return "";
+	};
+
+	let cw721ContractAddress = "";
+	let bridgeContractAddress = "";
+
+	it('[low] Cw721 contract setup', async () => {
+
+		// Cw721 store code
+		const wasmFile = fs.readFileSync("./test/sample/cw721_base.wasm");
+		const array = new Uint8Array(wasmFile.buffer);
+
+		const storeGas = 3000000;
+		const storeFee = FirmaUtil.getUFCTFromFCT(0.3);
+
+		const everyBodyAccessConfig: AccessConfig = {
+			permission: AccessType.ACCESS_TYPE_EVERYBODY,
+			address: "",
+			addresses: []
+		};
+
+		const storeCodeResult = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: storeGas, fee: storeFee });
+		const codeId = extractValue(storeCodeResult.events, "store_code", "code_id");
+		expect(storeCodeResult.code).to.be.equal(0);
+
+		// Cw721 instantiate
+		const admin = await aliceWallet.getAddress();
+		const label = "test1";
+
+		const instantiateGas = 3000000;
+		const instantiateFee = FirmaUtil.getUFCTFromFCT(0.3);
+		const noFunds: any = [];
+
+		const testData = JSON.stringify({
+			minter: aliceAddress,
+			name: "My Awesome NFT Collection",
+			symbol: "MAWESOME"			
+		});
+
+		const instantiateResult = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: instantiateGas, fee: instantiateFee });
+		cw721ContractAddress = extractValue(instantiateResult.events, "instantiate", "_contract_address");
+		expect(instantiateResult.code).to.be.equal(0);
+	});
+
+	it('[low] Cw bridge contract setup', async () => {
+
+		// Cw bridge store code
+		const wasmFile = fs.readFileSync("./test/sample/bridge_contract.wasm");
+		const array = new Uint8Array(wasmFile.buffer);
+
+		const storeCodeGas = 3000000;
+		const storeCodeFee = FirmaUtil.getUFCTFromFCT(0.3);
+
+		const everyBodyAccessConfig: AccessConfig = {
+			permission: AccessType.ACCESS_TYPE_EVERYBODY,
+			address: "",
+			addresses: []
+		};
+		//const onlyAddressAccessConfig: AccessConfig = { permission: AccessType.ACCESS_TYPE_ONLY_ADDRESS, address: aliceAddress };
+
+		const storeCodeResult = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: storeCodeGas, fee: storeCodeFee });
+		const codeId = extractValue(storeCodeResult.events, "store_code", "code_id");
+		expect(storeCodeResult.code).to.be.equal(0);
+
+		// Cw bridge instantiate
+		const admin = aliceAddress;
+		const label = "CwBridge";
+
+		const instantiateGas = 3000000;
+		const instantiateFee = FirmaUtil.getUFCTFromFCT(0.3);
+		const noFunds: any = [];
+
+		const testData = JSON.stringify({
+			owner: admin,
+			cw721_address: cw721ContractAddress
+		});
+
+		const instantiateResult = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: instantiateGas, fee: instantiateFee });
+		bridgeContractAddress = extractValue(instantiateResult.events, "instantiate", "_contract_address");
+		expect(instantiateResult.code).to.be.equal(0);
+	});
 
 	it('cw bridge get_config', async () => {
 		const result = await firma.CwBridge.getConfig(bridgeContractAddress);

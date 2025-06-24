@@ -5,6 +5,7 @@ import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { AccessConfig, AccessType } from '../sdk/FirmaCosmWasmService';
+
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[34. Bridge tx Test]', () => {
@@ -31,10 +32,8 @@ describe('[34. Bridge tx Test]', () => {
 
 	beforeEach(async function () {
 		firma = new FirmaSDK(TestChainConfig);
-
 		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
-
 		aliceAddress = await aliceWallet.getAddress();
 		bobAddress = await bobWallet.getAddress();
 	})
@@ -42,6 +41,44 @@ describe('[34. Bridge tx Test]', () => {
 	let codeId = "";
 	let cw721ContractAddress = "";
 	let bridgeContractAddress = "";
+
+	it('Cosmwasm Cw721 setup', async () => {
+
+		// Cw721 store code
+		const wasmFile = fs.readFileSync("./test/sample/cw721_base.wasm");
+		const array = new Uint8Array(wasmFile.buffer);
+
+		const storeGas = 3000000;
+		const storeFee = FirmaUtil.getUFCTFromFCT(0.3);
+
+		const everyBodyAccessConfig: AccessConfig = {
+			permission: AccessType.ACCESS_TYPE_EVERYBODY,
+			address: "",
+			addresses: []
+		};
+
+		const storeCodeResult = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: storeGas, fee: storeFee });
+		codeId = extractValue(storeCodeResult.events, "store_code", "code_id");
+		expect(storeCodeResult.code).to.be.equal(0);
+
+		// Cw721 instantiate
+		const admin = await aliceWallet.getAddress();
+		const label = "test1";
+
+		const instantiateGas = 3000000;
+		const instantiateFee = FirmaUtil.getUFCTFromFCT(0.3);
+		const noFunds: any = [];
+
+		const testData = JSON.stringify({
+			minter: aliceAddress,
+			name: "My Awesome NFT Collection",
+			symbol: "MAWESOME"			
+		});
+
+		const instantiateResult = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: instantiateGas, fee: instantiateFee });
+		cw721ContractAddress = extractValue(instantiateResult.events, "instantiate", "_contract_address");
+		expect(instantiateResult.code).to.be.equal(0);
+	});
 
 	it('CosmWasm Cw bridge StoreCode', async () => {
 		const wasmFile = fs.readFileSync("./test/sample/bridge_contract.wasm");
@@ -83,35 +120,37 @@ describe('[34. Bridge tx Test]', () => {
 	it('Cw bridge mint temp', async () => {
 
 		const owner = aliceAddress;
-		const new_token_id = "1";
-		const new_token_uri = "https://meta.nft.io/uri/" + new_token_id;
-
-		const gas = await firma.Cw721.getGasEstimationMint(aliceWallet, cw721ContractAddress, owner, new_token_id, new_token_uri);
-		const fee = Math.ceil(gas * 0.1);
-
-		const result = await firma.Cw721.mint(aliceWallet, cw721ContractAddress, owner, new_token_id, new_token_uri, { gas: gas, fee: fee });
-		expect(result.code).to.be.equal(0);
+		
+		const tokenId1 = "1";
+		const tokenUri1 = "https://meta.nft.io/uri/" + tokenId1;
+		const gas1 = await firma.Cw721.getGasEstimationMint(aliceWallet, cw721ContractAddress, owner, tokenId1, tokenUri1);
+		const fee1 = Math.ceil(gas1 * 0.1);
+		const result1 = await firma.Cw721.mint(aliceWallet, cw721ContractAddress, owner, tokenId1, tokenUri1, { gas: gas1, fee: fee1 });
+		expect(result1.code).to.be.equal(0);
+		
+		const tokenId2 = "2";
+		const tokenUri2 = "https://meta.nft.io/uri/" + tokenId2;
+		const gas2 = await firma.Cw721.getGasEstimationMint(aliceWallet, cw721ContractAddress, owner, tokenId2, tokenUri2);
+		const fee2 = Math.ceil(gas2 * 0.1);
+		const result2 = await firma.Cw721.mint(aliceWallet, cw721ContractAddress, owner, tokenId2, tokenUri2, { gas: gas2, fee: fee2 });
+		expect(result2.code).to.be.equal(0);
+		
+		const tokenId3 = "3";
+		const tokenUri3 = "https://meta.nft.io/uri/" + tokenId3;
+		const gas3 = await firma.Cw721.getGasEstimationMint(aliceWallet, cw721ContractAddress, owner, tokenId3, tokenUri3);
+		const fee3 = Math.ceil(gas3 * 0.1);
+		const result3 = await firma.Cw721.mint(aliceWallet, cw721ContractAddress, owner, tokenId3, tokenUri3, { gas: gas3, fee: fee3 });
+		expect(result3.code).to.be.equal(0);
 	});
 
 	it('Cw bridge add_authorized_user', async () => {
 
-		const user = bobAddress;
+		const user = aliceAddress;
 
 		const gas = await firma.CwBridge.getGasEstimationAddAuthorizedUser(aliceWallet, bridgeContractAddress, user);
 		const fee = Math.ceil(gas * 0.1);
 
 		const result = await firma.CwBridge.addAuthorizedUser(aliceWallet, bridgeContractAddress, user, { gas: gas, fee: fee });
-		expect(result.code).to.be.equal(0);
-	});
-
-	it('Cw bridge remove_authorized_user', async () => {
-
-		const user = bobAddress;
-
-		const gas = await firma.CwBridge.getGasEstimationRemoveAuthorizedUser(aliceWallet, bridgeContractAddress, user);
-		const fee = Math.ceil(gas * 0.1);
-
-		const result = await firma.CwBridge.removeAuthorizedUser(aliceWallet, bridgeContractAddress, user, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
 	});
 
@@ -219,14 +258,25 @@ describe('[34. Bridge tx Test]', () => {
 		expect(result.code).to.be.equal(0);
 	});
 
-	it('Cw bridge chage_owner', async () => {
-		
-		const new_owner = aliceAddress;
+	it('Cw bridge remove_authorized_user', async () => {
 
-		const gas = await firma.CwBridge.getGasEstimationChangeOwner(bobWallet, bridgeContractAddress, new_owner);
+		const user = aliceAddress;
+
+		const gas = await firma.CwBridge.getGasEstimationRemoveAuthorizedUser(aliceWallet, bridgeContractAddress, user);
 		const fee = Math.ceil(gas * 0.1);
 
-		const result = await firma.CwBridge.changeOwner(bobWallet, bridgeContractAddress, new_owner, { gas: gas, fee: fee });
+		const result = await firma.CwBridge.removeAuthorizedUser(aliceWallet, bridgeContractAddress, user, { gas: gas, fee: fee });
+		expect(result.code).to.be.equal(0);
+	});
+
+	it('Cw bridge chage_owner', async () => {
+		
+		const new_owner = bobAddress;
+
+		const gas = await firma.CwBridge.getGasEstimationChangeOwner(aliceWallet, bridgeContractAddress, new_owner);
+		const fee = Math.ceil(gas * 0.1);
+
+		const result = await firma.CwBridge.changeOwner(aliceWallet, bridgeContractAddress, new_owner, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
 	});
 });
