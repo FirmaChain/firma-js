@@ -2,15 +2,24 @@ import { expect } from 'chai';
 import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { ContractFileType, ContractLogType } from '../sdk/firmachain/contract';
+import { FirmaWalletService } from '../sdk/FirmaWalletService';
 
-import { TestChainConfig } from './config_test';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[02. Contract Query Test]', () => {
 
 	let firma: FirmaSDK;
+	let aliceWallet: FirmaWalletService;
+	let aliceAddress: string;
+	let bobWallet: FirmaWalletService;
+	let bobAddress: string;
 
-	beforeEach(function() {
+	beforeEach(async function() {
 		firma = new FirmaSDK(TestChainConfig);
+		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		aliceAddress = await aliceWallet.getAddress();
+		bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		bobAddress = await bobWallet.getAddress();
 	})
 
 	it('Contract getContractLogAll-pagination', async () => {
@@ -80,11 +89,20 @@ describe('[02. Contract Query Test]', () => {
 	});
 
 	// contractFileHash value is required.
-	it.skip('Contract getContractFile', async () => {
+	it('Contract getContractFile', async () => {
 
-		const contractFileHash = "";
-		const contractFile = await firma.Contract.getContractFile(contractFileHash);
-		expect(contractFile.fileHash).to.be.equal(contractFileHash);
+		const timeStamp = Math.round(+new Date() / 1000);
+		const fileHash = "0xklsdjflaksjflaksjf" + timeStamp;
+
+		const ownerAddress = aliceAddress;
+		const ownerList = [ownerAddress, ownerAddress];
+		const jsonString = "{}";
+
+		const result = await firma.Contract.createContractFile(aliceWallet, fileHash, timeStamp, ownerList, jsonString);
+		expect(result.code).equal(0);
+
+		const contractFile = await firma.Contract.getContractFile(fileHash);
+		expect(contractFile.fileHash).to.be.equal(fileHash);
 	});
 
 	it('Contract getContractListFromHash', async () => {
@@ -95,16 +113,21 @@ describe('[02. Contract Query Test]', () => {
 	});
 
 	// This test can only run with a meaningful contractFileHash, owner1, owner2 value
-	it.skip('Contract isContractOwner', async () => {
+	it('Contract isContractOwner', async () => {
 
-		const contractFileHash = "";
-		const owner1 = "";
-		const owner2 = "";
+		const timeStamp = Math.round(+new Date() / 1000);
+		const fileHash = "0xklsdjflaksjflaksjf" + timeStamp;
 
-		let isOwner = await firma.Contract.isContractOwner(contractFileHash, owner1);
+		const ownerList = [aliceAddress, bobAddress];
+		const jsonString = "{}";
+
+		const result = await firma.Contract.createContractFile(aliceWallet, fileHash, timeStamp, ownerList, jsonString);
+		expect(result.code).equal(0);
+
+		let isOwner = await firma.Contract.isContractOwner(fileHash, aliceAddress);
 		expect(isOwner).to.be.equal(true);
 
-		isOwner = await firma.Contract.isContractOwner(contractFileHash, owner2);
+		isOwner = await firma.Contract.isContractOwner(fileHash, bobAddress);
 		expect(isOwner).to.be.equal(true);
 	});
 
