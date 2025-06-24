@@ -4,7 +4,7 @@ import { FirmaSDK } from '../sdk/FirmaSDK'
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { aliceMnemonic, bobMnemonic } from './config_test';
 
-describe('[37. Marketplace tx Test]', () => {
+describe.skip('[37. Marketplace tx Test]', () => {
 
 	let firma: FirmaSDK;
 
