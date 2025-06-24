@@ -23,11 +23,11 @@ describe('[37. Marketplace tx Test]', () => {
 		bobAddress = await bobWallet.getAddress();
 	})
 
-	let cw721ContractAddress = "firma1mp3dl27wwhdkhkyed5d4ypaq7h5dewazqkqhny98sxcy2cpu23ls369adt";
-	let cw20ContractAddress = "firma1w8jfdyfdwf39w8x3j0hs5zd70upfx3ez05sty0xf9ueewsxa9w5qd9t4cr"
-	let marketplaceContractAddress = "firma1xzwdxkf24j8ggcdvntwp4vk66hy2nfy9rfwmnwfc5fpcv9xmtkyqphfh80"
+	let cw721ContractAddress = "";
+	let cw20ContractAddress = "";
+	let marketplaceContractAddress = "";
 	
-	it.skip('Cw nft mint & register fct and purchase same user (fail)', async () => {
+	it('Cw nft mint & register fct and purchase same user (fail)', async () => {
 
 		const new_token_id = "44";
 		const fctAmount = 1;
@@ -76,7 +76,7 @@ describe('[37. Marketplace tx Test]', () => {
 	}),
 
 
-	it.skip('Cw nft mint & register cw20 and purchase same user (fail)', async () => {
+	it('Cw nft mint & register cw20 and purchase same user (fail)', async () => {
 
 		const new_token_id = "42";
 		const cw20Amount = 1.2;
@@ -125,7 +125,7 @@ describe('[37. Marketplace tx Test]', () => {
 	}),
 
 
-	it.skip('Cw nft mint & register fct and other users cancel (fail)', async () => {
+	it('Cw nft mint & register fct and other users cancel (fail)', async () => {
 
 		const new_token_id = "41";
 
@@ -175,7 +175,7 @@ describe('[37. Marketplace tx Test]', () => {
 	}),
 
 
-	it.skip('Cw nft mint & register cw20 and other users cancel (fail)', async () => {
+	it('Cw nft mint & register cw20 and other users cancel (fail)', async () => {
 
 		const new_token_id = "40";
 
@@ -226,7 +226,7 @@ describe('[37. Marketplace tx Test]', () => {
 		
 	}),
 
-	it.skip('Cw nft mint & register cw20 and cancel', async () => {
+	it('Cw nft mint & register cw20 and cancel', async () => {
 
 		const new_token_id = "39";
 
@@ -277,7 +277,7 @@ describe('[37. Marketplace tx Test]', () => {
 		
 	}),
 
-	it.skip('Cw nft mint & register cw20 and try to purchase fct (fail)', async () => {
+	it('Cw nft mint & register cw20 and try to purchase fct (fail)', async () => {
 		
 		const new_token_id = "36";
 		const cw20Amount = 1.2;
@@ -323,7 +323,7 @@ describe('[37. Marketplace tx Test]', () => {
 
 	}),
 
-	it.skip('Cw nft mint & register fct and try to purchase cw20 (fail)', async () => {
+	it('Cw nft mint & register fct and try to purchase cw20 (fail)', async () => {
 
 		const new_token_id = "37";
 		const fctAmount = 1;
@@ -370,7 +370,7 @@ describe('[37. Marketplace tx Test]', () => {
 
 	}),
 
-	it.skip('Cw nft mint & register & purchase CW20', async () => {
+	it('Cw nft mint & register & purchase CW20', async () => {
 		
 		const new_token_id = "34";
 		const cw20Amount = 1.2;
@@ -427,7 +427,7 @@ describe('[37. Marketplace tx Test]', () => {
 		console.log(bobCw20Balance);
 	}),
 
-	it.skip('Cw nft mint & register & purchase FCT', async () => {
+	it('Cw nft mint & register & purchase FCT', async () => {
 
 		const new_token_id = "33";
 		const fctAmount = 1;
@@ -485,7 +485,7 @@ describe('[37. Marketplace tx Test]', () => {
 
 	}),
 
-	it.skip('Cw nft mint temp', async () => {
+	it('Cw nft mint temp', async () => {
 
 		// [ 15,16,17,18,19,20 ]
 
@@ -501,18 +501,18 @@ describe('[37. Marketplace tx Test]', () => {
 
 	}),
 
-	it.skip('Cw marketplace get config', async () => {
+	it('Cw marketplace get config', async () => {
         const data = await firma.CwMarketplace.getConfig(marketplaceContractAddress);
 		console.log(data);
 	}),
 
-	it.skip('Cw marketplace get register list', async () => {
+	it('Cw marketplace get register list', async () => {
 
 		const data = await firma.CwMarketplace.getRegisterList(marketplaceContractAddress);
 		console.log(data);
 	}),
 
-	it.skip	('Cw marketplace register sale FCT', async () => {
+	it	('Cw marketplace register sale FCT', async () => {
 
 		const token_id = "29";
 		const fctAmount = 1;
@@ -529,7 +529,7 @@ describe('[37. Marketplace tx Test]', () => {
 
 	}),
 
-	it.skip('Cw marketplace register sale cw20', async () => {
+	it('Cw marketplace register sale cw20', async () => {
 
 		const token_id = "31";
 		const cw20Amount = 1.2;
@@ -547,7 +547,7 @@ describe('[37. Marketplace tx Test]', () => {
 
 	}),
 
-	it.skip('Cw marketplace purchase sale FCT', async () => {
+	it('Cw marketplace purchase sale FCT', async () => {
 
 		const contractBalance = await firma.Bank.getBalance(marketplaceContractAddress);
 		console.log(contractBalance);
@@ -569,7 +569,7 @@ describe('[37. Marketplace tx Test]', () => {
 		console.log(contractFCTBalance);
 	}),
 
-	it.skip('Cw marketplace purchase sale Cw20', async () => {
+	it('Cw marketplace purchase sale Cw20', async () => {
 
 		const token_id = "31";
 		const cw20Amount = 1.2;
@@ -590,7 +590,7 @@ describe('[37. Marketplace tx Test]', () => {
 		
 	}),
 
-	it.skip('Cw marketplace chage_owner', async () => {
+	it('Cw marketplace chage_owner', async () => {
 		
 		const new_owner = aliceAddress;
 
