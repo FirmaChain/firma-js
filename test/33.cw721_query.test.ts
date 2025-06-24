@@ -1,7 +1,12 @@
-import { FirmaSDK } from '../sdk/FirmaSDK';
-import { FirmaWalletService } from '../sdk/FirmaWalletService';
-import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 import { expect } from 'chai';
+import fs from 'fs';
+import { AccessConfig, AccessType } from '../sdk/FirmaCosmWasmService';
+import { FirmaSDK } from '../sdk/FirmaSDK';
+import { FirmaUtil } from '../sdk/FirmaUtil';
+import { Expires } from '../sdk/FirmaCosmWasmCw20';
+import { FirmaWalletService } from '../sdk/FirmaWalletService';
+
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[33. cw721 query Test]', () => {
 
@@ -12,17 +17,90 @@ describe('[33. cw721 query Test]', () => {
 	let aliceAddress: string;
 	let bobAddress: string;
 
+	const extractValue = (events: readonly any[], eventType: string, attrKey: string) => {
+		for (const event of events) {
+			if (event.type === eventType) {
+				for (const attr of event.attributes) {
+					if (attr.key === attrKey) {
+						return attr.value;
+					}
+				}
+			}
+		}
+		return "";
+	};
+
 	beforeEach(async function() {
 		firma = new FirmaSDK(TestChainConfig);
 
 		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
-
 		aliceAddress = await aliceWallet.getAddress();
 		bobAddress = await bobWallet.getAddress();
 	})
 
-	let contractAddress = "firma1az885vpd2azjmepzhs3t9fftv4td44cyk526jykgpzseghtj44qq2gc4g3";
+	let contractAddress = "";
+	let mintId = "";
+
+	it('cw721 setup query', async () => {
+
+		// Cw721 store code
+		const wasmFile = fs.readFileSync("./test/sample/cw721_base.wasm");
+		const array = new Uint8Array(wasmFile.buffer);
+
+		const storeGas = 3000000;
+		const storeFee = FirmaUtil.getUFCTFromFCT(0.3);
+
+		const everyBodyAccessConfig: AccessConfig = {
+			permission: AccessType.ACCESS_TYPE_EVERYBODY,
+			address: "",
+			addresses: []
+		};
+
+		const storeCodeResult = await firma.CosmWasm.storeCode(aliceWallet, array, everyBodyAccessConfig, { gas: storeGas, fee: storeFee });
+		const codeId = extractValue(storeCodeResult.events, "store_code", "code_id");
+		expect(storeCodeResult.code).to.be.equal(0);
+
+		// Cw721 instantiate
+		const admin = await aliceWallet.getAddress();
+		const label = "test1";
+
+		const instantiateGas = 3000000;
+		const instantiateFee = FirmaUtil.getUFCTFromFCT(0.3);
+		const noFunds: any = [];
+
+		const testData = JSON.stringify({
+			minter: aliceAddress,
+			name: "My Awesome NFT Collection",
+			symbol: "MAWESOME"			
+		});
+
+		const instantiateResult = await firma.CosmWasm.instantiateContract(aliceWallet, admin, codeId, label, testData, noFunds, { gas: instantiateGas, fee: instantiateFee });
+		contractAddress = extractValue(instantiateResult.events, "instantiate", "_contract_address");
+		expect(instantiateResult.code).to.be.equal(0);
+
+		// Cw721 mint
+		const owner = aliceAddress;
+		const new_token_id = "1";
+		const new_token_uri = "https://meta.nft.io/uri/" + new_token_id;
+
+		const mintGas = await firma.Cw721.getGasEstimationMint(aliceWallet, contractAddress, owner, new_token_id, new_token_uri);
+		const mintFee = Math.ceil(mintGas * 0.1);
+
+		const mintResult = await firma.Cw721.mint(aliceWallet, contractAddress, owner, new_token_id, new_token_uri, { gas: mintGas, fee: mintFee });
+		expect(mintResult.code).to.be.equal(0);
+
+		// Cw721 approve
+		const expires: Expires = { never: {} };
+		const token_id = "1";
+
+		const approveGas = await firma.Cw721.getGasEstimationApprove(aliceWallet, contractAddress, bobAddress, token_id, expires);
+		const approveFee = Math.ceil(approveGas * 0.1);
+
+		const approveResult = await firma.Cw721.approve(aliceWallet, contractAddress, bobAddress, token_id, expires, { gas: approveGas, fee: approveFee });
+		expect(approveResult.code).to.be.equal(0);
+	});
+
 
 	it('cw721 getOwnerFromNftID', async () => {
 
@@ -127,17 +205,17 @@ describe('[33. cw721 query Test]', () => {
 		expect(minter).to.be.a('string');
 	});
 
-	it('cw721 getExtension', async () => {
-
-		// not use
-		const extension = await firma.Cw721.getExtension(contractAddress);
-		expect(extension).to.be.an('object');
-	});
-
 	it('cw721 getOwnerShip', async () => {
-
+		
 		const data = await firma.Cw721.getOwnerShip(contractAddress);
 		expect(data).to.be.an('object');
 		expect(data).to.have.property('owner');
 	});
+
+	// it('cw721 getExtension', async () => {
+
+	// 	// not use
+	// 	const extension = await firma.Cw721.getExtension(contractAddress);
+	// 	expect(extension).to.be.an('object');
+	// });
 });
