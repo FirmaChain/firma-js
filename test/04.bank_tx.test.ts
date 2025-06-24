@@ -26,7 +26,8 @@ describe('[04. Bank Tx Test]', () => {
 		const targetWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 		const amount = 20000000000000;
 
-		var result = await firma.Bank.send(wallet, await targetWallet.getAddress(), amount);
+		// result.code = 5 : Test failure when trying to send more than the available balance
+		const result = await firma.Bank.send(wallet, await targetWallet.getAddress(), amount);
 		expect(result.code).to.equal(5);
 	});
 
@@ -43,10 +44,9 @@ describe('[04. Bank Tx Test]', () => {
 		// it is not recorded as tx, but an extension is given at the code space level.
 		try {
 			await firma.Bank.send(wallet, await targetWallet.getAddress(), amount, { gas, fee });
-			expect(true).to.not.equal(true);
+			expect.fail('Transaction should have failed due to excessive fee');
 		} catch (error) {
-			expect(true).to.not.equal(false);
-			return;
+			expect(error).to.exist;
 		}
 	});
 });

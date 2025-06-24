@@ -43,7 +43,6 @@ describe('[06. Feegrant Tx Test]', () => {
 		const expirationDate = new Date();
 		expirationDate.setMonth(12);
 
-		// var spendLimit = 200000;
 		// var result = await firma.FeeGrant.GrantBasicAllowance(aliceWallet, await bobWallet.getAddress(), {spendLimit : spendLimit, expiration : expirationDate});
 		// var result = await firma.FeeGrant.GrantBasicAllowance(aliceWallet, await bobWallet.getAddress(), {expiration : expirationDate});
 		// var result = await firma.FeeGrant.GrantBasicAllowance(aliceWallet, await bobWallet.getAddress(), {spendLimit : spendLimit});
