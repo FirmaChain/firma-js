@@ -4,6 +4,7 @@ import { FirmaUtil } from '../sdk/FirmaUtil';
 import { BankTxClient } from '../sdk/firmachain/bank';
 import { ArbitraryVerifyData } from '../sdk/firmachain/common/signingstargateclient';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
+
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[27. arbitary sign]', () => {
