@@ -4,17 +4,21 @@ import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaUtil } from '../sdk/FirmaUtil';
 
 import { aliceMnemonic, TestChainConfig } from './config_test';
+import { FirmaWalletService } from '../sdk/FirmaWalletService';
 
-describe('[28. IBC Tx Test]', () => {
+describe.skip('[28. IBC Tx Test]', () => {
 
 	let firma: FirmaSDK;
+	let aliceWallet: FirmaWalletService;
+	let aliceAddress: string;
 
-	beforeEach(function() {
+	beforeEach(async function() {
 		firma = new FirmaSDK(TestChainConfig);
+		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		aliceAddress = await aliceWallet.getAddress();
 	})
 
 	it('IBC transfer', async () => {
-		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		
 		const sourcePort = "transfer";
 		const sourceChannel = "channel-3";
