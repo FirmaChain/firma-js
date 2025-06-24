@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { FirmaSDK } from '../sdk/FirmaSDK';
+
 import { TestChainConfig } from './config_test';
 
 describe('[18. util Test]', () => {
@@ -61,7 +62,6 @@ describe('[18. util Test]', () => {
 		const valconsAddress = "firmavalcons1fh73gr3f9df7yc390ykdnmeedetlw5ll3dqwje";
 
 		let result = FirmaUtil.getValConsAddressFromAccAddress(consensusPubkey);
-		//console.log(result);
 
 		expect(result).to.be.equal(valconsAddress);
 	})
