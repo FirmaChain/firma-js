@@ -62,7 +62,7 @@ describe('[30. cw20 tx Test]', () => {
 	});
 
 	it('CosmWasm Cw20 InstantiateContract', async () => {
-		const admin = await aliceWallet.getAddress();
+		const admin = aliceAddress;
 		const label = "test1";
 
 		const gas = 3000000;
@@ -103,7 +103,7 @@ describe('[30. cw20 tx Test]', () => {
 
 	it('Cw20 transfer', async () => {
 
-		const amount = "10000";
+		const amount = "100";
 		const gas = await firma.Cw20.getGasEstimationTransfer(aliceWallet, contractAddress, bobAddress, amount);
 		const fee = Math.ceil(gas * 0.1);
 
@@ -130,7 +130,7 @@ describe('[30. cw20 tx Test]', () => {
 
 	it('Cw20 burn', async () => {
 
-		const amount = "1000";
+		const amount = "10";
 		const gas = await firma.Cw20.getGasEstimationBurn(aliceWallet, contractAddress, amount);
 		const fee = Math.ceil(gas * 0.1);
 
@@ -142,7 +142,6 @@ describe('[30. cw20 tx Test]', () => {
 
 		const olDAllowance = await firma.Cw20.getAllowance(contractAddress, aliceAddress, bobAddress);
 
-		
 		//const expires: Expires = { at_height: 7216240 };
 		//const expires: Expires = { at_time: "1852937600000000000" }; // unix timestamp nano seconds
 		//const expires: Expires = { never: {} };
@@ -162,7 +161,7 @@ describe('[30. cw20 tx Test]', () => {
 
 	it('Cw20 transfer_from', async () => {
 
-		const amount = "1000";
+		const amount = "10";
 		const gas = await firma.Cw20.getGasEstimationTransferFrom(bobWallet, contractAddress, aliceAddress, bobAddress, amount);
 		const fee = Math.ceil(gas * 0.1);
 
@@ -172,7 +171,7 @@ describe('[30. cw20 tx Test]', () => {
 
 	it('Cw20 burn_from', async () => {
 
-		const amount = "1000";
+		const amount = "10";
 		const gas = await firma.Cw20.getGasEstimationBurnFrom(bobWallet, contractAddress, aliceAddress, amount);
 		const fee = Math.ceil(gas * 0.1);
 
@@ -182,13 +181,13 @@ describe('[30. cw20 tx Test]', () => {
 
 	it('Cw20 decrease_allowance', async () => {
 
-		const olDAllowance = await firma.Cw20.getAllowance(contractAddress, aliceAddress, bobAddress);
+		const oldAllowance = await firma.Cw20.getAllowance(contractAddress, aliceAddress, bobAddress);
 
 		//const expires: Expires = { at_height: 7216240 };
 		//const expires: Expires = { at_time: "1852937600000000000" }; // unix timestamp nano seconds
 		//const expires: Expires = { never: {} };
 		const expires: Expires = { never: {} };
-		const amount = "1000";
+		const amount = "100";
 
 		const gas = await firma.Cw20.getGasEstimationDecreaseAllowance(aliceWallet, contractAddress, bobAddress, amount, expires);
 		const fee = Math.ceil(gas * 0.1);
@@ -197,7 +196,7 @@ describe('[30. cw20 tx Test]', () => {
 		expect(result.code).to.be.equal(0);
 
 		const newAllowance = await firma.Cw20.getAllowance(contractAddress, aliceAddress, bobAddress);
-		expect(Number.parseInt(olDAllowance.allowance) + Number.parseInt(amount)).to.be.equal(Number.parseInt(newAllowance.allowance));
+		expect(Number.parseInt(newAllowance.allowance) + Number.parseInt(amount)).to.be.equal(Number.parseInt(oldAllowance.allowance));
 	});
 
 	it('Cw20 update_minter', async () => {
