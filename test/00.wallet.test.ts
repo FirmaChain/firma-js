@@ -1,18 +1,21 @@
 import { expect } from 'chai';
 import { FirmaSDK } from '../sdk/FirmaSDK';
+import { FirmaWalletService } from '../sdk/FirmaWalletService';
+
 import { aliceMnemonic, TestChainConfig } from './config_test';
 
 describe('[00. Wallet Test]', () => {
 
 	let firma: FirmaSDK;
+	let aliceWallet: FirmaWalletService;
 
-	beforeEach(function() {
+	beforeEach(async function() {
 		firma = new FirmaSDK(TestChainConfig);
+		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 	})
 
 	it('fromMnemonic check', async () => {
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		expect(wallet.getMnemonic()).to.equal(aliceMnemonic);
+		expect(aliceWallet.getMnemonic()).to.equal(aliceMnemonic);
 	});
 
 	it('Wallet.fromPrivateKey check', async () => {
