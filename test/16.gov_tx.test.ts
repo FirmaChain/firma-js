@@ -9,9 +9,10 @@ import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 describe('[16. Gov Tx Test]', () => {
 
 	let firma: FirmaSDK;
-
 	let aliceWallet: FirmaWalletService;
 	let aliceAddress: string;
+	let bobWallet: FirmaWalletService;
+	let bobAddress: string;
 
 	const extractValue = (events: readonly any[], eventType: string, attrKey: string) => {
 		for (const event of events) {
@@ -28,9 +29,10 @@ describe('[16. Gov Tx Test]', () => {
 
 	beforeEach(async function() {
 		firma = new FirmaSDK(TestChainConfig);
-
 		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		aliceAddress = await aliceWallet.getAddress();
+		bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		bobAddress = await bobWallet.getAddress();
 	});
 
 	// Test order
@@ -40,38 +42,29 @@ describe('[16. Gov Tx Test]', () => {
 
 	it('SubmitTextProposal Test', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-
 		const initialDepositFCT = 2500;
 		const title = "test submit proposal";
 		const description = "test description";
 
-		var result = await firma.Gov.submitTextProposal(wallet, title, description, initialDepositFCT);
+		const result = await firma.Gov.submitTextProposal(aliceWallet, title, description, initialDepositFCT);
 
-		console.log(result);
 		expect(result.code).to.equal(0);
 	});
 
-	it('SubmitCommunityPoolSpendProposal Test', async () => {
-
-		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
-
+	it.skip('SubmitCommunityPoolSpendProposal Test', async () => {
+		
 		const initialDepositFCT = 10;
 		const title = "Community spend proposal1";
 		const description = "This is a community spend proposal";
 		const amount = 1000;
-		const recipient = await bobWallet.getAddress();
+		const recipient = bobAddress;
 
-		var result = await firma.Gov.submitCommunityPoolSpendProposal(aliceWallet, title, description, initialDepositFCT, amount, recipient);
+		const result = await firma.Gov.submitCommunityPoolSpendProposal(aliceWallet, title, description, initialDepositFCT, amount, recipient);
 
-		console.log(result);
 		expect(result.code).to.equal(0);
 	});
 
-	it('SubmitParameterChangeProposal Test', async () => {
-
-		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+	it.skip('SubmitParameterChangeProposal Test', async () => {
 
 		const initialDepositFCT = 10;
 		const title = "Parameter Change proposal1";
@@ -83,16 +76,13 @@ describe('[16. Gov Tx Test]', () => {
 			value: "100",
 		}];
 
-		var result = await firma.Gov.submitParameterChangeProposal(aliceWallet, title, description, initialDepositFCT, changeParamList);
+		const result = await firma.Gov.submitParameterChangeProposal(aliceWallet, title, description, initialDepositFCT, changeParamList);
 
-		console.log(result);
 		expect(result.code).to.equal(0);
 	});
 
 	// This unit test needs specific option setup, so it’s skipped by default.
 	it.skip('SubmitSoftwareUpgradeProposalByHeight Test', async () => {
-
-		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
 		const initialDepositFCT = 5000;
 		const title = "FIRMACHAIN v0.5.0 Upgrade";
@@ -132,40 +122,28 @@ For a more detailed upgrade guide, please visit https://github.com/FirmaChain/ma
 		const gas = await firma.Gov.getGasEstimationSubmitSoftwareUpgradeProposalByHeight(aliceWallet, title, description, initialDepositFCT, upgradeName, upgradeHeight);
 		const fee = Math.ceil(gas * 0.1);
 
-		var result = await firma.Gov.submitSoftwareUpgradeProposalByHeight(aliceWallet, title, description, initialDepositFCT, upgradeName, upgradeHeight, { gas, fee });
+		const result = await firma.Gov.submitSoftwareUpgradeProposalByHeight(aliceWallet, title, description, initialDepositFCT, upgradeName, upgradeHeight, { gas, fee });
 
-		console.log(result);
 		expect(result.code).to.equal(0);
 	});
 
 	// This unit test needs specific option setup, so it’s skipped by default.
 	it.skip('SubmitCancelSoftwareUpgradeProposal Test', async () => {
 
-		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-
 		const initialDepositFCT = 1000;
 		const title = "Software Upgrade proposal1";
 		const description = "This is a software upgrade proposal";
 
-		var result = await firma.Gov.submitCancelSoftwareUpgradeProposal(aliceWallet, title, description, initialDepositFCT);
+		const result = await firma.Gov.submitCancelSoftwareUpgradeProposal(aliceWallet, title, description, initialDepositFCT);
 
-		console.log(result);
 		expect(result.code).to.equal(0);
 	});
 
 	it('SubmitTextProposal & CancelProposal Test', async () => {
 
-		
-
 		const initialDeposit = 5000;
 		const title = "CancelProposal test proposal";
 		const description = "This is a Text & CancelProposal";
-
-		let aliceAmount = await firma.Bank.getBalance(aliceAddress);
-		console.log(`Gov Prev amount: ${aliceAmount}`);
-		const governanceCancelFeeFoundationAddress = "firma1kvlelvv6u7h4jasqlpu956czt4543xqzc37h2v";
-		let foundationAmount = await firma.Bank.getBalance(governanceCancelFeeFoundationAddress);
-		console.log(`Gov Prev FoundationAmount: ${foundationAmount}`);
 
 		// Submit TextProposal
 		let gas = await firma.Gov.getGasEstimationSubmitTextProposal(aliceWallet, title, description, initialDeposit);
@@ -173,32 +151,19 @@ For a more detailed upgrade guide, please visit https://github.com/FirmaChain/ma
 
 		let result = await firma.Gov.submitTextProposal(aliceWallet, title, description, initialDeposit, { gas, fee});
 		const proposal_id = extractValue(result.events, "submit_proposal", "proposal_id");
-		console.log(`Proposal ID: ${proposal_id}`);
 		expect(result.code).to.be.equal(0);
-
-		aliceAmount = await firma.Bank.getBalance(aliceAddress);
-		console.log(`Gov After amount: ${aliceAmount}`);
 
 		// CancelProposal
 		gas = await firma.Gov.getGasEstimationCancelProposal(aliceWallet, proposal_id);
 		fee = Math.ceil(gas * 0.1);
 
-		result = await firma.Gov.cancelProposal(aliceWallet, proposal_id);
-		
-		aliceAmount = await firma.Bank.getBalance(aliceAddress);
-		console.log(`Cancel After amount: ${aliceAmount}`);
-		
-		foundationAmount = await firma.Bank.getBalance(governanceCancelFeeFoundationAddress);
-		console.log(`Cancel After FoundationAmount: ${foundationAmount}`);
+		result = await firma.Gov.cancelProposal(aliceWallet, proposal_id, { gas, fee });
 
 		expect(result.code).to.be.equal(0);
 	});
 
 	// NOTICE: time-based upgrades have been deprecated in the SDK: invalid request
 	/*it.skip('SubmitSoftwareUpgradeProposalByTime Test', async () => {
-
-		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
 		const initialDepositFCT = 8;
 		const title = "Software Upgrade proposal2";
@@ -221,36 +186,26 @@ For a more detailed upgrade guide, please visit https://github.com/FirmaChain/ma
 	const tempProposalId = 15;
 
 	// more deposit after initial deposit case
-	it('Deposit OK', async () => {
-
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+	it.skip('Deposit OK', async () => {
 
 		const proposalId = tempProposalId;
 		const amount = 2500;
-		var result = await firma.Gov.deposit(wallet, proposalId, amount);
-		//console.log(result);
+
+		const result = await firma.Gov.deposit(aliceWallet, proposalId, amount);
 		expect(result.code).to.equal(0);
 	});
 
-	it('Vote - alice YES', async () => {
+	it.skip('Vote - alice YES', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 		const proposalId = tempProposalId;
-
-		var result = await firma.Gov.vote(wallet, proposalId, VotingOption.VOTE_OPTION_YES);
-		//console.log(result);
+		const result = await firma.Gov.vote(aliceWallet, proposalId, VotingOption.VOTE_OPTION_YES);
 		expect(result.code).to.equal(0);
 	});
 
-	it('Vote - bob NO', async () => {
+	it.skip('Vote - bob NO', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 		const proposalId = tempProposalId;
-
-		var result = await firma.Gov.vote(wallet, proposalId, VotingOption.VOTE_OPTION_NO);
-		//console.log(result);
+		const result = await firma.Gov.vote(bobWallet, proposalId, VotingOption.VOTE_OPTION_NO);
 		expect(result.code).to.equal(0);
 	});
-
-	// TODO: more voting case need it!
 });

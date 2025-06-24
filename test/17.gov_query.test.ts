@@ -13,7 +13,7 @@ describe('[17. Gov Query Test]', () => {
 	})
 
 	it('get getProposalList', async () => {
-		
+
 		const proposalList: any = [];
 		if (proposalList.length > 0) {
 			expect(proposalList[0].proposal_id).to.not.equal('');
@@ -45,7 +45,6 @@ describe('[17. Gov Query Test]', () => {
 			const id = "1";
 			const proposal = await firma.Gov.getProposal(id);
 			
-			// proposal이 올바른 구조를 가지고 있는지 확인
 			expect(proposal).to.be.an('object');
 			expect(proposal).to.have.property('proposal_id');
 			expect(proposal.proposal_id).to.equal(id);
