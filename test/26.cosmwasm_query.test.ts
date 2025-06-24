@@ -18,8 +18,9 @@ describe('[26. cosmwasm query Test]', () => {
 
 		// Codes gets the metadata for all stored wasm codes
 		const result = await firma.CosmWasm.getCodeList();
-
 		expect(result.length).to.be.greaterThan(0);
+
+		codeId = result[0].code_id;
 
 		const codeInfo = result[0];
 		expect(codeInfo).to.have.property('code_id');
@@ -58,6 +59,8 @@ describe('[26. cosmwasm query Test]', () => {
 		
 		expect(result.pagination).to.have.property('next_key');
 		expect(result.pagination).to.have.property('total');
+
+		contractAddress = result.dataList[0];
 	});
 
 	it('CosmWasm getPinnedCodeList', async () => {

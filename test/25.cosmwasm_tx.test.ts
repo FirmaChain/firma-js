@@ -4,8 +4,9 @@ import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { Coin } from '@cosmjs/proto-signing';
 import { AccessConfig, AccessType } from '../sdk/FirmaCosmWasmService';
-import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
+
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[25. CosmWasm Tx Test]', () => {
 
@@ -96,7 +97,7 @@ describe('[25. CosmWasm Tx Test]', () => {
 		const gas = 3000000;
 		const fee = FirmaUtil.getUFCTFromFCT(0.3);
 
-		const result = await firma.CosmWasm.clearAdmin(aliceWallet, contractAddress, { gas: gas, fee: fee });
+		const result = await firma.CosmWasm.clearAdmin(bobWallet, contractAddress, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
 	});
 
