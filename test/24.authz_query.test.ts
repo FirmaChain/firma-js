@@ -19,28 +19,65 @@ describe('[24. Authz query Test]', () => {
 		aliceAddress = await aliceWallet.getAddress();
 		bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 		bobAddress = await bobWallet.getAddress();
+
+		await initializeGrant();
 	})
+
+	const initializeGrant = async function () {
+
+		const expirationDate = new Date();
+		expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+		const delegationInfo = (await firma.Staking.getTotalDelegationInfo(aliceAddress)).dataList;
+		const validatorAddress = delegationInfo[0].delegation.validator_address;
+
+		// getSendGrantData
+		const amountFCT = 9;
+		const grantResult = await firma.Authz.grantSendAuthorization(aliceWallet, bobAddress, expirationDate, amountFCT);
+		expect(grantResult.code).to.equal(0);
+
+		// Grant-GenericAuthorization
+		const msg = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward";
+		const genericResult = await firma.Authz.grantGenericAuthorization(aliceWallet, bobAddress, msg, expirationDate);
+		expect(genericResult.code).to.be.equal(0);
+
+		// getStakingGrantData - delegate
+		const maxFCT = 100;
+		const delegateResult = await firma.Authz.grantStakeAuthorization(aliceWallet, bobAddress, [validatorAddress], AuthorizationType.AUTHORIZATION_TYPE_DELEGATE, expirationDate, maxFCT);
+		expect(delegateResult.code).to.be.equal(0);
+
+		// getStakingGrantData - redelegate
+		const redelegateResult = await firma.Authz.grantStakeAuthorization(aliceWallet, bobAddress, [validatorAddress], AuthorizationType.AUTHORIZATION_TYPE_REDELEGATE, expirationDate, maxFCT);
+		expect(redelegateResult.code).to.be.equal(0);
+
+		// getStakingGrantData - undelegate
+		const undelegateResult = await firma.Authz.grantStakeAuthorization(aliceWallet, bobAddress, [validatorAddress], AuthorizationType.AUTHORIZATION_TYPE_UNDELEGATE, expirationDate, maxFCT);
+		expect(undelegateResult.code).to.be.equal(0);
+	};
 
 	it('Authz getSendGrantData', async () => {
 
 		const result = (await firma.Authz.getSendGrantData(aliceAddress, bobAddress)).dataList;
-		
-		// This test may fail if the grant does not exist.
 		expect(result.length).to.be.greaterThan(0);
 
 		const grant = result[0];
 		expect(grant).to.have.property('authorization');
 		expect(grant).to.have.property('expiration');
+
+		const revokeResult = await firma.Authz.revokeSendAuthorization(aliceWallet, bobAddress);
+		expect(revokeResult.code).to.equal(0);
 	});
 
 	it('Authz getGenericGrantData', async () => {
 
+		const expirationDate = new Date();
+		expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+		const amountFCT = 9;
+
 		const msg = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward";
 		const result = (await firma.Authz.getGenericGrantData(aliceAddress, bobAddress, msg)).dataList;
-		
+
 		// This test may fail if the grant does not exist.
 		expect(result.length).to.be.greaterThan(0);
-
 		const grant = result[0];
 		expect(grant).to.have.property('authorization');
 		expect(grant).to.have.property('expiration');
