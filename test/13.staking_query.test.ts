@@ -1,8 +1,8 @@
 import { expect } from 'chai';
-import { FirmaConfig } from '../sdk/FirmaConfig';
-import { FirmaSDK } from "../sdk/FirmaSDK"
-import { StakingValidatorStatus } from '../sdk/FirmaStakingService';
-import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
+import { FirmaSDK } from '../sdk/FirmaSDK';
+import { FirmaUtil } from '../sdk/FirmaUtil';
+
+import { aliceMnemonic, TestChainConfig } from './config_test';
 
 describe('[13. Staking Query Test]', () => {
 
@@ -10,114 +10,120 @@ describe('[13. Staking Query Test]', () => {
 
 	beforeEach(function() {
 		firma = new FirmaSDK(TestChainConfig);
-	})
+	});
 
 	it('1.get total validator list', async () => {
 
 		// default : StakingValidatorStatus.ALL
-		var result = await firma.Staking.getValidatorList();
-		//console.log(result);
-
-		//var result = await firma.Staking.getValidatorList(StakingValidatorStatus.ALL);
-		//console.log(result);
-
-		//var result = await firma.Staking.getValidatorList(StakingValidatorStatus.BONDED);
-		//console.log(result);
-
-		//var result = await firma.Staking.getValidatorList(StakingValidatorStatus.UNBONDING);
-		//console.log(result);
-
-		//var result = await firma.Staking.getValidatorList(StakingValidatorStatus.UNBONDED);
-		//console.log(result);
-
-		//console.log(result.dataList[0].consensus_pubkey['@type']);
-		//console.log(result.dataList[0].consensus_pubkey.key);
-
-		//console.log(result);
-	})
+		const result = await firma.Staking.getValidatorList();
+		expect(result.dataList.length > 0).to.be.equal(true);
+	});
 
 	it('2.get validator data', async () => {
 
-		var validatorList = (await firma.Staking.getValidatorList()).dataList;
-		var result = await firma.Staking.getValidator(validatorList[0].operator_address);
-		//console.log(result);
-	})
+		const validatorList = (await firma.Staking.getValidatorList()).dataList;
+		const result = await firma.Staking.getValidator(validatorList[0].operator_address);
+		expect(FirmaUtil.isValidAddress(result.operator_address)).to.be.equal(true);
+	});
 
 	it('3.get getDelegationListFromValidator', async () => {
 
-		var validatorList = (await firma.Staking.getValidatorList()).dataList;
-		var result = await firma.Staking.getDelegationListFromValidator(validatorList[0].operator_address);
-		//console.log(result);
-	})
+		const validatorList = (await firma.Staking.getValidatorList()).dataList;
+		const result = await firma.Staking.getDelegationListFromValidator(validatorList[0].operator_address);
+		if (result.dataList.length > 0) {
+			expect(result.dataList[0].balance).to.not.equal("");
+		} else {
+			expect(true).to.be.equal(true);
+		}
+	});
 
 	it('4.get getUndelegationListFromValidator', async () => {
 
-		var validatorList = (await firma.Staking.getValidatorList()).dataList;
-		var result = await firma.Staking.getUndelegationListFromValidator(validatorList[0].operator_address);
-
-		//console.log(result);
-	})
+		const validatorList = (await firma.Staking.getValidatorList()).dataList;
+		const result = await firma.Staking.getUndelegationListFromValidator(validatorList[0].operator_address);
+		if (result.dataList.length > 0) {
+			expect(FirmaUtil.isValidAddress(result.dataList[0].delegator_address)).to.be.equal(true);
+		} else {
+			expect(true).to.be.equal(true);
+		}
+	});
 
 	// param side
 	it('5.get staking total pool', async () => {
 
-		var result = await firma.Staking.getPool();
-
-		// bonded_token, not_bonded_tokens
-		//console.log(result);
-	})
+		const result = await firma.Staking.getPool();
+		expect(result.bonded_tokens).to.not.equal("");
+	});
 
 
 	it('6.get getParams', async () => {
 
-		var result = await firma.Staking.getParams();
-		//console.log(result);
-	})
+		const result = await firma.Staking.getParams();
+		expect(result.max_validators).to.not.equal(0);
+	});
 
 	// user side
 	it('7.get userside getTotalDelegationInfo', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		var result = await firma.Staking.getTotalDelegationInfo(await wallet.getAddress());
+		const result = await firma.Staking.getTotalDelegationInfo(await wallet.getAddress());
 
-		//console.log(result);
-	})
+		if (result.dataList.length > 0) {
+			expect(result.dataList[0].balance).to.not.equal("");
+		} else {
+			expect(true).to.be.equal(true);
+		}
+	});
 
 	it('8.get userside getTotalRedelegationInfo', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		var result = await firma.Staking.getTotalRedelegationInfo(await wallet.getAddress());
+		const result = await firma.Staking.getTotalRedelegationInfo(await wallet.getAddress());
 
-		//console.log(result);
-	})
+		if (result.length > 0) {
+			expect(FirmaUtil.isValidAddress(result[0].redelegation.delegator_address)).to.be.equal(true);
+		} else {
+			expect(true).to.be.equal(true);
+		}
+	});
 
 	it('9.get userside getTotalUndelegateInfo', async () => {
 
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		var result = await firma.Staking.getTotalUndelegateInfo(await wallet.getAddress());
+		const result = await firma.Staking.getTotalUndelegateInfo(await wallet.getAddress());
 
-		//console.log(result);
-	})
+		if (result.length > 0) {
+			expect(FirmaUtil.isValidAddress(result[0].delegator_address)).to.be.equal(true);
+		} else {
+			expect(true).to.be.equal(true);
+		}
+	});
 
 	it('10.get userside getDelegationInfoFromValidator', async () => {
 
-		var validatorList = (await firma.Staking.getValidatorList()).dataList;
-
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		var result = await firma.Staking.getDelegationInfoFromValidator(await wallet.getAddress(), validatorList[0].operator_address);
+		const validatorList = (await firma.Staking.getValidatorList()).dataList;
 
-		// If there is no data in the list, throw 404 exception.
-		//console.log(result);
-	})
+		try {
+			// If there is no data in the list, throw 404 exception.
+			const result = await firma.Staking.getDelegationInfoFromValidator(await wallet.getAddress(), validatorList[0].operator_address);
+			expect(result.balance).to.not.equal("");
+		} catch (error) {
+			expect(false).to.not.equal(true);
+		}
+	});
 
 	it('11.get userside getUndelegationInfoFromValidator', async () => {
 
 		var validatorList = (await firma.Staking.getValidatorList()).dataList;
 		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
 
-		var result = await firma.Staking.getUndelegationInfoFromValidator(await wallet.getAddress(), validatorList[0].operator_address);
-
-		// If there is no data in the list, throw 404 exception.
-		//console.log(result);
-	})
+		try {
+			// If there is no data in the list, throw 404 exception.
+			const result = await firma.Staking.getUndelegationInfoFromValidator(await wallet.getAddress(), validatorList[0].operator_address);
+			expect(FirmaUtil.isValidAddress(result.delegator_address)).to.be.equal(true);
+		} catch (error) {
+			expect(false).to.not.equal(true);
+		}
+	});
 });

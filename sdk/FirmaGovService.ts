@@ -21,6 +21,7 @@ import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { CommunityPoolSpendProposal } from "cosmjs-types/cosmos/distribution/v1beta1/distribution";
 import { ParameterChangeProposal } from "cosmjs-types/cosmos/params/v1beta1/params";
 import { CancelSoftwareUpgradeProposal, SoftwareUpgradeProposal } from "cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
+import { MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 
 export class FirmaGovService {
 
@@ -151,6 +152,19 @@ export class FirmaGovService {
             const txRaw = await this.getSignedTxSubmitTextProposal(wallet, title, description, initialDepositFCT, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
 
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getGasEstimationCancelProposal(wallet: FirmaWalletService,
+        proposalId: number,
+        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+        
+        try {
+            const txRaw = await this.getSignedTxCancelProposal(wallet, proposalId, txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -349,6 +363,23 @@ export class FirmaGovService {
         }
     }
 
+    private async getSignedTxCancelProposal(wallet: FirmaWalletService,
+        proposalId: number,
+        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+
+        const proposer = await wallet.getAddress();
+        const message = {
+            typeUrl: "/cosmos.gov.v1.MsgCancelProposal",
+            value: MsgCancelProposal.fromPartial({
+              proposalId: BigInt(proposalId),
+              proposer: proposer
+            })
+        };
+
+        const txClient = new GovTxClient(wallet, this.config.rpcAddress);
+        return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+    }
+
     async submitCancelSoftwareUpgradeProposal(wallet: FirmaWalletService,
         title: string,
         description: string,
@@ -479,6 +510,20 @@ export class FirmaGovService {
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
 
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async cancelProposal(wallet: FirmaWalletService,
+        proposalId: number,
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
+        try {
+            const txRaw = await this.getSignedTxCancelProposal(wallet, proposalId, txMisc);
+
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
+            return await txClient.broadcast(txRaw);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;

@@ -107,9 +107,7 @@ export class StakingQueryClient {
         const path =
             `/cosmos/staking/v1beta1/validators/${validatorAddress}/delegations/${address}/unbonding_delegation`;
         const result = await this.axios.get(path);
-
         // If there is no data in the list, throw 404 exception.
-        //console.log(result);
 
         return result.data.unbond;
     }

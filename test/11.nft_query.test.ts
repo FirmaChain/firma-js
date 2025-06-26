@@ -1,20 +1,25 @@
 import { expect } from 'chai';
-import { FirmaSDK } from "../sdk/FirmaSDK"
+import { FirmaSDK } from '../sdk/FirmaSDK';
 import { NftItemType } from '../sdk/firmachain/nft';
-import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
+import { FirmaWalletService } from '../sdk/FirmaWalletService';
+
+import { aliceMnemonic, TestChainConfig } from './config_test';
 
 describe('[11. NFT Query Test]', () => {
 
 	let firma: FirmaSDK;
+	let aliceWallet: FirmaWalletService;
+	let aliceAddress: string;
 
-	beforeEach(function() {
+	beforeEach(async function() {
 		firma = new FirmaSDK(TestChainConfig);
+		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		aliceAddress = await aliceWallet.getAddress();
 	})
 
 	it('NFT getBalanceOf', async () => {
 
-		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		var totalNft = await firma.Nft.getBalanceOf((await wallet.getAddress()));
+		const totalNft = await firma.Nft.getBalanceOf(aliceAddress);
 
 		expect(totalNft).to.be.equal(totalNft);
 		expect(totalNft).to.be.greaterThan(0);
@@ -22,25 +27,19 @@ describe('[11. NFT Query Test]', () => {
 
 	it('NFT getNftIdListOfOwner', async () => {
 
-		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-
-		var result = await firma.Nft.getNftIdListOfOwner(await wallet.getAddress());
-
+		const result = await firma.Nft.getNftIdListOfOwner(aliceAddress);
 		expect(result.nftIdList.length).to.be.greaterThan(0);
 	});
 
 	it('NFT getNftItemAllFromAddress-Pagination', async () => {
 
-		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		var address = await wallet.getAddress();
-
-		var result = await firma.Nft.getNftItemAllFromAddress(address);
+		let result = await firma.Nft.getNftItemAllFromAddress(aliceAddress);
 		const total = result.pagination.total;
 
-		var current = result.dataList.length;
+		let current = result.dataList.length;
 
 		while (result.pagination.next_key != "" && result.pagination.next_key != null) {
-			result = await firma.Nft.getNftItemAllFromAddress(address, result.pagination.next_key);
+			result = await firma.Nft.getNftItemAllFromAddress(aliceAddress, result.pagination.next_key);
 			current += result.dataList.length;
 		}
 
@@ -49,31 +48,28 @@ describe('[11. NFT Query Test]', () => {
 
 	it('NFT getNftItemAllFromAddress', async () => {
 
-		let wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		var nftItemList = await firma.Nft.getNftItemAllFromAddress(await wallet.getAddress());
-
+		const nftItemList = await firma.Nft.getNftItemAllFromAddress(aliceAddress);
 		expect(nftItemList.dataList.length).to.be.greaterThan(0);
 	});
 
 	it('NFT getNftItemAll-pagination', async () => {
 
-		var result = await firma.Nft.getNftItemAll();
+		let result = await firma.Nft.getNftItemAll();
 
 		const total = result.pagination.total;
 
-		var totalItemList: NftItemType[] = [];
-		var index = 0;
+		let totalItemList: NftItemType[] = [];
+		let index = 0;
 
 		while (result.pagination.next_key != null) {
-
-			for (var i = 0; i < result.dataList.length; i++) {
+			for (let i = 0; i < result.dataList.length; i++) {
 				totalItemList[index++] = result.dataList[i];
 			}
 
 			result = await firma.Nft.getNftItemAll(result.pagination.next_key);
 		}
 
-		for (var i = 0; i < result.dataList.length; i++) {
+		for (let i = 0; i < result.dataList.length; i++) {
 			totalItemList[index++] = result.dataList[i];
 		}
 
@@ -82,7 +78,7 @@ describe('[11. NFT Query Test]', () => {
 
 	it('NFT getNftItemAll', async () => {
 
-		var result = await firma.Nft.getNftItemAll();
+		const result = await firma.Nft.getNftItemAll();
 
 		expect(result.dataList.length).to.be.equal(result.dataList.length);
 		expect(result.dataList.length).to.be.greaterThan(0);

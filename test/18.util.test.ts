@@ -1,10 +1,18 @@
 import { expect } from 'chai';
 import { FirmaUtil } from '../sdk/FirmaUtil';
+import { FirmaSDK } from '../sdk/FirmaSDK';
+
+import { TestChainConfig } from './config_test';
 
 describe('[18. util Test]', () => {
 
-	// getHashFromString
+	let firma: FirmaSDK;
 
+	beforeEach(function() {
+		firma = new FirmaSDK(TestChainConfig);
+	})
+
+	// getHashFromString
 	it('getSha1HashFromString test', async () => {
 
 		const contractName = "testContract1234";
@@ -54,7 +62,6 @@ describe('[18. util Test]', () => {
 		const valconsAddress = "firmavalcons1fh73gr3f9df7yc390ykdnmeedetlw5ll3dqwje";
 
 		let result = FirmaUtil.getValConsAddressFromAccAddress(consensusPubkey);
-		//console.log(result);
 
 		expect(result).to.be.equal(valconsAddress);
 	})

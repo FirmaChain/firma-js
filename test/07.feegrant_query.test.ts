@@ -1,42 +1,54 @@
 
 import { expect } from 'chai';
-import { FirmaSDK } from "../sdk/FirmaSDK"
+import { FirmaSDK } from '../sdk/FirmaSDK';
+import { FirmaUtil } from '../sdk/FirmaUtil';
+import { FirmaWalletService } from '../sdk/FirmaWalletService';
+
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[07. Feegrant Query Test]', () => {
 
 	let firma: FirmaSDK;
+	let aliceWallet: FirmaWalletService;
+	let aliceAddress: string;
+	let bobWallet: FirmaWalletService;
+	let bobAddress: string;
 
-	beforeEach(function() {
+	beforeEach(async function() {
 		firma = new FirmaSDK(TestChainConfig);
+		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		aliceAddress = await aliceWallet.getAddress();
+		bobAddress = await bobWallet.getAddress();
 	})
 
-	it.skip('feegrant getGranteeAllowance', async () => {
+	afterEach(async function() {
+		await firma.FeeGrant.revokeAllowance(aliceWallet, bobAddress);
+	})
 
+	it('feegrant getGranteeAllowance', async () => {
 
-		const aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		try {
+			const expirationDate = new Date();
+			expirationDate.setMonth(12);
+			const grantResult = await firma.FeeGrant.grantBasicAllowance(aliceWallet, bobAddress, { expiration : expirationDate});
+			expect(grantResult.code).to.equal(0);
 
-		var result = await firma.FeeGrant.getGranteeAllowance(await aliceWallet.getAddress(), await bobWallet.getAddress());
-		/*console.log(result['@type']);
-		console.log(result.spendLimit);
-		console.log(result.expiration);*/
-
+			const allowance = await firma.FeeGrant.getGranteeAllowance(aliceAddress, bobAddress);
+			expect(allowance).to.not.equal(null);
+		} catch (error) {
+			expect(false).to.be.equal(true);
+		}
 	});
 
 	it('feegrant getGranteeAllowanceAll', async () => {
 
-		const bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		const result = await firma.FeeGrant.getGranteeAllowanceAll(bobAddress);
 
-		var result = await firma.FeeGrant.getGranteeAllowanceAll(await bobWallet.getAddress());
-		/*console.log(result[0].granter);
-		console.log(result[0].grantee);
-		console.log("total: " + result.length);
-
-		console.log(result[0].allowance["@type"]);
-		console.log(result[0].allowance.spendLimit);
-		console.log(result[0].allowance.expiration);*/
-
-		//expect(result.code).to.equal(0);
+		if (result.length === 0) {
+			expect(true).to.be.equal(true);
+		} else {
+			expect(FirmaUtil.isValidAddress(result[0].granter)).to.be.equal(true);
+		}
 	});
 });

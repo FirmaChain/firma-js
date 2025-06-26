@@ -1,4 +1,6 @@
-import { FirmaSDK } from "../sdk/FirmaSDK"
+import { expect } from 'chai';
+import { FirmaSDK } from '../sdk/FirmaSDK';
+
 import { TestChainConfig } from './config_test';
 
 describe('[26. cosmwasm query Test]', () => {
@@ -10,113 +12,132 @@ describe('[26. cosmwasm query Test]', () => {
 	})
 
 	let contractAddress = "";
+	let codeId = "";
 
 	it('CosmWasm getCodeList', async () => {
 
 		// Codes gets the metadata for all stored wasm codes
-		let result = await firma.CosmWasm.getCodeList();
+		const result = await firma.CosmWasm.getCodeList();
+		expect(result.length).to.be.greaterThan(0);
 
-		//console.log(result[0].code_id);
-		//console.log(result[0].creator);
-		//console.log(result[0].data_hash);
+		codeId = result[0].code_id;
+
+		const codeInfo = result[0];
+		expect(codeInfo).to.have.property('code_id');
+		expect(codeInfo).to.have.property('creator');
+		expect(codeInfo).to.have.property('data_hash');
 	});
 
 	it('CosmWasm getCodeData', async () => {
-
-		const codeId = "1";
 
 		// Code gets the binary code and metadata for a singe wasm code
-		let result = await firma.CosmWasm.getCodeData(codeId);
+		const result = await firma.CosmWasm.getCodeData(codeId);
 
-		//console.log(result.code_info.code_id);
-		//console.log(result.code_info.creator);
-		//console.log(result.code_info.data_hash);
+		expect(result).to.not.be.null;
+		expect(result).to.have.property('code_info');
+		expect(result).to.have.property('data');
+		
+		const codeInfo = result.code_info;
+		expect(codeInfo).to.have.property('code_id', codeId);
+		expect(codeInfo).to.have.property('creator');
+		expect(codeInfo).to.have.property('data_hash');
 
-		//binary data but output data is from string
-		//console.log(result.data);
-	});
-
-	it('CosmWasm getCodeData', async () => {
-
-		const codeId = "1";
-
-		let result = await firma.CosmWasm.getCodeData(codeId);
-
-		//console.log(result.code_info.code_id);
-		//console.log(result.code_info.creator);
-		//console.log(result.code_info.data_hash);
-
-		// binary data
-		//console.log(result.data);
+		expect(result.data).to.be.a('string');
 	});
 
 	it('CosmWasm getContractListFromCodeId', async () => {
 
-		const codeId = "132";
+		const result = await firma.CosmWasm.getContractListFromCodeId(codeId);
+		
+		expect(result).to.not.be.null;
+		expect(result).to.have.property('dataList');
+		expect(result).to.have.property('pagination');
+		
+		expect(result.dataList).to.be.an('array');
+		expect(result.dataList.length).to.be.greaterThan(0);
+		expect(result.dataList[0]).to.be.a('string');
+		
+		expect(result.pagination).to.have.property('next_key');
+		expect(result.pagination).to.have.property('total');
 
-		// add pagination
-		
-		let result = await firma.CosmWasm.getContractListFromCodeId(codeId);
-		//console.log(result);
-		
+		contractAddress = result.dataList[0];
 	});
 
 	it('CosmWasm getPinnedCodeList', async () => {
 
 		// PinnedCodes gets the pinned code ids
 		// TODO: check how to pin code.
-
-		let codeList = await firma.CosmWasm.getPinnedCodeList();
-		//console.log(codeList);
+		const codeList = await firma.CosmWasm.getPinnedCodeList();
+		expect(codeList).to.be.an('array');
 	});
 
 	// ContractInfo gets the contract meta data
 	it('CosmWasm getContractInfo', async () => {
 
-		let result = await firma.CosmWasm.getContractInfo(contractAddress);
+		const result = await firma.CosmWasm.getContractInfo(contractAddress);
 		
-		//console.log(result.address);
-		//console.log(result.contract_info.code_id);
-		//console.log(result.contract_info.creator);
-		//console.log(result.contract_info.admin);
-		//console.log(result.contract_info.label);
-		//console.log(result.contract_info.created);
-		//console.log(result.contract_info.ibc_port_id);
-		//console.log(result.contract_info.extension);		
+		expect(result).to.not.be.null;
+		expect(result).to.have.property('address', contractAddress);
+		expect(result).to.have.property('contract_info');
+
+		const contractInfo = result.contract_info;
+		expect(contractInfo).to.have.property('code_id');
+		expect(contractInfo).to.have.property('creator');
+		expect(contractInfo).to.have.property('admin');
+		expect(contractInfo).to.have.property('label');
+		expect(contractInfo).to.have.property('created');
+		expect(contractInfo).to.have.property('ibc_port_id');
+		expect(contractInfo).to.have.property('extension');
+		
+		expect(contractInfo.created).to.have.property('block_height');
+		expect(contractInfo.created).to.have.property('tx_index');
 	});
 
 	it('CosmWasm getContractHistory', async () => {
 
-		let result = await firma.CosmWasm.getContractHistory(contractAddress);
+		const result = await firma.CosmWasm.getContractHistory(contractAddress);
+		
+		expect(result).to.be.an('array');
+		expect(result.length).to.be.greaterThan(0);
 
-		// console.log(result[0].operation);
-		// console.log(result[0].code_id);
-		// console.log(result[0].updated);
-		// console.log(result[0].msg);
+		const history = result[0];
+		expect(history).to.have.property('operation');
+		expect(history).to.have.property('code_id');
+		expect(history).to.have.property('updated');
+		expect(history).to.have.property('msg');
+		
+		expect(history.updated).to.have.property('block_height');
+		expect(history.updated).to.have.property('tx_index');
+		
+		expect(history.msg).to.have.property('purchase_price');
+		expect(history.msg).to.have.property('transfer_price');
 	});
 
 	// AllContractState gets all raw store data for a single contract
 	it('CosmWasm getContractState', async () => {
 
-		let result = await firma.CosmWasm.getContractState(contractAddress);
+		const result = await firma.CosmWasm.getContractState(contractAddress);
+		
+		expect(result).to.be.an('array');
+		expect(result.length).to.be.greaterThan(0);
 
-		//console.log(result[0].key);
-		//console.log(result[0].value);
+		const model = result[0];
+		expect(model).to.have.property('key');
+		expect(model).to.have.property('value');
 	});
-
 
 	it('CosmWasm getContractRawQueryData', async () => {
 
 		const hexString = '0006636F6E666967';
-		let result = await firma.CosmWasm.getContractRawQueryData(contractAddress, hexString);
-		//console.log(result);
+		const result = await firma.CosmWasm.getContractRawQueryData(contractAddress, hexString);
+		expect(result).to.be.a('string');
 	});
 
 	it('CosmWasm getContractSmartQueryData', async () => {
 
-		const query = '{"resolve_record": { "name": "fred" }}';
-
-		let result = await firma.CosmWasm.getContractSmartQueryData(contractAddress, query);		
-		//console.log(result);
+		const query = '{"config":{}}';
+		const result = await firma.CosmWasm.getContractSmartQueryData(contractAddress, query);
+		
+		expect(result).to.be.a('string');
 	});
 });

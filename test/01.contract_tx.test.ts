@@ -1,75 +1,77 @@
 import { expect } from 'chai';
-import { FirmaSDK } from "../sdk/FirmaSDK"
-import { aliceMnemonic, TestChainConfig } from './config_test';
+import { FirmaSDK } from '../sdk/FirmaSDK';
+import { FirmaWalletService } from '../sdk/FirmaWalletService';
+
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 describe('[01. Contract Tx Test]', () => {
 
 	let firma: FirmaSDK;
-
-	beforeEach(function() {
+	let aliceWallet: FirmaWalletService;
+	let aliceAddress: string;
+	let bobWallet: FirmaWalletService;
+	let bobAddress: string;
+	
+	beforeEach(async function() {
 		firma = new FirmaSDK(TestChainConfig);
+		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		aliceAddress = await aliceWallet.getAddress();
+		bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
+		bobAddress = await bobWallet.getAddress();
 	})
 
 	it('Contract getUnsignedTxAddContractLog X 3 and signAndBroadcast', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const contractHash = "0xsalkdjfasldkjf2";
+		const timeStamp = Math.round(+new Date() / 1000);;
+		const eventName = "CreateContract";
+		const ownerAddress = aliceAddress;
+		const jsonString = "{}";
 
-		let contractHash = "0xsalkdjfasldkjf2";
-		let timeStamp = Math.round(+new Date() / 1000);;
-		let eventName = "CreateContract";
-		let ownerAddress = await wallet.getAddress();
-		let jsonString = "{}";
-
-		var tx = await firma.Contract.getUnsignedTxAddContractLog(wallet, contractHash, timeStamp, eventName, ownerAddress, jsonString);
-		var result = await firma.Contract.signAndBroadcast(wallet, [tx, tx, tx]);
+		const tx = await firma.Contract.getUnsignedTxAddContractLog(aliceWallet, contractHash, timeStamp, eventName, ownerAddress, jsonString);
+		const result = await firma.Contract.signAndBroadcast(aliceWallet, [tx, tx, tx]);
 		expect(result.code).equal(0);
 	});
 
 	it('Contract addContractLog', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const contractHash = "0xsalkdjfasldkjf2";
+		const timeStamp = Math.round(+new Date() / 1000);;
+		const eventName = "CreateContract";
+		const ownerAddress = aliceAddress;
+		const jsonString = "{}";
 
-		let contractHash = "0xsalkdjfasldkjf2";
-		let timeStamp = Math.round(+new Date() / 1000);;
-		let eventName = "CreateContract";
-		let ownerAddress = await wallet.getAddress();
-		let jsonString = "{}";
-
-		var result = await firma.Contract.addContractLog(wallet, contractHash, timeStamp, eventName, ownerAddress, jsonString);
+		const result = await firma.Contract.addContractLog(aliceWallet, contractHash, timeStamp, eventName, ownerAddress, jsonString);
 		expect(result.code).equal(0);
 	});
 
 	it('Contract getUnsignedTxCreateContractFile x3 signAndBroadcast', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const timeStamp = Math.round(+new Date() / 1000);
+		const fileHash = "0xklsdjflaksjflaksjf" + timeStamp; // random create
 
-		let timeStamp = Math.round(+new Date() / 1000);
-		let fileHash = "0xklsdjflaksjflaksjf" + timeStamp; // random create
+		const ownerAddress = aliceAddress;
+		const ownerList = [ownerAddress, ownerAddress];
+		const jsonString = "{}";
 
-		let ownerAddress = await wallet.getAddress();
-		let ownerList = [ownerAddress, ownerAddress];
-		let jsonString = "{}";
+		const tx1 = await firma.Contract.getUnsignedTxCreateContractFile(aliceWallet, fileHash, timeStamp, ownerList, jsonString);
+		const tx2 = await firma.Contract.getUnsignedTxCreateContractFile(aliceWallet, fileHash + "a", timeStamp, ownerList, jsonString);
+		const tx3 = await firma.Contract.getUnsignedTxCreateContractFile(aliceWallet, fileHash + "b", timeStamp, ownerList, jsonString);
 
-		var tx1 = await firma.Contract.getUnsignedTxCreateContractFile(wallet, fileHash, timeStamp, ownerList, jsonString);
-		var tx2 = await firma.Contract.getUnsignedTxCreateContractFile(wallet, fileHash + "a", timeStamp, ownerList, jsonString);
-		var tx3 = await firma.Contract.getUnsignedTxCreateContractFile(wallet, fileHash + "b", timeStamp, ownerList, jsonString);
-
-		var result = await firma.Contract.signAndBroadcast(wallet, [tx1, tx2, tx3]);
+		const result = await firma.Contract.signAndBroadcast(aliceWallet, [tx1, tx2, tx3]);
 		expect(result.code).equal(0);
 	});
 
 	it('Contract createContractFile', async () => {
 
-		const wallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		const timeStamp = Math.round(+new Date() / 1000);
+		const fileHash = "0xklsdjflaksjflaksjf" + timeStamp;
 
-		let timeStamp = Math.round(+new Date() / 1000);
-		let fileHash = "0xklsdjflaksjflaksjf" + timeStamp;
+		const ownerAddress = aliceAddress;
+		const ownerList = [ownerAddress, ownerAddress];
+		const jsonString = "{}";
 
-		let ownerAddress = await wallet.getAddress();
-		let ownerList = [ownerAddress, ownerAddress];
-		let jsonString = "{}";
-
-		var result = await firma.Contract.createContractFile(wallet, fileHash, timeStamp, ownerList, jsonString);
+		const result = await firma.Contract.createContractFile(aliceWallet, fileHash, timeStamp, ownerList, jsonString);
 		expect(result.code).equal(0);
 	});
 });
