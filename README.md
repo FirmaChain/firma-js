@@ -9,6 +9,9 @@ The Javascript & TypeScript SDK for FirmaChain
 
 Firma-js is a SDK for writing applications based on javascript & typescript. You can use it client web app or Node.js. This SDK is created inspired by cosmjs and several sdk. All functions of the FirmaChain can be accessed at the service level.
 
+⚠️ Currently, the governance module is not available as it has not yet been patched.
+A patch is planned soon to enable the governance module in version 0.3.1.
+
 ## Features
  Most cosmos sdk features are supported
 - Wallet / Bank
