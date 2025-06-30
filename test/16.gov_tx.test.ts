@@ -3,8 +3,10 @@ import { VotingOption } from '../sdk/firmachain/common';
 import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
+import { MsgCommunityPoolSpend } from '@kintsugi-tech/cosmjs-types/cosmos/distribution/v1beta1/tx';
 
 // If test it, the properties of the chain change, so skip it.
+const GOV_AUTHORITY = "firma10d07y265gmmuvt4z0w9aw880jnsr700j53mj8f";
 
 describe('[16. Gov Tx Test]', () => {
 
@@ -58,8 +60,20 @@ describe('[16. Gov Tx Test]', () => {
 		const description = "This is a community spend proposal";
 		const amount = 1000;
 		const recipient = bobAddress;
+		
+		const communityPoolSpendMsg = {
+			typeUrl: "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend",
+			value: Uint8Array.from(MsgCommunityPoolSpend.encode(MsgCommunityPoolSpend.fromPartial({
+				authority: GOV_AUTHORITY, // gov module address
+				recipient: recipient,
+				amount: [{
+					denom: "ufct",
+					amount: amount.toString()
+				}]
+			})).finish())
+		};
 
-		const result = await firma.Gov.submitCommunityPoolSpendProposal(aliceWallet, title, description, initialDepositFCT, amount, recipient);
+		const result = await firma.Gov.submitGenericProposal(aliceWallet, title, description, [{ amount: initialDepositFCT.toString(), denom: "ufct" }], "metadata", [communityPoolSpendMsg]);
 
 		expect(result.code).to.equal(0);
 	});

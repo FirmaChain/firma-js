@@ -21,7 +21,8 @@ import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { CommunityPoolSpendProposal } from "cosmjs-types/cosmos/distribution/v1beta1/distribution";
 import { ParameterChangeProposal } from "cosmjs-types/cosmos/params/v1beta1/params";
 import { CancelSoftwareUpgradeProposal, SoftwareUpgradeProposal } from "cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
-import { MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
+import { MsgCancelProposal, MsgSubmitProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
+import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 
 export class FirmaGovService {
 
@@ -509,6 +510,41 @@ export class FirmaGovService {
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async submitGenericProposal(wallet: FirmaWalletService, 
+        title: string,
+        summary: string,
+        initialDeposit: Coin[],
+        metadata: string,
+        msgs: {
+            typeUrl?: string | undefined;
+            value?: Uint8Array | undefined;
+        }[] | undefined,
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
+
+        try {
+            const proposer = await wallet.getAddress();
+            const message = {
+                typeUrl: "/cosmos.gov.v1.MsgSubmitProposal",
+                value: MsgSubmitProposal.fromPartial({
+                    title: title,
+                    summary: summary,
+                    metadata: metadata,
+                    messages: msgs,
+                    proposer: proposer,
+                    initialDeposit: initialDeposit,
+                })
+            };
+
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
+            const signed = await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.broadcast(signed);
 
         } catch (error) {
             FirmaUtil.printLog(error);
