@@ -2,10 +2,10 @@ import { expect } from 'chai';
 import { VotingOption } from '../sdk/firmachain/common';
 import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
-import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
-import { MsgCommunityPoolSpend } from '@kintsugi-tech/cosmjs-types/cosmos/distribution/v1beta1/tx';
-import { FirmaUtil } from '../sdk/FirmaUtil';
 import { Plan } from '@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/upgrade';
+import { Params as StakingParams } from 'cosmjs-types/cosmos/staking/v1beta1/staking';
+
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 // If test it, the properties of the chain change, so skip it.
 const GOV_AUTHORITY = "firma10d07y265gmmuvt4z0w9aw880jnsr700j53mj8f";
@@ -67,21 +67,43 @@ describe('[16. Gov Tx Test]', () => {
 		expect(result.code).to.equal(0);
 	});
 
-	it('SubmitParameterChangeProposal Test', async () => {
+	it.only('SubmitStakingParamsUpdateProposal Test', async () => {
+		const title = "Staking Parameter Change proposal";
+		const summary = "This is a Staking Parameter change proposal";
+		const initialDepositFCT = 2500;
+		
+		const stakingParmas = await firma.Staking.getParams();
+		const changeValue = 100;
+		const unbondingData = parseDuration(stakingParmas.unbonding_time);
 
-		const initialDepositFCT = 10;
-		const title = "Parameter Change proposal1";
-		const description = "This is a Parameter change proposal";
+		const changeStakingParams: StakingParams = {
+			unbondingTime: { seconds: BigInt(unbondingData.seconds), nanos: unbondingData.nanos },
+			maxValidators: changeValue,
+			maxEntries: stakingParmas.max_entries,
+			historicalEntries: stakingParmas.historical_entries,
+			bondDenom: stakingParmas.bond_denom,
+			minCommissionRate: toDec18String(stakingParmas.min_commission_rate)
+		};
+		const metadata = "";
 
-		const changeParamList = [{
-			subspace: "staking",
-			key: "MaxValidators",
-			value: "100",
-		}];
-
-		const result = await firma.Gov.submitParameterChangeProposal(aliceWallet, title, description, initialDepositFCT, changeParamList);
-
+		const result = await firma.Gov.submitStakingParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, changeStakingParams, metadata);
 		expect(result.code).to.equal(0);
+
+		function toDec18String(decimal: string): string {
+			return BigInt(parseFloat(decimal) * 1e18).toString();
+		}
+
+		function parseDuration(durationStr: string): { seconds: bigint; nanos: number } {
+			const match = /^(\d+)(\.(\d+))?s$/.exec(durationStr);
+			if (!match) throw new Error(`Invalid duration string: ${durationStr}`);
+		
+			const seconds = BigInt(match[1]);
+			const fractionalPart = match[3] || "";
+			const padded = (fractionalPart + "000000000").slice(0, 9);
+			const nanos = Number(padded);
+		
+			return { seconds, nanos };
+		}
 	});
 
 	it('SubmitSoftwareUpgradeProposal Test', async () => {
