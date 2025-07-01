@@ -5,6 +5,7 @@ import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 import { MsgCommunityPoolSpend } from '@kintsugi-tech/cosmjs-types/cosmos/distribution/v1beta1/tx';
 import { FirmaUtil } from '../sdk/FirmaUtil';
+import { Plan } from '@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/upgrade';
 
 // If test it, the properties of the chain change, so skip it.
 const GOV_AUTHORITY = "firma10d07y265gmmuvt4z0w9aw880jnsr700j53mj8f";
@@ -66,7 +67,7 @@ describe('[16. Gov Tx Test]', () => {
 		expect(result.code).to.equal(0);
 	});
 
-	it.skip('SubmitParameterChangeProposal Test', async () => {
+	it('SubmitParameterChangeProposal Test', async () => {
 
 		const initialDepositFCT = 10;
 		const title = "Parameter Change proposal1";
@@ -83,24 +84,28 @@ describe('[16. Gov Tx Test]', () => {
 		expect(result.code).to.equal(0);
 	});
 
-	// This unit test needs specific option setup, so it’s skipped by default.
-	it.skip('SubmitSoftwareUpgradeProposalByHeight Test', async () => {
+	it('SubmitSoftwareUpgradeProposal Test', async () => {
 
-		const initialDepositFCT = 5000;
-		const title = "FIRMACHAIN v0.5.0 Upgrade";
-		const description = "This is a software upgrade proposal by height";
+		const initialDeposit = 5000;
+		const title = "CancelProposal test proposal";
+		const summary = "This is a Text & CancelProposal";
+		// deprecated plan time option
+		const plan: Plan = {
+			name: 'v0.5.1',
+			time: {
+				seconds: BigInt(0),
+				nanos: 0
+			},
+			height: BigInt(1050000),
+			info: ''
+		};
+		const metadata = "";
 
-		// Before running unit tests
-		// make sure to update the following items according to the current chain state.
-		const upgradeName = "v0.3.3";
-		const upgradeHeight = 1;
-
-		const gas = await firma.Gov.getGasEstimationSubmitSoftwareUpgradeProposalByHeight(aliceWallet, title, description, initialDepositFCT, upgradeName, upgradeHeight);
+		const gas = await firma.Gov.getGasEstimationSubmitSoftwareUpgradeProposal(aliceWallet, title, summary, initialDeposit, plan, metadata);
 		const fee = Math.ceil(gas * 0.1);
 
-		const result = await firma.Gov.submitSoftwareUpgradeProposalByHeight(aliceWallet, title, description, initialDepositFCT, upgradeName, upgradeHeight, { gas, fee });
-
-		expect(result.code).to.equal(0);
+		const result = await firma.Gov.submitSoftwareUpgradeProposal(aliceWallet, title, summary, initialDeposit, plan, metadata, { gas, fee });
+		expect(result.code).to.be.equal(0);
 	});
 
 	// This unit test needs specific option setup, so it’s skipped by default.
@@ -137,26 +142,6 @@ describe('[16. Gov Tx Test]', () => {
 
 		expect(result.code).to.be.equal(0);
 	});
-
-	// NOTICE: time-based upgrades have been deprecated in the SDK: invalid request
-	/*it.skip('SubmitSoftwareUpgradeProposalByTime Test', async () => {
-
-		const initialDepositFCT = 8;
-		const title = "Software Upgrade proposal2";
-		const description = "This is a software upgrade proposal";
-
-		const expirationDate = new Date();
-		expirationDate.setMinutes(expirationDate.getMinutes() + 3);
-
-		const upgradeName = "v0.2.4";
-		const upgradeTime = expirationDate;
-		const upgradeInfo = "info?";
-
-		var result = await firma.Gov.SubmitSoftwareUpgradeProposalByTime(aliceWallet, title, description, initialDepositFCT, upgradeName, upgradeTime);
-
-		console.log(result);
-		expect(result.code).to.equal(0);
-	});*/
 
 	// TODO: get recent gov proposal list and then set proposalId for below case
 	const tempProposalId = 15;
