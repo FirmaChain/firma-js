@@ -3,6 +3,7 @@ import { FirmaSDK } from '../sdk/FirmaSDK'
 import { FirmaUtil } from '../sdk/FirmaUtil';
 import { VotingOption } from '../sdk/firmachain/common';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
+import { Plan } from '@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/upgrade';
 
 import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
 
@@ -286,16 +287,24 @@ describe('[08. Gas Estimation Test]', () => {
 		expect(gas).to.not.equal(0);
 	});
 
-	it.skip("7-4. Gov submitSoftwareUpgradeProposalByHeight gas estimation", async () => {
+	it("7-4. Gov submitSoftwareUpgradeProposal gas estimation", async () => {
 
-		const initialDepositFCT = 10000;
+		const initialDepositFCT = 5000;
 		const title = "Software Upgrade proposal1";
-		const description = "This is a software upgrade proposal";
+		const summary = "This is a software upgrade proposal";
+		// deprecated plan time option
+		const plan: Plan = {
+			name: 'v0.5.1',
+			time: {
+				seconds: BigInt(0),
+				nanos: 0
+			},
+			height: BigInt(1050000),
+			info: ''
+		};
+		const metadata = "";
 
-		const upgradeName = "v0.2.7";
-		const upgradeHeight = 20000000;
-
-		const gas = await firma.Gov.getGasEstimationSubmitSoftwareUpgradeProposalByHeight(aliceWallet, title, description, initialDepositFCT, upgradeName, upgradeHeight);
+		const gas = await firma.Gov.getGasEstimationSubmitSoftwareUpgradeProposal(aliceWallet, title, summary, initialDepositFCT, plan, metadata);
 		expect(gas).to.not.equal(0);
 	});
 
