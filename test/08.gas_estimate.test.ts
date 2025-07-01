@@ -250,18 +250,18 @@ describe('[08. Gas Estimation Test]', () => {
 		}
 	});
 
-	it.skip("7-2. Gov submitCommunityPoolSpendProposal gas estimation", async () => {
+	it("7-2. Gov submitCommunityPoolSpendProposal gas estimation", async () => {
 
 		const initialDepositFCT = 2500;
     const title = "Community spend proposal";
-    const description = "Proposal to spend from community pool";
+    const summary = "Proposal to spend from community pool";
     const amountFCT = 1000;
     const recipient = bobAddress;
 
 		const gas = await firma.Gov.getGasEstimationSubmitCommunityPoolSpendProposal(
 			aliceWallet,
 			title,
-			description,
+			summary,
 			initialDepositFCT,
 			amountFCT,
 			recipient
