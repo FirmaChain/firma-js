@@ -1,5 +1,6 @@
 import { Registry, EncodeObject, OfflineDirectSigner } from "@cosmjs/proto-signing";
 import { MsgDeposit, MsgSubmitProposal, MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
+import { MsgSubmitProposal as MsgSubmitGenericProposal } from "cosmjs-types/cosmos/gov/v1/tx";
 import { MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 
 import { FirmaWalletService } from "../../FirmaWalletService";
@@ -9,6 +10,7 @@ import { ITxClient } from "../common/ITxClient";
 const types = [
     ["/cosmos.gov.v1beta1.MsgDeposit", MsgDeposit],
     ["/cosmos.gov.v1beta1.MsgSubmitProposal", MsgSubmitProposal],
+    ["/cosmos.gov.v1.MsgSubmitProposal", MsgSubmitGenericProposal],
     ["/cosmos.gov.v1beta1.MsgVote", MsgVote],
     ["/cosmos.gov.v1.MsgCancelProposal", MsgCancelProposal],
 ];
@@ -23,6 +25,11 @@ export interface MsgDepositEncodeObject extends EncodeObject {
 export interface MsgSubmitProposalEncodeObject extends EncodeObject {
     readonly typeUrl: "/cosmos.gov.v1beta1.MsgSubmitProposal";
     readonly value: Partial<MsgSubmitProposal>;
+}
+
+export interface MsgSubmitGenericProposalEncodeObject extends EncodeObject {
+    readonly typeUrl: "/cosmos.gov.v1.MsgSubmitProposal";
+    readonly value: Partial<MsgSubmitGenericProposal>;
 }
 
 export interface MsgVoteEncodeObject extends EncodeObject {
@@ -53,6 +60,10 @@ export class GovTxClient extends ITxClient {
         return { typeUrl: "/cosmos.gov.v1beta1.MsgSubmitProposal", value: data };
     }
 
+    static msgSubmitGenericProposal(data: MsgSubmitGenericProposal): MsgSubmitGenericProposalEncodeObject {
+        return { typeUrl: "/cosmos.gov.v1.MsgSubmitProposal", value: data };
+    }
+    
     static msgVote(data: MsgVote): MsgVoteEncodeObject {
         return { typeUrl: "/cosmos.gov.v1beta1.MsgVote", value: data };
     }
