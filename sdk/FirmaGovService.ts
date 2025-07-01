@@ -23,8 +23,11 @@ import { ParameterChangeProposal } from "cosmjs-types/cosmos/params/v1beta1/para
 import { CancelSoftwareUpgradeProposal, SoftwareUpgradeProposal } from "cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
 import { MsgCancelProposal, MsgSubmitProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
+import { MsgCommunityPoolSpend } from "@kintsugi-tech/cosmjs-types/cosmos/distribution/v1beta1/tx";
 
 export class FirmaGovService {
+
+    static readonly GOV_AUTHORITY = "firma10d07y265gmmuvt4z0w9aw880jnsr700j53mj8f";
 
     constructor(private readonly config: FirmaConfig) { }
 
@@ -127,16 +130,28 @@ export class FirmaGovService {
 
     async getGasEstimationSubmitCommunityPoolSpendProposal(wallet: FirmaWalletService,
         title: string,
-        description: string,
+        summary: string,
         initialDepositFCT: number,
-        amount: number,
+        amountFCT: number,
         recipient: string,
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxSubmitCommunityPoolSpendProposal(wallet, title, description, initialDepositFCT, amount, recipient, txMisc);
-            return await FirmaUtil.estimateGas(txRaw);
+            const amount = FirmaUtil.getUFCTStringFromFCT(amountFCT);
+            const message = {
+                typeUrl: "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend",
+                value: Uint8Array.from(MsgCommunityPoolSpend.encode(MsgCommunityPoolSpend.fromPartial({
+                    authority: FirmaGovService.GOV_AUTHORITY, // gov module address
+                    recipient: recipient,
+                    amount: [{
+                        denom: this.config.denom,
+                        amount: amount.toString()
+                    }]
+                })).finish())
+            }
 
+            const txRaw = await this.getSignedTxSubmitCommunityPoolSpendProposal(wallet, title, summary, initialDepositFCT, [message], recipient, txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -323,41 +338,32 @@ export class FirmaGovService {
 
     private async getSignedTxSubmitCommunityPoolSpendProposal(wallet: FirmaWalletService,
         title: string,
-        description: string,
+        summary: string,
         initialDepositFCT: number,
-        amount: number,
-        recipient: string,
+        messages: {
+            typeUrl?: string | undefined;
+            value?: Uint8Array | undefined;
+        }[] | undefined,
+        metadata: string = "",
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const initialDepositAmount = {
-                denom: this.config.denom,
-                amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT)
-            };
-            const sendAmount = { denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amount) };
-
-            const proposal = CommunityPoolSpendProposal.fromPartial({
-                title: title,
-                description: description,
-                recipient: recipient,
-                amount: [sendAmount]
-            });
-
-            const content = Any.fromPartial({
-                typeUrl: "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal",
-                value: Uint8Array.from(CommunityPoolSpendProposal.encode(proposal).finish()),
-            });
-
             const proposer = await wallet.getAddress();
-            const message = GovTxClient.msgSubmitProposal({
-                content: content,
-                initialDeposit: [initialDepositAmount],
-                proposer: proposer
-            });
+            const initialDeposit = [{ amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT), denom: this.config.denom }];
+            const message = {
+                typeUrl: "/cosmos.gov.v1.MsgSubmitProposal",
+                value: MsgSubmitProposal.fromPartial({
+                    title: title,
+                    summary: summary,
+                    metadata: metadata,
+                    messages: messages,
+                    proposer: proposer,
+                    initialDeposit: initialDeposit,
+                })
+            };
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
-
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -476,24 +482,31 @@ export class FirmaGovService {
 
     async submitCommunityPoolSpendProposal(wallet: FirmaWalletService,
         title: string,
-        description: string,
-        initialDeposit: number,
-        amount: number,
+        summary: string,
+        initialDepositFCT: number,
+        amountFCT: number,
         recipient: string,
+        metadata: string = "",
         txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
-        try {
 
-            const txRaw = await this.getSignedTxSubmitCommunityPoolSpendProposal(wallet,
-                title,
-                description,
-                initialDeposit,
-                amount,
-                recipient,
-                txMisc);
+        try {
+            const amount = FirmaUtil.getUFCTStringFromFCT(amountFCT);
+            const message = {
+                typeUrl: "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend",
+                value: Uint8Array.from(MsgCommunityPoolSpend.encode(MsgCommunityPoolSpend.fromPartial({
+                    authority: FirmaGovService.GOV_AUTHORITY, // gov module address
+                    recipient: recipient,
+                    amount: [{
+                        denom: this.config.denom,
+                        amount: amount.toString()
+                    }]
+                })).finish())
+            }
+
+            const txRaw = await this.getSignedTxSubmitCommunityPoolSpendProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
-
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
