@@ -10,7 +10,9 @@ export enum ProposalStatus {
 }
 
 export interface ProposalParam {
-    voting_period: string;
+    voting_params: {
+        voting_period: string;
+    },
     deposit_params: {
         min_deposit: {
             denom: string,
@@ -23,6 +25,16 @@ export interface ProposalParam {
         threshold: string,
         veto_threshold: string,
     };
+    min_initial_deposit_ratio: string;
+    burn_vote_quorum: boolean;
+    burn_proposal_deposit_prevote: boolean;
+    burn_vote_veto: boolean;
+    expedited_voting_period: string;
+    expedited_threshold: string;
+    expedited_min_deposit: {
+        denom: string;
+        amount: string;
+    }[];
 }
 
 export interface CurrentVoteInfo {
@@ -88,9 +100,16 @@ export class GovQueryClient {
         const tallyingResult = await this.axios.get(path);
 
         return {
-            voting_period: votingResult.data.voting_params.voting_period,
+            voting_params: votingResult.data.voting_params,
             deposit_params: depositResult.data.deposit_params,
-            tally_params: tallyingResult.data.tally_params
+            tally_params: tallyingResult.data.tally_params,
+            min_initial_deposit_ratio: votingResult.data.min_initial_deposit_ratio,
+            burn_vote_quorum: votingResult.data.burn_vote_quorum,
+            burn_proposal_deposit_prevote: votingResult.data.burn_proposal_deposit_prevote,
+            burn_vote_veto: votingResult.data.burn_vote_veto,
+            expedited_voting_period: votingResult.data.expedited_voting_period,
+            expedited_threshold: votingResult.data.expedited_threshold,
+            expedited_min_deposit: votingResult.data.expedited_min_deposit
         };
     }
 
