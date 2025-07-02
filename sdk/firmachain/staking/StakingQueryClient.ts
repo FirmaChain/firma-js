@@ -7,6 +7,7 @@ export interface ParamsDataType {
     max_entries: number;
     historical_entries: number;
     bond_denom: string;
+    min_commission_rate: string;
 }
 
 export interface PoolDataType {
