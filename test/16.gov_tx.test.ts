@@ -4,11 +4,11 @@ import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { Plan } from '@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/upgrade';
 import { Params as StakingParams } from 'cosmjs-types/cosmos/staking/v1beta1/staking';
+import { Params as GovParams } from "cosmjs-types/cosmos/gov/v1/gov";
 
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 // If test it, the properties of the chain change, so skip it.
-const GOV_AUTHORITY = "firma10d07y265gmmuvt4z0w9aw880jnsr700j53mj8f";
 
 describe('[16. Gov Tx Test]', () => {
 
@@ -67,7 +67,8 @@ describe('[16. Gov Tx Test]', () => {
 		expect(result.code).to.equal(0);
 	});
 
-	it.only('SubmitStakingParamsUpdateProposal Test', async () => {
+	it('SubmitStakingParamsUpdateProposal Test', async () => {
+
 		const title = "Staking Parameter Change proposal";
 		const summary = "This is a Staking Parameter change proposal";
 		const initialDepositFCT = 2500;
@@ -92,6 +93,46 @@ describe('[16. Gov Tx Test]', () => {
 		function toDec18String(decimal: string): string {
 			return BigInt(parseFloat(decimal) * 1e18).toString();
 		}
+
+		function parseDuration(durationStr: string): { seconds: bigint; nanos: number } {
+			const match = /^(\d+)(\.(\d+))?s$/.exec(durationStr);
+			if (!match) throw new Error(`Invalid duration string: ${durationStr}`);
+		
+			const seconds = BigInt(match[1]);
+			const fractionalPart = match[3] || "";
+			const padded = (fractionalPart + "000000000").slice(0, 9);
+			const nanos = Number(padded);
+		
+			return { seconds, nanos };
+		}
+	});
+
+	it('SubmitGovParamsUpdateProposal Test', async () => {
+		
+		const title = "Staking Parameter Change proposal";
+		const summary = "This is a Staking Parameter change proposal";
+		const initialDepositFCT = 2500;
+
+		const govParams = await firma.Gov.getParam();
+		const convertMaxDepositPeriod = parseDuration(govParams.deposit_params.max_deposit_period);
+		const convertVotingPeriod = parseDuration(govParams.voting_params.voting_period);
+
+		const changeGovParams: GovParams = {
+			minDeposit: govParams.deposit_params.min_deposit,
+			maxDepositPeriod: convertMaxDepositPeriod,
+			votingPeriod: convertVotingPeriod,
+			quorum: govParams.tally_params.quorum,
+			threshold: govParams.tally_params.threshold,
+			vetoThreshold: govParams.tally_params.veto_threshold,
+			minInitialDepositRatio: govParams.min_initial_deposit_ratio,
+			burnVoteQuorum: govParams.burn_vote_quorum,
+			burnProposalDepositPrevote: govParams.burn_proposal_deposit_prevote,
+			burnVoteVeto: govParams.burn_vote_veto
+		};
+		const metadata = "";
+
+		const result = await firma.Gov.submitGovParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, changeGovParams, metadata);
+		expect(result.code).to.equal(0);
 
 		function parseDuration(durationStr: string): { seconds: bigint; nanos: number } {
 			const match = /^(\d+)(\.(\d+))?s$/.exec(durationStr);
