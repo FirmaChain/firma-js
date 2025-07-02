@@ -16,7 +16,7 @@ import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil
 import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 import { Any } from "./firmachain/google/protobuf/any";
 import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
-import { CancelSoftwareUpgradeProposal, Plan } from "cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
+import { Plan } from "cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
 import { MsgCancelProposal, MsgSubmitProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 import { MsgSoftwareUpgrade } from "@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/tx";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
@@ -58,22 +58,6 @@ export class FirmaGovService {
             const bigIntId = BigInt(proposalId);
 
             const txRaw = await this.getSignedTxDeposit(wallet, bigIntId, amount, txMisc);
-            return await FirmaUtil.estimateGas(txRaw);
-
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
-    }
-
-    async getGasEstimationSubmitCancelSoftwareUpgradeProposal(wallet: FirmaWalletService,
-        title: string,
-        description: string,
-        initialDepositFCT: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
-
-        try {
-            const txRaw = await this.getSignedTxSubmitCancelSoftwareUpgradeProposal(wallet, title, description, initialDepositFCT, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -245,45 +229,6 @@ export class FirmaGovService {
         }
     }
 
-    // TODO
-    private async getSignedTxSubmitCancelSoftwareUpgradeProposal(wallet: FirmaWalletService,
-        title: string,
-        description: string,
-        initialDepositFCT: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
-
-        try {
-            const initialDepositAmount = {
-                denom: this.config.denom,
-                amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT)
-            };
-
-            const proposal = CancelSoftwareUpgradeProposal.fromPartial({
-                title: title,
-                description: description,
-            });
-
-            const content = Any.fromPartial({
-                typeUrl: "/cosmos.upgrade.v1beta1.CancelSoftwareUpgradeProposal",
-                value: Uint8Array.from(CancelSoftwareUpgradeProposal.encode(proposal).finish()),
-            });
-
-            const proposer = await wallet.getAddress();
-            const message = GovTxClient.msgSubmitProposal({
-                content: content,
-                initialDeposit: [initialDepositAmount],
-                proposer: proposer
-            });
-
-            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
-
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
-    }
-
     private async getSignedTxSubmitSoftwareUpgradeProposal(wallet: FirmaWalletService,
         title: string,
         summary: string,
@@ -435,23 +380,6 @@ export class FirmaGovService {
 
         const txClient = new GovTxClient(wallet, this.config.rpcAddress);
         return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
-    }
-
-    async submitCancelSoftwareUpgradeProposal(wallet: FirmaWalletService,
-        title: string,
-        description: string,
-        initialDeposit: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
-        try {
-            const txRaw = await this.getSignedTxSubmitCancelSoftwareUpgradeProposal(wallet, title, description, initialDeposit, txMisc);
-
-            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
-            return await txClient.broadcast(txRaw);
-
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
     }
    
     async submitSoftwareUpgradeProposal(wallet: FirmaWalletService,

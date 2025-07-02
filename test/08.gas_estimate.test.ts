@@ -374,17 +374,7 @@ describe('[08. Gas Estimation Test]', () => {
 		expect(gas).to.not.equal(0);
 	});
 
-	it.skip("7-6. Gov submitCancelSoftwareUpgradeProposal gas estimation", async () => {
-
-		const initialDepositFCT = 1000;
-		const title = "Software Upgrade proposal1";
-		const description = "This is a software upgrade proposal";
-
-		const gas = await firma.Gov.getGasEstimationSubmitCancelSoftwareUpgradeProposal(aliceWallet, title, description, initialDepositFCT);
-		expect(gas).to.not.equal(0);
-	});
-
-	it.skip("7-7. Gov deposit gas estimation", async () => {
+	it.skip("7-6. Gov deposit gas estimation", async () => {
 
 		const proposalId = 1;
 		const amount = 1000;
@@ -393,7 +383,7 @@ describe('[08. Gas Estimation Test]', () => {
 		expect(gas).to.not.equal(0);
 	});
 
-	it.skip("7-8. Gov vote gas estimation", async () => {
+	it.skip("7-7. Gov vote gas estimation", async () => {
 
 		const proposalId = 1;
 

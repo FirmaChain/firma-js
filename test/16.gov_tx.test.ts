@@ -171,18 +171,6 @@ describe('[16. Gov Tx Test]', () => {
 		expect(result.code).to.be.equal(0);
 	});
 
-	// This unit test needs specific option setup, so it’s skipped by default.
-	it.skip('SubmitCancelSoftwareUpgradeProposal Test', async () => {
-
-		const initialDepositFCT = 1000;
-		const title = "Software Upgrade proposal1";
-		const description = "This is a software upgrade proposal";
-
-		const result = await firma.Gov.submitCancelSoftwareUpgradeProposal(aliceWallet, title, description, initialDepositFCT);
-
-		expect(result.code).to.equal(0);
-	});
-
 	it('SubmitTextProposal & CancelProposal Test', async () => {
 
 		const initialDeposit = 5000;
