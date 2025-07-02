@@ -195,7 +195,7 @@ describe('[16. Gov Tx Test]', () => {
 	});
 
 	// TODO: get recent gov proposal list and then set proposalId for below case
-	const tempProposalId = 15;
+	const tempProposalId = 1;
 
 	// more deposit after initial deposit case
 	it.skip('Deposit OK', async () => {
@@ -218,6 +218,29 @@ describe('[16. Gov Tx Test]', () => {
 
 		const proposalId = tempProposalId;
 		const result = await firma.Gov.vote(bobWallet, proposalId, VotingOption.VOTE_OPTION_NO);
+		expect(result.code).to.equal(0);
+	});
+
+	it('SubmitCommunityPoolSpendProposal & Deposit & Vote scenario test', async () => {
+
+		const initialDepositFCT = 2500;
+		const title = "Community spend proposal1";
+		const summary = "This is a community spend proposal";
+		const amountFCT = 1000;
+		const recipient = aliceAddress;
+
+		let result = await firma.Gov.submitCommunityPoolSpendProposal(aliceWallet, title, summary, initialDepositFCT, amountFCT, recipient);
+		expect(result.code).to.equal(0);
+
+		const proposalId = extractValue(result.events, "submit_proposal", "proposal_id");
+		const addDepositAmount = 2500;
+		result = await firma.Gov.deposit(aliceWallet, proposalId, addDepositAmount);
+		expect(result.code).to.equal(0);
+
+		result = await firma.Gov.vote(aliceWallet, proposalId, VotingOption.VOTE_OPTION_YES);
+		expect(result.code).to.equal(0);
+
+		result = await firma.Gov.vote(aliceWallet, proposalId, VotingOption.VOTE_OPTION_NO);
 		expect(result.code).to.equal(0);
 	});
 });
