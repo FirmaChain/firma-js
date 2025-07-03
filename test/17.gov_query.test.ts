@@ -16,7 +16,7 @@ describe('[17. Gov Query Test]', () => {
 
 		const proposalList: any = [];
 		if (proposalList.length > 0) {
-			expect(proposalList[0].proposal_id).to.not.equal('');
+			expect(proposalList[0].id).to.not.equal('');
 		} else {
 			expect(proposalList).to.be.deep.equal([]);
 		}
@@ -30,8 +30,8 @@ describe('[17. Gov Query Test]', () => {
 		expect(proposalList).to.be.an('array');
 		
 		if (proposalList.length > 0) {
-			expect(proposalList[0]).to.have.property('proposal_id');
-			expect(proposalList[0].proposal_id).to.not.equal('');
+			expect(proposalList[0]).to.have.property('id');
+			expect(proposalList[0].id).to.not.equal('');
 		} else {
 			expect(proposalList).to.have.lengthOf(0);
 		}
@@ -40,14 +40,13 @@ describe('[17. Gov Query Test]', () => {
 	it('get getProposal', async () => {
 
 		const proposalList = await firma.Gov.getProposalList();
-
 		if (proposalList.length > 0) {
 			const id = "1";
 			const proposal = await firma.Gov.getProposal(id);
 			
 			expect(proposal).to.be.an('object');
-			expect(proposal).to.have.property('proposal_id');
-			expect(proposal.proposal_id).to.equal(id);
+			expect(proposal).to.have.property('id');
+			expect(proposal.id).to.equal(id);
 		} else {
 			expect(proposalList).to.have.lengthOf(0);
 		}

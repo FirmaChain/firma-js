@@ -45,18 +45,18 @@ export interface CurrentVoteInfo {
 }
 
 export interface ProposalInfo {
-    proposal_id: string;
-    content: {
+    id: string;
+    messages: {
         "@type": string,
-        title: string,
-        description: string;
+        content: string,
+        aythority: string;
     };
     status: string;
     final_tally_result: {
-        yes: string,
-        abstain: string,
-        no: string,
-        no_with_veto: string;
+        yes_count: string,
+        abstain_count: string,
+        no_count: string,
+        no_with_veto_count: string;
     };
     submit_time: string;
     deposit_end_time: string;
@@ -66,6 +66,12 @@ export interface ProposalInfo {
     }[];
     voting_start_time: string;
     voting_end_time: string;
+    metadata: string;
+    title: string;
+    summary: string;
+    proposer: string;
+    expedited: boolean;
+    failed_reason: string;
 }
 
 export class GovQueryClient {
@@ -114,21 +120,21 @@ export class GovQueryClient {
     }
 
     async queryGetProposal(id: string): Promise<ProposalInfo> {
-        const path = `/cosmos/gov/v1beta1/proposals/${id}`;
+        const path = `/cosmos/gov/v1/proposals/${id}`;
 
         const result = await this.axios.get(path);
         return result.data.proposal;
     }
 
     async queryGetProposalListByStatus(status: ProposalStatus): Promise<ProposalInfo[]> {
-        const path = "/cosmos/gov/v1beta1/proposals";
+        const path = "/cosmos/gov/v1/proposals";
 
         const result = await this.axios.get(path, { params: { proposalStatus: status } });
         return result.data.proposals;
     }
 
     async queryGetProposalList(): Promise<ProposalInfo[]> {
-        const path = "/cosmos/gov/v1beta1/proposals";
+        const path = "/cosmos/gov/v1/proposals";
 
         const result = await this.axios.get(path);
         return result.data.proposals;
