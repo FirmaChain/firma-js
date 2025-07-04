@@ -4,8 +4,6 @@ import { FirmaUtil } from '../sdk/FirmaUtil';
 import { VotingOption } from '../sdk/firmachain/common';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { Plan } from '@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/upgrade';
-import { Params as StakingParams } from 'cosmjs-types/cosmos/staking/v1beta1/staking';
-import { Params as GovParams } from '@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov';
 
 import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
 
@@ -278,17 +276,8 @@ describe('[08. Gas Estimation Test]', () => {
 		const initialDepositFCT = 5000;
 		const title = "Staking parameter change proposal";
 		const summary = "This is a Staking parameter change proposal";
-
 		const params = await firma.Staking.getParams();
-		const stakingParams: StakingParams = {
-			unbondingTime: FirmaUtil.createDurationFromString(params.unbonding_time),
-			maxValidators: params.max_validators,
-			maxEntries: params.max_entries,
-			historicalEntries: params.historical_entries,
-			bondDenom: params.bond_denom,
-			minCommissionRate: FirmaUtil.processCommissionRate(params.min_commission_rate)
-		};
-		
+		params.max_validators = 100;
 		const metadata = "";
 
 		const gas = await firma.Gov.getGasEstimationSubmitStakingParamsUpdateProposal(
@@ -296,7 +285,7 @@ describe('[08. Gas Estimation Test]', () => {
 			title, 
 			summary, 
 			initialDepositFCT, 
-			stakingParams, 
+			params, 
 			metadata
 		);
 		expect(gas).to.not.equal(0);
@@ -308,24 +297,10 @@ describe('[08. Gas Estimation Test]', () => {
 		const title = "Gov parameter change proposal";
 		const summary = "This is a Gov parameter change proposal";
 		const params = await firma.Gov.getParam();
-		const govParams: GovParams = {
-			minDeposit: params.min_deposit,
-			quorum: params.quorum,
-			threshold: params.threshold,
-			vetoThreshold: params.veto_threshold,
-			minInitialDepositRatio: params.min_initial_deposit_ratio,
-			burnVoteQuorum: params.burn_vote_quorum,
-			burnProposalDepositPrevote: params.burn_proposal_deposit_prevote,
-			burnVoteVeto: params.burn_vote_veto,
-			proposalCancelRatio: params.proposal_cancel_ratio,
-			proposalCancelDest: params.proposal_cancel_dest,
-			expeditedThreshold: params.expedited_threshold,
-			expeditedMinDeposit: params.expedited_min_deposit,
-			minDepositRatio: params.min_deposit_ratio
-		};
+		params.burn_proposal_deposit_prevote = true;
 		const metadata = "";
 
-		const gas = await firma.Gov.getGasEstimationSubmitGovParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, govParams, metadata);
+		const gas = await firma.Gov.getGasEstimationSubmitGovParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, params, metadata);
 		expect(gas).to.not.equal(0);
 	});
 

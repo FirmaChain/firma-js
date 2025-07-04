@@ -3,15 +3,10 @@ import { VotingOption } from '../sdk/firmachain/common';
 import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { Plan } from '@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/upgrade';
-import { Params as StakingParams } from 'cosmjs-types/cosmos/staking/v1beta1/staking';
-import { Params as GovParams } from '@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov';
 
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
-import { FirmaUtil } from '../sdk/FirmaUtil';
-import { GovParamType } from '../sdk/firmachain/gov';
 
 // If test it, the properties of the chain change, so skip it.
-
 describe('[16. Gov Tx Test]', () => {
 
 	let firma: FirmaSDK;
@@ -76,17 +71,11 @@ describe('[16. Gov Tx Test]', () => {
 		const initialDepositFCT = 2500;
 		
 		const params = await firma.Staking.getParams();
-		const stakingParams: StakingParams = {
-			unbondingTime: FirmaUtil.createDurationFromString(params.unbonding_time),
-			maxValidators: params.max_validators,
-			maxEntries: params.max_entries,
-			historicalEntries: params.historical_entries,
-			bondDenom: params.bond_denom,
-			minCommissionRate: FirmaUtil.processCommissionRate(params.min_commission_rate)
-		};
+		params.max_validators = 100;
+		params.historical_entries = 10000;
 		const metadata = "";
 		
-		const result = await firma.Gov.submitStakingParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, stakingParams, metadata);
+		const result = await firma.Gov.submitStakingParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, params, metadata);
 		expect(result.code).to.equal(0);
 	});
 
