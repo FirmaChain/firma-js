@@ -4,7 +4,8 @@ import {
     TxMisc,
     VotingOption,
     ProposalStatus,
-    CurrentVoteInfo
+    CurrentVoteInfo,
+    GovParamType,
 } from "./firmachain/gov";
 import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 import { Any } from "./firmachain/google/protobuf/any";
@@ -442,7 +443,7 @@ export class FirmaGovService {
         title: string,
         summary: string,
         initialDepositFCT: number,
-        params: GovParams,
+        params: GovParamType,
         metadata: string = "",
         txmisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         
@@ -451,7 +452,24 @@ export class FirmaGovService {
                 typeUrl: "/cosmos.gov.v1.MsgUpdateParams",
                 value: GovMsgUpdateParmas.encode(GovMsgUpdateParmas.fromPartial({
                     authority: FirmaGovService.GOV_AUTHORITY,
-                    params: params
+                    params: {
+                        minDeposit: params.min_deposit,
+                        maxDepositPeriod: params.max_deposit_period,
+                        votingPeriod: params.voting_period,
+                        quorum: params.quorum,
+                        threshold: params.threshold,
+                        vetoThreshold: params.veto_threshold,
+                        minInitialDepositRatio: params.min_initial_deposit_ratio,
+                        proposalCancelRatio: params.proposal_cancel_ratio,
+                        proposalCancelDest: params.proposal_cancel_dest,
+                        expeditedVotingPeriod: params.expedited_voting_period,
+                        expeditedThreshold: params.expedited_threshold,
+                        expeditedMinDeposit: params.expedited_min_deposit,
+                        burnVoteQuorum: params.burn_vote_quorum,
+                        burnProposalDepositPrevote: params.burn_proposal_deposit_prevote,
+                        burnVoteVeto: params.burn_vote_veto,
+                        minDepositRatio: params.min_deposit_ratio
+                    }
                 })).finish()
             };
 
@@ -646,7 +664,7 @@ export class FirmaGovService {
         }
     }
 
-    async getParam(): Promise<GovParams> {
+    async getParam(): Promise<GovParamType> {
         try {
             const queryClient = new GovQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetParam();
