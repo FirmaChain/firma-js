@@ -5,6 +5,7 @@ import { VotingOption } from '../sdk/firmachain/common';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { Plan } from '@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/upgrade';
 import { Params as StakingParams } from 'cosmjs-types/cosmos/staking/v1beta1/staking';
+import { Params as GovParams } from '@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov';
 
 import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
 
@@ -272,7 +273,7 @@ describe('[08. Gas Estimation Test]', () => {
 		expect(gas).to.not.equal(0);
 	});
 
-	it.only("7-3. Gov submitStakingParamsUpdateProposal gas estimation", async () => {
+	it("7-3. Gov submitStakingParamsUpdateProposal gas estimation", async () => {
 		
 		const initialDepositFCT = 5000;
 		const title = "Staking parameter change proposal";
@@ -306,8 +307,22 @@ describe('[08. Gas Estimation Test]', () => {
 		const initialDepositFCT = 5000;
 		const title = "Gov parameter change proposal";
 		const summary = "This is a Gov parameter change proposal";
-		const govParams = await firma.Gov.getParam();
-		govParams.burnProposalDepositPrevote = true;
+		const params = await firma.Gov.getParam();
+		const govParams: GovParams = {
+			minDeposit: params.min_deposit,
+			quorum: params.quorum,
+			threshold: params.threshold,
+			vetoThreshold: params.veto_threshold,
+			minInitialDepositRatio: params.min_initial_deposit_ratio,
+			burnVoteQuorum: params.burn_vote_quorum,
+			burnProposalDepositPrevote: params.burn_proposal_deposit_prevote,
+			burnVoteVeto: params.burn_vote_veto,
+			proposalCancelRatio: params.proposal_cancel_ratio,
+			proposalCancelDest: params.proposal_cancel_dest,
+			expeditedThreshold: params.expedited_threshold,
+			expeditedMinDeposit: params.expedited_min_deposit,
+			minDepositRatio: params.min_deposit_ratio
+		};
 		const metadata = "";
 
 		const gas = await firma.Gov.getGasEstimationSubmitGovParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, govParams, metadata);

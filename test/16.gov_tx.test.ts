@@ -4,10 +4,11 @@ import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { Plan } from '@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/upgrade';
 import { Params as StakingParams } from 'cosmjs-types/cosmos/staking/v1beta1/staking';
-import { Params as GovParams } from "cosmjs-types/cosmos/gov/v1/gov";
+import { Params as GovParams } from '@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov';
 
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 import { FirmaUtil } from '../sdk/FirmaUtil';
+import { GovParamType } from '../sdk/firmachain/gov';
 
 // If test it, the properties of the chain change, so skip it.
 
@@ -94,12 +95,11 @@ describe('[16. Gov Tx Test]', () => {
 		const title = "Staking Parameter Change proposal";
 		const summary = "This is a Staking Parameter change proposal";
 		const initialDepositFCT = 2500;
-		const govParams = await firma.Gov.getParam();
-		govParams.minInitialDepositRatio = "0.600000000000000000";
-		govParams.votingPeriod = { seconds: BigInt(3600), nanos: 11 };
+		const params = await firma.Gov.getParam();
+		params.burn_proposal_deposit_prevote = true;
 		const metadata = "";
 
-		const result = await firma.Gov.submitGovParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, govParams, metadata);
+		const result = await firma.Gov.submitGovParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, params, metadata);
 		expect(result.code).to.equal(0);
 	});
 
