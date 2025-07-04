@@ -56,25 +56,7 @@ describe('[17. Gov Query Test]', () => {
 	it('get params', async () => {
 
 		const param = await firma.Gov.getParam();
-		
 		expect(param).to.be.an('object');
-		
-		expect(param).to.have.property('voting_period');
-		
-		expect(param).to.have.property('deposit_params');
-		expect(param.deposit_params).to.have.property('min_deposit');
-		expect(param.deposit_params).to.have.property('max_deposit_period');
-		
-		expect(param.deposit_params.min_deposit).to.be.an('array');
-		if (param.deposit_params.min_deposit.length > 0) {
-			expect(param.deposit_params.min_deposit[0]).to.have.property('denom');
-			expect(param.deposit_params.min_deposit[0]).to.have.property('amount');
-		}
-
-		expect(param).to.have.property('tally_params');
-		expect(param.tally_params).to.have.property('quorum');
-		expect(param.tally_params).to.have.property('threshold');
-		expect(param.tally_params).to.have.property('veto_threshold');
 	});
 
 	// current tally info

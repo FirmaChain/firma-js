@@ -112,39 +112,13 @@ describe('[16. Gov Tx Test]', () => {
 		const title = "Staking Parameter Change proposal";
 		const summary = "This is a Staking Parameter change proposal";
 		const initialDepositFCT = 2500;
-
 		const govParams = await firma.Gov.getParam();
-		const convertMaxDepositPeriod = parseDuration(govParams.deposit_params.max_deposit_period);
-		const convertVotingPeriod = parseDuration(govParams.voting_params.voting_period);
-
-		const changeGovParams: GovParams = {
-			minDeposit: govParams.deposit_params.min_deposit,
-			maxDepositPeriod: convertMaxDepositPeriod,
-			votingPeriod: convertVotingPeriod,
-			quorum: govParams.tally_params.quorum,
-			threshold: govParams.tally_params.threshold,
-			vetoThreshold: govParams.tally_params.veto_threshold,
-			minInitialDepositRatio: govParams.min_initial_deposit_ratio,
-			burnVoteQuorum: govParams.burn_vote_quorum,
-			burnProposalDepositPrevote: govParams.burn_proposal_deposit_prevote,
-			burnVoteVeto: govParams.burn_vote_veto
-		};
+		govParams.minInitialDepositRatio = "0.600000000000000000";
+		govParams.votingPeriod = { seconds: BigInt(3600), nanos: 11 };
 		const metadata = "";
 
-		const result = await firma.Gov.submitGovParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, changeGovParams, metadata);
+		const result = await firma.Gov.submitGovParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, govParams, metadata);
 		expect(result.code).to.equal(0);
-
-		function parseDuration(durationStr: string): { seconds: bigint; nanos: number } {
-			const match = /^(\d+)(\.(\d+))?s$/.exec(durationStr);
-			if (!match) throw new Error(`Invalid duration string: ${durationStr}`);
-		
-			const seconds = BigInt(match[1]);
-			const fractionalPart = match[3] || "";
-			const padded = (fractionalPart + "000000000").slice(0, 9);
-			const nanos = Number(padded);
-		
-			return { seconds, nanos };
-		}
 	});
 
 	it('SubmitSoftwareUpgradeProposal Test', async () => {
