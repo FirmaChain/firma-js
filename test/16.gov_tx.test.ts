@@ -7,6 +7,7 @@ import { Params as StakingParams } from 'cosmjs-types/cosmos/staking/v1beta1/sta
 import { Params as GovParams } from "cosmjs-types/cosmos/gov/v1/gov";
 
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
+import { FirmaUtil } from '../sdk/FirmaUtil';
 
 // If test it, the properties of the chain change, so skip it.
 
@@ -73,38 +74,19 @@ describe('[16. Gov Tx Test]', () => {
 		const summary = "This is a Staking Parameter change proposal";
 		const initialDepositFCT = 2500;
 		
-		const stakingParmas = await firma.Staking.getParams();
-		const changeValue = 100;
-		const unbondingData = parseDuration(stakingParmas.unbonding_time);
-
-		const changeStakingParams: StakingParams = {
-			unbondingTime: { seconds: BigInt(unbondingData.seconds), nanos: unbondingData.nanos },
-			maxValidators: changeValue,
-			maxEntries: stakingParmas.max_entries,
-			historicalEntries: stakingParmas.historical_entries,
-			bondDenom: stakingParmas.bond_denom,
-			minCommissionRate: toDec18String(stakingParmas.min_commission_rate)
+		const params = await firma.Staking.getParams();
+		const stakingParams: StakingParams = {
+			unbondingTime: FirmaUtil.createDurationFromString(params.unbonding_time),
+			maxValidators: params.max_validators,
+			maxEntries: params.max_entries,
+			historicalEntries: params.historical_entries,
+			bondDenom: params.bond_denom,
+			minCommissionRate: FirmaUtil.processCommissionRate(params.min_commission_rate)
 		};
 		const metadata = "";
-
-		const result = await firma.Gov.submitStakingParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, changeStakingParams, metadata);
+		
+		const result = await firma.Gov.submitStakingParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, stakingParams, metadata);
 		expect(result.code).to.equal(0);
-
-		function toDec18String(decimal: string): string {
-			return BigInt(parseFloat(decimal) * 1e18).toString();
-		}
-
-		function parseDuration(durationStr: string): { seconds: bigint; nanos: number } {
-			const match = /^(\d+)(\.(\d+))?s$/.exec(durationStr);
-			if (!match) throw new Error(`Invalid duration string: ${durationStr}`);
-		
-			const seconds = BigInt(match[1]);
-			const fractionalPart = match[3] || "";
-			const padded = (fractionalPart + "000000000").slice(0, 9);
-			const nanos = Number(padded);
-		
-			return { seconds, nanos };
-		}
 	});
 
 	it('SubmitGovParamsUpdateProposal Test', async () => {

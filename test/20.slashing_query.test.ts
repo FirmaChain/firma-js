@@ -38,7 +38,6 @@ describe('[20. Slashing Query Test]', () => {
 			expect(result[0]).to.have.property('tombstoned');
 			expect(result[0]).to.have.property('missed_blocks_counter');
 			
-			// address가 비어있지 않은지 확인
 			expect(result[0].address).to.not.be.empty;
 		}
 	});

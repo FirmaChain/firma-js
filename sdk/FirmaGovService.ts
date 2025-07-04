@@ -18,7 +18,6 @@ import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { MsgUpdateParams as StakingMsgUpdateParams } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 
-
 import {
     MsgCancelProposal,
     MsgSubmitProposal,
