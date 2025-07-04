@@ -4,11 +4,11 @@ import {
     TxMisc,
     ValidatorDataType,
     PoolDataType,
-    ParamsDataType,
     DelegationInfo,
     RedelegationInfo,
     UndelegationInfo,
-    Pagination
+    Pagination,
+    StakingParamType
 } from "./firmachain/staking";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
@@ -390,7 +390,7 @@ export class FirmaStakingService {
         }
     }
 
-    async getParams(): Promise<ParamsDataType> {
+    async getParams(): Promise<StakingParamType> {
         try {
             const queryClient = new StakingQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetParams();

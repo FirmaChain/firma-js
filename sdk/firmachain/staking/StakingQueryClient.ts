@@ -1,8 +1,9 @@
 import Axios, { AxiosInstance } from "axios";
 import { Pagination } from "../common";
+import { FirmaUtil } from "../../FirmaUtil";
 
-export interface ParamsDataType {
-    unbonding_time: string;
+export interface StakingParamType {
+    unbonding_time: { seconds: bigint, nanos: number };
     max_validators: number;
     max_entries: number;
     historical_entries: number;
@@ -177,10 +178,13 @@ export class StakingQueryClient {
         return { dataList: result.data.delegation_responses, pagination: convertPagination };
     }
 
-    async queryGetParams(): Promise<ParamsDataType> {
+    async queryGetParams(): Promise<StakingParamType> {
 
         const path = "/cosmos/staking/v1beta1/params";
         const result = await this.axios.get(path);
+        
+        result.data.params.unbonding_time = FirmaUtil.createDurationFromString(result.data.params.unbonding_time);
+        result.data.params.min_commission_rate = FirmaUtil.processCommissionRate(result.data.params.min_commission_rate);
 
         return result.data.params;
     }

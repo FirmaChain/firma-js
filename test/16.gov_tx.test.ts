@@ -3,13 +3,10 @@ import { VotingOption } from '../sdk/firmachain/common';
 import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { Plan } from '@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/upgrade';
-import { Params as StakingParams } from 'cosmjs-types/cosmos/staking/v1beta1/staking';
-import { Params as GovParams } from "cosmjs-types/cosmos/gov/v1/gov";
 
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 // If test it, the properties of the chain change, so skip it.
-
 describe('[16. Gov Tx Test]', () => {
 
 	let firma: FirmaSDK;
@@ -73,38 +70,13 @@ describe('[16. Gov Tx Test]', () => {
 		const summary = "This is a Staking Parameter change proposal";
 		const initialDepositFCT = 2500;
 		
-		const stakingParmas = await firma.Staking.getParams();
-		const changeValue = 100;
-		const unbondingData = parseDuration(stakingParmas.unbonding_time);
-
-		const changeStakingParams: StakingParams = {
-			unbondingTime: { seconds: BigInt(unbondingData.seconds), nanos: unbondingData.nanos },
-			maxValidators: changeValue,
-			maxEntries: stakingParmas.max_entries,
-			historicalEntries: stakingParmas.historical_entries,
-			bondDenom: stakingParmas.bond_denom,
-			minCommissionRate: toDec18String(stakingParmas.min_commission_rate)
-		};
+		const params = await firma.Staking.getParams();
+		params.max_validators = 100;
+		params.historical_entries = 10000;
 		const metadata = "";
-
-		const result = await firma.Gov.submitStakingParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, changeStakingParams, metadata);
+		
+		const result = await firma.Gov.submitStakingParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, params, metadata);
 		expect(result.code).to.equal(0);
-
-		function toDec18String(decimal: string): string {
-			return BigInt(parseFloat(decimal) * 1e18).toString();
-		}
-
-		function parseDuration(durationStr: string): { seconds: bigint; nanos: number } {
-			const match = /^(\d+)(\.(\d+))?s$/.exec(durationStr);
-			if (!match) throw new Error(`Invalid duration string: ${durationStr}`);
-		
-			const seconds = BigInt(match[1]);
-			const fractionalPart = match[3] || "";
-			const padded = (fractionalPart + "000000000").slice(0, 9);
-			const nanos = Number(padded);
-		
-			return { seconds, nanos };
-		}
 	});
 
 	it('SubmitGovParamsUpdateProposal Test', async () => {
@@ -112,39 +84,12 @@ describe('[16. Gov Tx Test]', () => {
 		const title = "Staking Parameter Change proposal";
 		const summary = "This is a Staking Parameter change proposal";
 		const initialDepositFCT = 2500;
-
-		const govParams = await firma.Gov.getParam();
-		const convertMaxDepositPeriod = parseDuration(govParams.deposit_params.max_deposit_period);
-		const convertVotingPeriod = parseDuration(govParams.voting_params.voting_period);
-
-		const changeGovParams: GovParams = {
-			minDeposit: govParams.deposit_params.min_deposit,
-			maxDepositPeriod: convertMaxDepositPeriod,
-			votingPeriod: convertVotingPeriod,
-			quorum: govParams.tally_params.quorum,
-			threshold: govParams.tally_params.threshold,
-			vetoThreshold: govParams.tally_params.veto_threshold,
-			minInitialDepositRatio: govParams.min_initial_deposit_ratio,
-			burnVoteQuorum: govParams.burn_vote_quorum,
-			burnProposalDepositPrevote: govParams.burn_proposal_deposit_prevote,
-			burnVoteVeto: govParams.burn_vote_veto
-		};
+		const params = await firma.Gov.getParam();
+		params.burn_proposal_deposit_prevote = true;
 		const metadata = "";
 
-		const result = await firma.Gov.submitGovParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, changeGovParams, metadata);
+		const result = await firma.Gov.submitGovParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, params, metadata);
 		expect(result.code).to.equal(0);
-
-		function parseDuration(durationStr: string): { seconds: bigint; nanos: number } {
-			const match = /^(\d+)(\.(\d+))?s$/.exec(durationStr);
-			if (!match) throw new Error(`Invalid duration string: ${durationStr}`);
-		
-			const seconds = BigInt(match[1]);
-			const fractionalPart = match[3] || "";
-			const padded = (fractionalPart + "000000000").slice(0, 9);
-			const nanos = Number(padded);
-		
-			return { seconds, nanos };
-		}
 	});
 
 	it('SubmitSoftwareUpgradeProposal Test', async () => {
