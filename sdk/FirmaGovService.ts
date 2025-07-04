@@ -3,28 +3,31 @@ import {
     GovQueryClient,
     TxMisc,
     VotingOption,
-    ProposalInfo,
     ProposalStatus,
-    ProposalParam,
     CurrentVoteInfo
 } from "./firmachain/gov";
-import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-
+import { DeliverTxResponse } from "./firmachain/common/stargateclient";
+import { Any } from "./firmachain/google/protobuf/any";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
-import { Any } from "./firmachain/google/protobuf/any";
-import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
+
+import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { Plan } from "cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
-import { MsgCancelProposal, MsgSubmitProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
-import { MsgSoftwareUpgrade } from "@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/tx";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
-import { MsgCommunityPoolSpend } from "@kintsugi-tech/cosmjs-types/cosmos/distribution/v1beta1/tx";
+import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { MsgUpdateParams as StakingMsgUpdateParams } from "cosmjs-types/cosmos/staking/v1beta1/tx";
+
+
+import {
+    MsgCancelProposal,
+    MsgSubmitProposal,
+    MsgUpdateParams as GovMsgUpdateParmas
+} from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
+import { MsgSoftwareUpgrade } from "@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/tx";
+import { MsgCommunityPoolSpend } from "@kintsugi-tech/cosmjs-types/cosmos/distribution/v1beta1/tx";
+import { Params as GovParams, Proposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov";
 import { Params as StakingParams } from "cosmjs-types/cosmos/staking/v1beta1/staking";
-import { MsgUpdateParams as GovMsgUpdateParmas } from "cosmjs-types/cosmos/gov/v1/tx";
-import { Params as GovParams } from "cosmjs-types/cosmos/gov/v1/gov";
 
 export class FirmaGovService {
 
@@ -644,7 +647,7 @@ export class FirmaGovService {
         }
     }
 
-    async getParam(): Promise<ProposalParam> {
+    async getParam(): Promise<GovParams> {
         try {
             const queryClient = new GovQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetParam();
@@ -657,7 +660,7 @@ export class FirmaGovService {
         }
     }
 
-    async getProposal(id: string): Promise<ProposalInfo> {
+    async getProposal(id: string): Promise<Proposal> {
         try {
             const queryClient = new GovQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetProposal(id);
@@ -670,7 +673,7 @@ export class FirmaGovService {
         }
     }
 
-    async getProposalListByStatus(status: ProposalStatus): Promise<ProposalInfo[]> {
+    async getProposalListByStatus(status: ProposalStatus): Promise<Proposal[]> {
         try {
             const queryClient = new GovQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetProposalListByStatus(status);
@@ -683,7 +686,7 @@ export class FirmaGovService {
         }
     }
 
-    async getProposalList(): Promise<ProposalInfo[]> {
+    async getProposalList(): Promise<Proposal[]> {
         try {
             const queryClient = new GovQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetProposalList();
