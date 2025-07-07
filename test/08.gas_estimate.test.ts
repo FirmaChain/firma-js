@@ -271,7 +271,7 @@ describe('[08. Gas Estimation Test]', () => {
 		expect(gas).to.not.equal(0);
 	});
 
-	it.only("7-3. Gov submitStakingParamsUpdateProposal gas estimation", async () => {
+	it("7-3. Gov submitStakingParamsUpdateProposal gas estimation", async () => {
 		
 		const initialDepositFCT = 5000;
 		const title = "Staking parameter change proposal";
@@ -291,7 +291,7 @@ describe('[08. Gas Estimation Test]', () => {
 		expect(gas).to.not.equal(0);
 	});
 
-	it.only("7-4, Gov submitGovParamsUpdateProposal gas estimation", async () => {
+	it("7-4, Gov submitGovParamsUpdateProposal gas estimation", async () => {
 		
 		const initialDepositFCT = 5000;
 		const title = "Gov parameter change proposal";

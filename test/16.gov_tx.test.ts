@@ -64,7 +64,7 @@ describe('[16. Gov Tx Test]', () => {
 		expect(result.code).to.equal(0);
 	});
 
-	it.only('SubmitStakingParamsUpdateProposal Test', async () => {
+	it('SubmitStakingParamsUpdateProposal Test', async () => {
 
 		const title = "Staking Parameter Change proposal";
 		const summary = "This is a Staking Parameter change proposal";
@@ -79,7 +79,7 @@ describe('[16. Gov Tx Test]', () => {
 		expect(result.code).to.equal(0);
 	});
 
-	it.only('SubmitGovParamsUpdateProposal Test', async () => {
+	it('SubmitGovParamsUpdateProposal Test', async () => {
 		
 		const title = "Gov Parameter Change proposal";
 		const summary = "This is a Gov Parameter change proposal";
