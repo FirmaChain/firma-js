@@ -721,15 +721,15 @@ export class FirmaGovService {
             // return as GovParams type
             return {
                 minDeposit: result.min_deposit,
-                maxDepositPeriod: result.max_deposit_period,
-                votingPeriod: result.voting_period,
+                maxDepositPeriod: FirmaUtil.createDurationFromString(result.max_deposit_period),
+                votingPeriod: FirmaUtil.createDurationFromString(result.voting_period),
                 quorum: result.quorum,
                 threshold: result.threshold,
                 vetoThreshold: result.veto_threshold,
                 minInitialDepositRatio: result.min_initial_deposit_ratio,
                 proposalCancelRatio: result.proposal_cancel_ratio,
                 proposalCancelDest: result.proposal_cancel_dest,
-                expeditedVotingPeriod: result.expedited_voting_period,
+                expeditedVotingPeriod: FirmaUtil.createDurationFromString(result.expedited_voting_period),
                 expeditedThreshold: result.expedited_threshold,
                 expeditedMinDeposit: result.expedited_min_deposit,
                 burnVoteQuorum: result.burn_vote_quorum,

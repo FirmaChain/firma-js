@@ -1,7 +1,6 @@
 import Axios, { AxiosInstance } from "axios";
-import { Params, Proposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov";
+import { Proposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
-import { FirmaUtil } from "../../FirmaUtil";
 
 export enum ProposalStatus {
     PROPOSAL_STATUS_UNSPECIFIED = 0,
@@ -14,15 +13,15 @@ export enum ProposalStatus {
 
 export interface GovParamType {
     min_deposit: Coin[];
-    max_deposit_period: { seconds: bigint, nanos: number };
-    voting_period: { seconds: bigint, nanos: number };
+    max_deposit_period: string;
+    voting_period: string;
     quorum: string;
     threshold: string;
     veto_threshold: string;
     min_initial_deposit_ratio: string;
     proposal_cancel_ratio: string;
     proposal_cancel_dest: string;
-    expedited_voting_period: { seconds: bigint, nanos: number };
+    expedited_voting_period: string;
     expedited_threshold: string;
     expedited_min_deposit: Coin[];
     burn_vote_quorum: boolean;
@@ -62,10 +61,6 @@ export class GovQueryClient {
 
         let path = "/cosmos/gov/v1/params/deposit";
         const result = await this.axios.get(path);
-
-        result.data.params.max_deposit_period = FirmaUtil.createDurationFromString(result.data.params.max_deposit_period);
-        result.data.params.voting_period = FirmaUtil.createDurationFromString(result.data.params.voting_period);
-        result.data.params.expedited_voting_period = FirmaUtil.createDurationFromString(result.data.params.expedited_voting_period);
 
         return result.data.params;
     }
