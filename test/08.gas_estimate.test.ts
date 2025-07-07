@@ -276,8 +276,8 @@ describe('[08. Gas Estimation Test]', () => {
 		const initialDepositFCT = 5000;
 		const title = "Staking parameter change proposal";
 		const summary = "This is a Staking parameter change proposal";
-		const params = await firma.Staking.getParams();
-		params.max_validators = 100;
+		const params = await firma.Staking.getParamsAsStakingParams();
+		params.maxValidators = 100;
 		const metadata = "";
 
 		const gas = await firma.Gov.getGasEstimationSubmitStakingParamsUpdateProposal(
@@ -296,8 +296,8 @@ describe('[08. Gas Estimation Test]', () => {
 		const initialDepositFCT = 5000;
 		const title = "Gov parameter change proposal";
 		const summary = "This is a Gov parameter change proposal";
-		const params = await firma.Gov.getParam();
-		params.burn_proposal_deposit_prevote = true;
+		const params = await firma.Gov.getParamAsGovParams();
+		params.burnProposalDepositPrevote = true;
 		const metadata = "";
 
 		const gas = await firma.Gov.getGasEstimationSubmitGovParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, params, metadata);

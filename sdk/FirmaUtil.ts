@@ -579,23 +579,6 @@ export class FirmaUtil {
             throw new Error(`Invalid commission rate format: ${commissionRate}`);
         }
     }
-
-    /**
-     * Safely processes all staking params to prevent protobuf conversion errors.
-     * 
-     * @param params - Raw staking params from query
-     * @returns Processed staking params safe for protobuf usage
-     */
-    static processStakingParams(params: any): any {
-        return {
-            unbondingTime: params.unbonding_time ? FirmaUtil.createDurationFromString(params.unbonding_time) : undefined,
-            maxValidators: params.max_validators || 0,
-            maxEntries: params.max_entries || 0,
-            historicalEntries: params.historical_entries || 0,
-            bondDenom: params.bond_denom || "",
-            minCommissionRate: FirmaUtil.processCommissionRate(params.min_commission_rate || "")
-        };
-    }
 }
 
 export const DefaultTxMisc = { memo: "", fee: 0, gas: 0, feeGranter: "" };

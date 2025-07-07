@@ -59,6 +59,13 @@ describe('[17. Gov Query Test]', () => {
 		expect(param).to.be.an('object');
 	});
 
+	// integrated function with params/voting, params/deposit, params/tallying - GovParams
+	it('get params as GovParams', async () => {
+		
+		const param = await firma.Gov.getParamAsGovParams();
+		expect(param).to.be.an('object');
+	});
+
 	// current tally info
 	it('get getCurrentVoteInfo', async () => {
 

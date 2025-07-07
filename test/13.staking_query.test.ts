@@ -62,6 +62,12 @@ describe('[13. Staking Query Test]', () => {
 		expect(result.max_validators).to.not.equal(0);
 	});
 
+	it('6-1.get getParamsAsStakingParams', async () => {
+		
+		const result = await firma.Staking.getParamsAsStakingParams();
+		expect(result.maxValidators).to.not.equal(0);
+	});
+
 	// user side
 	it('7.get userside getTotalDelegationInfo', async () => {
 
