@@ -28,6 +28,7 @@ import {
 import { MsgSoftwareUpgrade } from "@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/tx";
 import { MsgCommunityPoolSpend } from "@kintsugi-tech/cosmjs-types/cosmos/distribution/v1beta1/tx";
 import { Proposal, Params as GovParams } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov";
+import { Params as StakingParams } from "@kintsugi-tech/cosmjs-types/cosmos/staking/v1beta1/staking";
 // import { Params as GovParams } from "cosmjs-types/cosmos/gov/v1/gov";
 
 export class FirmaGovService {
@@ -98,24 +99,30 @@ export class FirmaGovService {
         title: string,
         summary: string,
         initialDepositFCT: number,
-        params: StakingParamType,
+        params: StakingParams,
         metadata: string = "",
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
         
         try {
+            // Add validation logic here using fromPartial
+            const requestedParams = {
+                authority: FirmaGovService.GOV_AUTHORITY,
+                params: params
+            }
+            const fromPartialParams = StakingMsgUpdateParams.fromPartial({
+                authority: FirmaGovService.GOV_AUTHORITY,
+                params: params
+            });
+            const paramsEncoded = StakingMsgUpdateParams.encode(requestedParams).finish();
+            const fromPartialEncoded = StakingMsgUpdateParams.encode(fromPartialParams).finish();
+
+            if (Buffer.from(paramsEncoded).toString('hex') !== Buffer.from(fromPartialEncoded).toString('hex')) {
+                throw new Error("All staking parameters must be provided. Use Staking.getParamsAsStakingParams() to get current values and override only the parameters you want to change.");
+            }
+
             const message = {
                 typeUrl: "/cosmos.staking.v1beta1.MsgUpdateParams",
-                value: StakingMsgUpdateParams.encode(StakingMsgUpdateParams.fromPartial({
-                    authority: FirmaGovService.GOV_AUTHORITY,
-                    params: {
-                        bondDenom: params.bond_denom,
-                        maxEntries: params.max_entries,
-                        maxValidators: params.max_validators,
-                        minCommissionRate: params.min_commission_rate,
-                        historicalEntries: params.historical_entries,
-                        unbondingTime: params.unbonding_time,
-                    }
-                })).finish()
+                value: paramsEncoded
             };
             const txRaw = await this.getSignedTxSubmitStakingParamsUpdateProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
@@ -146,7 +153,7 @@ export class FirmaGovService {
             const fromPartialEncoded = GovMsgUpdateParmas.encode(fromPartialParams).finish();
 
             if (Buffer.from(paramsEncoded).toString('hex') !== Buffer.from(fromPartialEncoded).toString('hex')) {
-                throw new Error("All governance parameters must be provided. Use getParam() to get current values and override only the parameters you want to change.");
+                throw new Error("All governance parameters must be provided. Use getParamAsGovParams() to get current values and override only the parameters you want to change.");
             }
             
             const message = {
@@ -697,6 +704,37 @@ export class FirmaGovService {
             const result = await queryClient.queryGetParam();
 
             return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getParamAsGovParams(): Promise<GovParams> {
+        try {
+            const queryClient = new GovQueryClient(this.config.restApiAddress);
+            const result = await queryClient.queryGetParam(); // get result as GovParamType
+
+            // return as GovParams type
+            return {
+                minDeposit: result.min_deposit,
+                maxDepositPeriod: FirmaUtil.parseDurationString(result.max_deposit_period),
+                votingPeriod: FirmaUtil.parseDurationString(result.voting_period),
+                quorum: result.quorum,
+                threshold: result.threshold,
+                vetoThreshold: result.veto_threshold,
+                minInitialDepositRatio: result.min_initial_deposit_ratio,
+                proposalCancelRatio: result.proposal_cancel_ratio,
+                proposalCancelDest: result.proposal_cancel_dest,
+                expeditedVotingPeriod: FirmaUtil.parseDurationString(result.expedited_voting_period),
+                expeditedThreshold: result.expedited_threshold,
+                expeditedMinDeposit: result.expedited_min_deposit,
+                burnVoteQuorum: result.burn_vote_quorum,
+                burnProposalDepositPrevote: result.burn_proposal_deposit_prevote,
+                burnVoteVeto: result.burn_vote_veto,
+                minDepositRatio: result.min_deposit_ratio
+            };
 
         } catch (error) {
             FirmaUtil.printLog(error);

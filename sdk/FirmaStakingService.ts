@@ -18,6 +18,7 @@ import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil
 import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 import { Description } from "cosmjs-types/cosmos/staking/v1beta1/staking";
 import { MsgCreateValidator } from "cosmjs-types/cosmos/staking/v1beta1/tx";
+import { Params as StakingParams } from "@kintsugi-tech/cosmjs-types/cosmos/staking/v1beta1/staking";
 
 export enum StakingValidatorStatus {
     ALL = "",
@@ -396,6 +397,26 @@ export class FirmaStakingService {
             const result = await queryClient.queryGetParams();
 
             return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getParamsAsStakingParams(): Promise<StakingParams> {
+        try {
+            const queryClient = new StakingQueryClient(this.config.restApiAddress);
+            const result = await queryClient.queryGetParams();
+
+            return {
+                unbondingTime: FirmaUtil.parseDurationString(result.unbonding_time), // todo: fix this function
+                maxValidators: result.max_validators,
+                maxEntries: result.max_entries,
+                historicalEntries: result.historical_entries,
+                bondDenom: result.bond_denom,
+                minCommissionRate: FirmaUtil.processCommissionRate(result.min_commission_rate)
+            };
 
         } catch (error) {
             FirmaUtil.printLog(error);
