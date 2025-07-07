@@ -27,7 +27,8 @@ import {
 } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 import { MsgSoftwareUpgrade } from "@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/tx";
 import { MsgCommunityPoolSpend } from "@kintsugi-tech/cosmjs-types/cosmos/distribution/v1beta1/tx";
-import { Proposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov";
+import { Proposal, Params as GovParams } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov";
+// import { Params as GovParams } from "cosmjs-types/cosmos/gov/v1/gov";
 
 export class FirmaGovService {
 
@@ -128,37 +129,32 @@ export class FirmaGovService {
         title: string,
         summary: string,
         initialDepositFCT: number,
-        params: GovParamType,
+        params: GovParams,
         metadata: string = "",
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
+            const requestedParams = {
+                authority: FirmaGovService.GOV_AUTHORITY,
+                params: params
+            }
+            const fromPartialParams = GovMsgUpdateParmas.fromPartial({
+                authority: FirmaGovService.GOV_AUTHORITY,
+                params: params
+            });
+            const paramsEncoded = GovMsgUpdateParmas.encode(requestedParams).finish();
+            const fromPartialEncoded = GovMsgUpdateParmas.encode(fromPartialParams).finish();
+
+            if (Buffer.from(paramsEncoded).toString('hex') !== Buffer.from(fromPartialEncoded).toString('hex')) {
+                throw new Error("All governance parameters must be provided. Use getParam() to get current values and override only the parameters you want to change.");
+            }
+            
             const message = {
                 typeUrl: "/cosmos.gov.v1.MsgUpdateParams",
-                value: GovMsgUpdateParmas.encode(GovMsgUpdateParmas.fromPartial({
-                    authority: FirmaGovService.GOV_AUTHORITY,
-                    params: {
-                        minDeposit: params.min_deposit,
-                        maxDepositPeriod: params.max_deposit_period,
-                        votingPeriod: params.voting_period,
-                        quorum: params.quorum,
-                        threshold: params.threshold,
-                        vetoThreshold: params.veto_threshold,
-                        minInitialDepositRatio: params.min_initial_deposit_ratio,
-                        proposalCancelRatio: params.proposal_cancel_ratio,
-                        proposalCancelDest: params.proposal_cancel_dest,
-                        expeditedVotingPeriod: params.expedited_voting_period,
-                        expeditedThreshold: params.expedited_threshold,
-                        expeditedMinDeposit: params.expedited_min_deposit,
-                        burnVoteQuorum: params.burn_vote_quorum,
-                        burnProposalDepositPrevote: params.burn_proposal_deposit_prevote,
-                        burnVoteVeto: params.burn_vote_veto,
-                        minDepositRatio: params.min_deposit_ratio
-                    }
-                })).finish()
+                value: paramsEncoded
             }
 
-            const txRaw = await this.getSignedTxSubmitStakingParamsUpdateProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
+            const txRaw = await this.getSignedTxSubmitGovParamsUpdateProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
         } catch (error) {
             FirmaUtil.printLog(error);
