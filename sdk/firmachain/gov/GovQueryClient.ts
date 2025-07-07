@@ -14,7 +14,7 @@ export enum ProposalStatus {
 
 export interface GovParamType {
     min_deposit: Coin[];
-    max_deposit_period: { seconds: bigint | undefined, nanos: number };
+    max_deposit_period: { seconds: bigint, nanos: number };
     voting_period: { seconds: bigint, nanos: number };
     quorum: string;
     threshold: string;
