@@ -410,12 +410,12 @@ export class FirmaStakingService {
             const result = await queryClient.queryGetParams();
 
             return {
-                unbondingTime: FirmaUtil.parseDurationString(result.unbonding_time), // todo: fix this function
+                unbondingTime: result.unbonding_time,
                 maxValidators: result.max_validators,
                 maxEntries: result.max_entries,
                 historicalEntries: result.historical_entries,
                 bondDenom: result.bond_denom,
-                minCommissionRate: FirmaUtil.processCommissionRate(result.min_commission_rate)
+                minCommissionRate: result.min_commission_rate
             };
 
         } catch (error) {
