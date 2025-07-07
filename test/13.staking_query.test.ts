@@ -56,13 +56,14 @@ describe('[13. Staking Query Test]', () => {
 	});
 
 
-	it('6.get getParams', async () => {
+	it.only('6.get getParams', async () => {
 
 		const result = await firma.Staking.getParams();
 		expect(result.max_validators).to.not.equal(0);
 	});
 
-	it('6-1.get getParamsAsStakingParams', async () => {
+	it.only('6-1.get getParamsAsStakingParams', async () => {
+		
 		const result = await firma.Staking.getParamsAsStakingParams();
 		expect(result.maxValidators).to.not.equal(0);
 	});

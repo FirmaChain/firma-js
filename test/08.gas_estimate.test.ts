@@ -271,7 +271,7 @@ describe('[08. Gas Estimation Test]', () => {
 		expect(gas).to.not.equal(0);
 	});
 
-	it("7-3. Gov submitStakingParamsUpdateProposal gas estimation", async () => {
+	it.only("7-3. Gov submitStakingParamsUpdateProposal gas estimation", async () => {
 		
 		const initialDepositFCT = 5000;
 		const title = "Staking parameter change proposal";
@@ -291,13 +291,13 @@ describe('[08. Gas Estimation Test]', () => {
 		expect(gas).to.not.equal(0);
 	});
 
-	it("7-4, Gov submitGovParamsUpdateProposal gas estimation", async () => {
+	it.only("7-4, Gov submitGovParamsUpdateProposal gas estimation", async () => {
 		
 		const initialDepositFCT = 5000;
 		const title = "Gov parameter change proposal";
 		const summary = "This is a Gov parameter change proposal";
-		const params = await firma.Gov.getParam();
-		params.burn_proposal_deposit_prevote = true;
+		const params = await firma.Gov.getParamAsGovParams();
+		params.burnProposalDepositPrevote = true;
 		const metadata = "";
 
 		const gas = await firma.Gov.getGasEstimationSubmitGovParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, params, metadata);

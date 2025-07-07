@@ -64,7 +64,7 @@ describe('[16. Gov Tx Test]', () => {
 		expect(result.code).to.equal(0);
 	});
 
-	it('SubmitStakingParamsUpdateProposal Test', async () => {
+	it.only('SubmitStakingParamsUpdateProposal Test', async () => {
 
 		const title = "Staking Parameter Change proposal";
 		const summary = "This is a Staking Parameter change proposal";
@@ -79,10 +79,10 @@ describe('[16. Gov Tx Test]', () => {
 		expect(result.code).to.equal(0);
 	});
 
-	it('SubmitGovParamsUpdateProposal Test', async () => {
+	it.only('SubmitGovParamsUpdateProposal Test', async () => {
 		
-		const title = "Staking Parameter Change proposal";
-		const summary = "This is a Staking Parameter change proposal";
+		const title = "Gov Parameter Change proposal";
+		const summary = "This is a Gov Parameter change proposal";
 		const initialDepositFCT = 2500;
 		const params = await firma.Gov.getParamAsGovParams();
 		params.burnProposalDepositPrevote = true;
