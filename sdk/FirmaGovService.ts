@@ -99,30 +99,32 @@ export class FirmaGovService {
         title: string,
         summary: string,
         initialDepositFCT: number,
-        messages: {
-            typeUrl?: string | undefined;
-            value?: Uint8Array | undefined;
-        }[] | undefined,
+        params: StakingParams,
         metadata: string = "",
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
-
+        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
+        
         try {
-            const proposer = await wallet.getAddress();
-            const initialDeposit = [{ amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT), denom: this.config.denom }];
-            const message = {
-                typeUrl: "/cosmos.gov.v1.MsgSubmitProposal",
-                value: MsgSubmitProposal.fromPartial({
-                    title: title,
-                    summary: summary,
-                    metadata: metadata,
-                    messages: messages,
-                    proposer: proposer,
-                    initialDeposit: initialDeposit
-                })
-            };
+            const requestedParams = {
+                authority: FirmaGovService.GOV_AUTHORITY,
+                params: params
+            }
+            const fromPartialParams = StakingMsgUpdateParams.fromPartial({
+                authority: FirmaGovService.GOV_AUTHORITY,
+                params: params
+            });
+            const paramsEncoded = StakingMsgUpdateParams.encode(requestedParams).finish();
+            const fromPartialEncoded = StakingMsgUpdateParams.encode(fromPartialParams).finish();
 
-            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            if (Buffer.from(paramsEncoded).toString('hex') !== Buffer.from(fromPartialEncoded).toString('hex')) {
+                throw new Error("All staking parameters must be provided. Use Staking.getParamsAsStakingParams() to get current values and override only the parameters you want to change.");
+            }
+
+            const message = {
+                typeUrl: "/cosmos.staking.v1beta1.MsgUpdateParams",
+                value: paramsEncoded
+            };
+            const txRaw = await this.getSignedTxSubmitStakingParamsUpdateProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
+            return await FirmaUtil.estimateGas(txRaw);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -445,7 +447,6 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
 
         try {
-            // Add validation logic here using fromPartial
             const requestedParams = {
                 authority: FirmaGovService.GOV_AUTHORITY,
                 params: params
@@ -720,7 +721,7 @@ export class FirmaGovService {
             // return as GovParams type
             return {
                 minDeposit: result.min_deposit,
-                maxDepositPeriod: FirmaUtil.parseDurationString(result.max_deposit_period), // Todo: fix this function
+                maxDepositPeriod: FirmaUtil.parseDurationString(result.max_deposit_period),  // Todo: fix this function
                 votingPeriod: FirmaUtil.parseDurationString(result.voting_period),
                 quorum: result.quorum,
                 threshold: result.threshold,
