@@ -419,21 +419,20 @@ export class FirmaUtil {
      * @param durationStr - Duration string to parse (e.g., "336h0m0s", "21d")
      * @returns Duration object with seconds and nanos fields
      */
-    static parseDurationString(durationStr: string): { seconds: number; nanos: number } {
+    static parseDurationString(durationStr: string): { seconds: bigint; nanos: number } {
         if (!durationStr || durationStr.trim() === "") {
-            return { seconds: 0, nanos: 0 };
+            return { seconds: BigInt(0), nanos: 0 };
         }
-
+    
         const input = durationStr.trim();
         let totalSeconds = 0;
         let totalNanos = 0;
-
+    
         // Handle negative durations
         const isNegative = input.startsWith('-');
         const cleanInput = isNegative ? input.substring(1) : input;
-
+    
         // Regular expression to match duration components
-        // Matches patterns like: 1d, 2h, 3m, 4s, 5ms, 6µs, 7ns
         const regex = /(\d+(?:\.\d+)?)(d|h|m|s|ms|µs|us|ns)/g;
         let match;
         let hasMatches = false;
@@ -478,15 +477,13 @@ export class FirmaUtil {
         totalSeconds += extraSeconds;
         totalNanos = totalNanos % 1_000_000_000;
 
-        // Apply negative sign if needed
-        if (isNegative) {
-            totalSeconds = -totalSeconds;
-            totalNanos = -totalNanos;
-        }
-
+        // Apply negative sign
+        const finalSeconds = isNegative ? -totalSeconds : totalSeconds;
+        const finalNanos = isNegative ? -totalNanos : totalNanos;
+    
         return {
-            seconds: Math.floor(totalSeconds),
-            nanos: Math.floor(totalNanos)
+            seconds: BigInt(Math.floor(finalSeconds)),
+            nanos: Math.floor(finalNanos)
         };
     }
 
