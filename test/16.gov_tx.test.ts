@@ -70,9 +70,9 @@ describe('[16. Gov Tx Test]', () => {
 		const summary = "This is a Staking Parameter change proposal";
 		const initialDepositFCT = 2500;
 		
-		const params = await firma.Staking.getParams();
-		params.max_validators = 100;
-		params.historical_entries = 10000;
+		const params = await firma.Staking.getParamsAsStakingParams();
+		params.maxValidators = 100;
+		params.historicalEntries = 10000;
 		const metadata = "";
 		
 		const result = await firma.Gov.submitStakingParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, params, metadata);
@@ -84,8 +84,8 @@ describe('[16. Gov Tx Test]', () => {
 		const title = "Staking Parameter Change proposal";
 		const summary = "This is a Staking Parameter change proposal";
 		const initialDepositFCT = 2500;
-		const params = await firma.Gov.getParam();
-		params.burn_proposal_deposit_prevote = true;
+		const params = await firma.Gov.getParamAsGovParams();
+		params.burnProposalDepositPrevote = true;
 		const metadata = "";
 
 		const result = await firma.Gov.submitGovParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, params, metadata);
