@@ -188,4 +188,45 @@ describe('[16. Gov Tx Test]', () => {
 		result = await firma.Gov.vote(aliceWallet, proposalId, VotingOption.VOTE_OPTION_NO);
 		expect(result.code).to.equal(0);
 	});
+
+	it('SubmitGovParamsUpdateProposal Test - failure case (missing parameter)', async () => {
+
+		const title = "Gov Parameter Change fail proposal";
+		const summary = "This is a Gov Parameter change proposal";
+		const initialDeposit = 5000;
+
+		const params = await firma.Gov.getParamAsGovParams();
+		
+		// Modify only the fields you want to update.
+		// For example:
+		// params.burnVoteVeto = false;
+		// params.threshold = "0.600000000000000000";
+		
+		// This will fail, because not all required fields are included in the object.
+		// Only some fields are selected from the full params.
+		const proposalParams = {
+			burnVoteQuorum: false,
+			minDeposit: params.minDeposit,
+			quorum: params.quorum,
+			threshold: params.threshold,
+			vetoThreshold: params.vetoThreshold,
+			minInitialDepositRatio: params.minInitialDepositRatio,
+			proposalCancelRatio: params.proposalCancelRatio,
+			proposalCancelDest: params.proposalCancelDest,
+			expeditedThreshold: params.expeditedThreshold,
+			expeditedMinDeposit: params.expeditedMinDeposit,
+			burnProposalDepositPrevote: params.burnProposalDepositPrevote,
+			burnVoteVeto: params.burnVoteVeto,
+			minDepositRatio: params.minDepositRatio
+		};
+		const metadata = "";
+		
+		const errorMsg = "All governance parameters must be provided. Use getParamAsGovParams() to get current values and override only the parameters you want to change.";
+
+		try {
+			await firma.Gov.submitGovParamsUpdateProposal(aliceWallet, title, summary, initialDeposit, proposalParams, metadata);
+		} catch (error: any) {
+			expect(error.message).to.equal(errorMsg);
+		}
+	});
 });

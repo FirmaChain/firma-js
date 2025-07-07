@@ -230,4 +230,72 @@ describe('[18. util Test]', () => {
 		// hash from sha256 online
 		expect(hash).to.be.equal("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
 	})
+
+	it('parseDurationString test', async () => {
+
+		const testString = "1800s";
+		const duration = FirmaUtil.parseDurationString(testString);
+
+		// Correct way to test object properties
+		expect(duration.seconds).to.be.equal(BigInt(1800));
+		expect(duration.nanos).to.be.equal(0);
+	})
+
+	it('createDurationFromString test', async () => {
+		
+		const testString = "1800s";
+		const duration = FirmaUtil.createDurationFromString(testString);
+
+		expect(duration.seconds).to.be.equal(BigInt(1800));
+		expect(duration.nanos).to.be.equal(0);
+	})
+
+	it('normalizeDecimalString test - success case', async () => {
+
+		const result = FirmaUtil.normalizeDecimalString("0.000000000000000000");
+		expect(result).to.equal("");
+	})
+
+	it('normalizeDecimalString test - failure case', async () => {
+
+		const result = FirmaUtil.normalizeDecimalString("0.000000000000000000");
+		expect(result).to.not.equal("0.000000000000000000");
+	})
+
+	it('processCommissionRate test - success case', async () => {
+
+		let result = FirmaUtil.processCommissionRate("0.000000000000000000");
+		expect(result).to.equal("");
+
+		result = FirmaUtil.processCommissionRate("0.1");
+		expect(result).to.equal("0.1");
+
+		result = FirmaUtil.processCommissionRate("1");
+		expect(result).to.equal("1");
+
+		result = FirmaUtil.processCommissionRate(" 0.75 ");
+		expect(result).to.equal("0.75");
+
+		result = FirmaUtil.processCommissionRate("");
+		expect(result).to.equal("");
+	})
+
+	it('processCommissionRate - failure cases', async () => {
+
+		// Invalid commission rate: 1.01. Must be <= 1
+		let testString = "1.01";
+		try {
+			FirmaUtil.processCommissionRate(testString);
+		} catch (error: any) {
+			expect(error.message).to.equal("Invalid commission rate format: 1.01");
+		}
+
+		// Invalid commission rate: -0.1. Must be >= 0
+		testString = "-0.1";
+		try {
+			FirmaUtil.processCommissionRate(testString)
+		} catch (error: any) {
+			expect(error.message).to.equal("Invalid commission rate format: -0.1");
+		}
+	})
 });
