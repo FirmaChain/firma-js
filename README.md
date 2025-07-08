@@ -5,20 +5,32 @@
 [![license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/firmachain/firma-js/blob/master/LICENSE)
 [![](https://tokei.rs/b1/github/XAMPPRocky/tokei)](https://github.com/FirmaChain/firma-js)
 
-The Javascript & TypeScript SDK for FirmaChain
+**The Official JavaScript & TypeScript SDK for FirmaChain**
 
-Firma-js is a SDK for writing applications based on javascript & typescript. You can use it client web app or Node.js. This SDK is created inspired by cosmjs and several sdk. All functions of the FirmaChain can be accessed at the service level.
+Firma-js is a comprehensive SDK for building applications on the FirmaChain blockchain using JavaScript and TypeScript. Whether you're developing client-side web applications or server-side Node.js applications, this SDK provides seamless integration with FirmaChain's full suite of blockchain capabilities.
+
+Built with inspiration from CosmJS and other leading Cosmos SDK implementations, firma-js offers a service-oriented architecture that provides direct access to all FirmaChain functionality while maintaining type safety and developer experience.
 
 ## Features
- Most cosmos sdk features are supported
-- Wallet / Bank
-- Nft / Contract
-- Ipfs / Gov
-- Staking / Distribution
-- Feegrant ...and so one
 
-</br>
+**Complete FirmaChain Integration**
+- **Wallet Management**: Create, import, and manage wallets with mnemonic and private key support
+- **Banking Operations**: Send, receive, and query FIRMA tokens with full transaction control
+- **NFT Operations**: Mint, transfer, burn, and query NFTs with comprehensive metadata support
+- **Smart Contracts**: Deploy, execute, and query smart contracts with full parameter control
+- **IPFS Integration**: Upload, pin, and retrieve files from IPFS with built-in gateway support
+- **Governance**: Create proposals, vote, and query governance parameters
+- **Staking & Delegation**: Stake tokens, delegate to validators, and manage rewards
+- **Distribution**: Claim rewards, set withdrawal addresses, and manage validator commissions
+- **Fee Grant**: Grant and revoke fee allowances for gasless transactions
+- **Authorization**: Grant and revoke permissions for account delegation
+- **IBC Operations**: Cross-chain transfers and communication protocols
 
+**Developer Experience**
+- **TypeScript Support**: Full type definitions for enhanced IDE support and compile-time safety
+- **Modular Architecture**: Use only the modules you need for optimal bundle size
+- **Comprehensive Documentation**: Extensive examples and API documentation
+- **CosmJS Compatible**: Familiar patterns for developers experienced with Cosmos SDK
 
 ## Install
 You can install `firma-js` using [NPM](https://www.npmjs.com/package/@firmachain/firma-js)
@@ -155,6 +167,10 @@ const tokenId = 1;
 let result = await firma.Nft.burn(wallet, tokenId);
 ```
 
-You can see everything usage of firma-js on the test folder.
-</br>
-https://github.com/FirmaChain/firma-js/tree/main/test
+## Complete Examples
+
+For comprehensive usage examples and test cases, please refer to the test suite:
+
+🔗 **[View Complete Examples](https://github.com/FirmaChain/firma-js/tree/main/test)**
+
+The test folder contains detailed examples for all SDK features including wallet management, token operations, NFT handling, smart contracts, governance, staking, and more.
