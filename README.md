@@ -30,6 +30,23 @@ or
 npm i @firmachain/firma-js
 ```
 
+## Conventions
+
+### Implementation Guidelines
+- **Data Structure Consistency**: We recommend preserving the original data structure from FirmaChain RPCs throughout your application and only processing/transforming the data immediately before transaction generation. This convention is also applied to `firma-js` itself.
+- **Chain Data Integrity**: This approach ensures consistency in chain data retrieval logic and maintains compatibility with upstream changes
+- **Transaction Processing**: All data transformations should occur at the transaction boundary to minimize potential inconsistencies
+
+### Governance Parameters
+- **Parameter Validation**: For governance proposals requiring multiple parameters, we perform dual validation by comparing submitted parameters against `fromPartial`-processed parameters to ensure identical values
+- **Validation Failure Handling**: If any discrepancy is detected between the original and processed parameters, the transaction will automatically revert to prevent malformed proposals
+- **Best Practice**: To ensure successful governance proposal submissions, use the provided helper functions:
+  - `getParamAsGovParams()` - Retrieve current governance parameters
+  - `getParamsAsStakingParams()` - Retrieve current staking parameters
+  
+  Modify only the specific fields you need to change while preserving all other existing parameter values 
+
+
 ## Usage
 ### Initializing SDK
 ```js
