@@ -564,11 +564,8 @@ export class FirmaUtil {
         // Ensure the value is within valid commission rate range (0-1)
         try {
             const rate = parseFloat(normalized);
-            if (rate < 0) {
-                throw new Error(`Invalid commission rate: ${commissionRate}. Must be >= 0`);
-            }
-            if (rate > 1) {
-                throw new Error(`Invalid commission rate: ${commissionRate}. Must be <= 1`);
+            if (rate < 0 || rate > 1) {
+                throw new Error(`Invalid commission rate: ${commissionRate}. Must be between 0 and 1`);
             }
             
             return normalized;
