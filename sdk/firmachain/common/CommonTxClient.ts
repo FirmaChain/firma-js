@@ -4,6 +4,7 @@ import { MsgFundCommunityPool, MsgSetWithdrawAddress, MsgWithdrawDelegatorReward
 import { MsgDeposit, MsgSubmitProposal, MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { MsgBeginRedelegate, MsgCreateValidator, MsgDelegate, MsgEditValidator, MsgUndelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 import { MsgStoreCode, MsgInstantiateContract, MsgExecuteContract, MsgUpdateAdmin, MsgClearAdmin, MsgMigrateContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
+// temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
 import { MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 
 import { FirmaWalletService } from "../../FirmaWalletService";

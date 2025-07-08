@@ -20,6 +20,7 @@ import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { MsgUpdateParams as StakingMsgUpdateParams } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 import equal from 'fast-deep-equal';
 
+// temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
 import {
     MsgCancelProposal,
     MsgSubmitProposal,
@@ -29,7 +30,6 @@ import { MsgSoftwareUpgrade } from "@kintsugi-tech/cosmjs-types/cosmos/upgrade/v
 import { MsgCommunityPoolSpend } from "@kintsugi-tech/cosmjs-types/cosmos/distribution/v1beta1/tx";
 import { Proposal, Params as GovParams } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov";
 import { Params as StakingParams } from "@kintsugi-tech/cosmjs-types/cosmos/staking/v1beta1/staking";
-// import { Params as GovParams } from "cosmjs-types/cosmos/gov/v1/gov";
 
 export class FirmaGovService {
 

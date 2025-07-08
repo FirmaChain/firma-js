@@ -18,6 +18,7 @@ import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil
 import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 import { Description } from "cosmjs-types/cosmos/staking/v1beta1/staking";
 import { MsgCreateValidator } from "cosmjs-types/cosmos/staking/v1beta1/tx";
+// temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
 import { Params as StakingParams } from "@kintsugi-tech/cosmjs-types/cosmos/staking/v1beta1/staking";
 
 export enum StakingValidatorStatus {

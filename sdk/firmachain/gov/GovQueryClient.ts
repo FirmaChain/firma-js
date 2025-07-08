@@ -1,4 +1,5 @@
 import Axios, { AxiosInstance } from "axios";
+// temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
 import { Proposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 
