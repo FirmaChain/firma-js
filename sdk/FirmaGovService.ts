@@ -3,28 +3,33 @@ import {
     GovQueryClient,
     TxMisc,
     VotingOption,
-    ProposalInfo,
     ProposalStatus,
-    ProposalParam,
-    CurrentVoteInfo
+    CurrentVoteInfo,
+    GovParamType,
 } from "./firmachain/gov";
-import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-
+import { DeliverTxResponse } from "./firmachain/common/stargateclient";
+import { Any } from "./firmachain/google/protobuf/any";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
-import { Any } from "./firmachain/google/protobuf/any";
-import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
+
+import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { Plan } from "cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
-import { MsgCancelProposal, MsgSubmitProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
-import { MsgSoftwareUpgrade } from "@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/tx";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
-import { MsgCommunityPoolSpend } from "@kintsugi-tech/cosmjs-types/cosmos/distribution/v1beta1/tx";
+import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { MsgUpdateParams as StakingMsgUpdateParams } from "cosmjs-types/cosmos/staking/v1beta1/tx";
-import { Params as StakingParams } from "cosmjs-types/cosmos/staking/v1beta1/staking";
-import { MsgUpdateParams as GovMsgUpdateParmas } from "cosmjs-types/cosmos/gov/v1/tx";
-import { Params as GovParams } from "cosmjs-types/cosmos/gov/v1/gov";
+import equal from 'fast-deep-equal';
+
+// temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
+import {
+    MsgCancelProposal,
+    MsgSubmitProposal,
+    MsgUpdateParams as GovMsgUpdateParmas
+} from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
+import { MsgSoftwareUpgrade } from "@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/tx";
+import { MsgCommunityPoolSpend } from "@kintsugi-tech/cosmjs-types/cosmos/distribution/v1beta1/tx";
+import { Proposal, Params as GovParams } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov";
+import { Params as StakingParams } from "@kintsugi-tech/cosmjs-types/cosmos/staking/v1beta1/staking";
 
 export class FirmaGovService {
 
@@ -99,6 +104,19 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
         
         try {
+            const requestedParams = {
+                authority: FirmaGovService.GOV_AUTHORITY,
+                params: params
+            }
+            const fromPartialParams = StakingMsgUpdateParams.fromPartial({
+                authority: FirmaGovService.GOV_AUTHORITY,
+                params: params
+            });
+
+            if (!equal(requestedParams.params, fromPartialParams.params)) {
+                throw new Error("All staking parameters must be provided. Use Staking.getParamsAsStakingParams() to get current values and override only the parameters you want to change.");
+            }
+
             const message = {
                 typeUrl: "/cosmos.staking.v1beta1.MsgUpdateParams",
                 value: StakingMsgUpdateParams.encode(StakingMsgUpdateParams.fromPartial({
@@ -106,6 +124,7 @@ export class FirmaGovService {
                     params: params
                 })).finish()
             };
+
             const txRaw = await this.getSignedTxSubmitStakingParamsUpdateProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
         } catch (error) {
@@ -113,7 +132,7 @@ export class FirmaGovService {
             throw error;
         }
     }
- 
+
     async getGasEstimationSubmitGovParamsUpdateProposal(wallet: FirmaWalletService,
         title: string,
         summary: string,
@@ -123,6 +142,19 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
+            const requestedParams = {
+                authority: FirmaGovService.GOV_AUTHORITY,
+                params: params
+            }
+            const fromPartialParams = GovMsgUpdateParmas.fromPartial({
+                authority: FirmaGovService.GOV_AUTHORITY,
+                params: params
+            });
+
+            if (!equal(requestedParams.params, fromPartialParams.params)) {
+                throw new Error("All governance parameters must be provided. Use getParamAsGovParams() to get current values and override only the parameters you want to change.");
+            }
+            
             const message = {
                 typeUrl: "/cosmos.gov.v1.MsgUpdateParams",
                 value: GovMsgUpdateParmas.encode(GovMsgUpdateParmas.fromPartial({
@@ -131,7 +163,7 @@ export class FirmaGovService {
                 })).finish()
             }
 
-            const txRaw = await this.getSignedTxSubmitStakingParamsUpdateProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
+            const txRaw = await this.getSignedTxSubmitGovParamsUpdateProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -418,6 +450,19 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
 
         try {
+            const requestedParams = {
+                authority: FirmaGovService.GOV_AUTHORITY,
+                params: params
+            }
+            const fromPartialParams = StakingMsgUpdateParams.fromPartial({
+                authority: FirmaGovService.GOV_AUTHORITY,
+                params: params
+            });
+    
+            if (!equal(requestedParams.params, fromPartialParams.params)) {
+                throw new Error("All staking parameters must be provided. Use Staking.getParamsAsStakingParams() to get current values and override only the parameters you want to change.");
+            }
+
             const message = {
                 typeUrl: "/cosmos.staking.v1beta1.MsgUpdateParams",
                 value: StakingMsgUpdateParams.encode(StakingMsgUpdateParams.fromPartial({
@@ -445,6 +490,19 @@ export class FirmaGovService {
         txmisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         
         try {
+            const requestedParams = {
+                authority: FirmaGovService.GOV_AUTHORITY,
+                params: params
+            }
+            const fromPartialParams = GovMsgUpdateParmas.fromPartial({
+                authority: FirmaGovService.GOV_AUTHORITY,
+                params: params
+            });
+
+            if (!equal(requestedParams.params, fromPartialParams.params)) {
+                throw new Error("All governance parameters must be provided. Use getParamAsGovParams() to get current values and override only the parameters you want to change.");
+            }
+
             const message = {
                 typeUrl: "/cosmos.gov.v1.MsgUpdateParams",
                 value: GovMsgUpdateParmas.encode(GovMsgUpdateParmas.fromPartial({
@@ -644,7 +702,7 @@ export class FirmaGovService {
         }
     }
 
-    async getParam(): Promise<ProposalParam> {
+    async getParam(): Promise<GovParamType> {
         try {
             const queryClient = new GovQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetParam();
@@ -657,7 +715,38 @@ export class FirmaGovService {
         }
     }
 
-    async getProposal(id: string): Promise<ProposalInfo> {
+    async getParamAsGovParams(): Promise<GovParams> {
+        try {
+            const queryClient = new GovQueryClient(this.config.restApiAddress);
+            const result = await queryClient.queryGetParam(); // get result as GovParamType
+
+            // return as GovParams type
+            return {
+                minDeposit: result.min_deposit,
+                maxDepositPeriod: FirmaUtil.createDurationFromString(result.max_deposit_period),
+                votingPeriod: FirmaUtil.createDurationFromString(result.voting_period),
+                quorum: result.quorum,
+                threshold: result.threshold,
+                vetoThreshold: result.veto_threshold,
+                minInitialDepositRatio: result.min_initial_deposit_ratio,
+                proposalCancelRatio: result.proposal_cancel_ratio,
+                proposalCancelDest: result.proposal_cancel_dest,
+                expeditedVotingPeriod: FirmaUtil.createDurationFromString(result.expedited_voting_period),
+                expeditedThreshold: result.expedited_threshold,
+                expeditedMinDeposit: result.expedited_min_deposit,
+                burnVoteQuorum: result.burn_vote_quorum,
+                burnProposalDepositPrevote: result.burn_proposal_deposit_prevote,
+                burnVoteVeto: result.burn_vote_veto,
+                minDepositRatio: result.min_deposit_ratio
+            };
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getProposal(id: string): Promise<Proposal> {
         try {
             const queryClient = new GovQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetProposal(id);
@@ -670,7 +759,7 @@ export class FirmaGovService {
         }
     }
 
-    async getProposalListByStatus(status: ProposalStatus): Promise<ProposalInfo[]> {
+    async getProposalListByStatus(status: ProposalStatus): Promise<Proposal[]> {
         try {
             const queryClient = new GovQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetProposalListByStatus(status);
@@ -683,7 +772,7 @@ export class FirmaGovService {
         }
     }
 
-    async getProposalList(): Promise<ProposalInfo[]> {
+    async getProposalList(): Promise<Proposal[]> {
         try {
             const queryClient = new GovQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetProposalList();

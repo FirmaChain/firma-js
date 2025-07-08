@@ -42,6 +42,7 @@ import {
   AminoMsgWithdrawValidatorCommission,
 } from "./aminomsgs";
 import { decodeBech32Pubkey, encodeBech32Pubkey } from "./encoding";
+// temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
 import { MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 
 export interface AminoConverter {

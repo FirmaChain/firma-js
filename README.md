@@ -5,20 +5,33 @@
 [![license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/firmachain/firma-js/blob/master/LICENSE)
 [![](https://tokei.rs/b1/github/XAMPPRocky/tokei)](https://github.com/FirmaChain/firma-js)
 
-The Javascript & TypeScript SDK for FirmaChain
+**The Official JavaScript & TypeScript SDK for FirmaChain**
 
-Firma-js is a SDK for writing applications based on javascript & typescript. You can use it client web app or Node.js. This SDK is created inspired by cosmjs and several sdk. All functions of the FirmaChain can be accessed at the service level.
+Firma-js is a comprehensive SDK for building applications on the FirmaChain blockchain using JavaScript and TypeScript. Whether you're developing client-side web applications or server-side Node.js applications, this SDK provides seamless integration with FirmaChain's full suite of blockchain capabilities.
+
+Built with inspiration from CosmJS and other leading Cosmos SDK implementations, firma-js offers a service-oriented architecture that provides direct access to all FirmaChain functionality while maintaining type safety and developer experience.
 
 ## Features
- Most cosmos sdk features are supported
-- Wallet / Bank
-- Nft / Contract
-- Ipfs / Gov
-- Staking / Distribution
-- Feegrant ...and so one
 
-</br>
+**Core FirmaChain Integration**
+- **Wallet Management**: Create, import, and manage wallets with mnemonic and private key support
+- **Banking Operations**: Send, receive, and query FCT with full transaction control
+- **Staking & Delegation**: Stake tokens, delegate to validators, and manage rewards
+- **Authorization**: Grant and revoke permissions for account delegation
+- **Fee Grant**: Grant and revoke fee allowances for gasless transactions
+- **Governance**: Create proposals, vote, and query governance parameters
 
+**FirmaChain Ecosystem**
+- **Smart Contracts**: Deploy, execute, and query CosmWasm smart contracts with full parameter control
+- **IBC Operations**: Cross-chain transfers and communication protocols
+- **IPFS Integration**: Upload, pin, and retrieve files from IPFS with built-in gateway support
+- **NFT Operations**: Mint, transfer, burn, and query built-in NFTs with comprehensive metadata support
+
+**Developer Experience**
+- **TypeScript Support**: Full type definitions for enhanced IDE support and compile-time safety
+- **Modular Architecture**: Use only the modules you need for optimal bundle size
+- **Comprehensive Documentation**: Extensive examples and API documentation
+- **CosmJS Compatible**: Familiar patterns for developers experienced with Cosmos SDK
 
 ## Install
 You can install `firma-js` using [NPM](https://www.npmjs.com/package/@firmachain/firma-js)
@@ -29,6 +42,23 @@ or
 ```
 npm i @firmachain/firma-js
 ```
+
+## Conventions
+
+### Implementation Guidelines
+- **Data Structure Consistency**: We recommend preserving the original data structure from FirmaChain RPCs throughout your application and only processing/transforming the data immediately before transaction generation. This convention is also applied to `firma-js` itself.
+- **Chain Data Integrity**: This approach ensures consistency in chain data retrieval logic and maintains compatibility with upstream changes
+- **Transaction Processing**: All data transformations should occur at the transaction boundary to minimize potential inconsistencies
+
+### Governance Parameters
+- **Parameter Validation**: For governance proposals requiring multiple parameters, we perform dual validation by comparing submitted parameters against `fromPartial`-processed parameters to ensure identical values
+- **Validation Failure Handling**: If any discrepancy is detected between the original and processed parameters, the transaction will automatically revert to prevent malformed proposals
+- **Best Practice**: To ensure successful governance proposal submissions, use the provided helper functions:
+  - `getParamAsGovParams()` - Retrieve current governance parameters
+  - `getParamsAsStakingParams()` - Retrieve current staking parameters
+  
+  Modify only the specific fields you need to change while preserving all other existing parameter values 
+
 
 ## Usage
 ### Initializing SDK
@@ -138,6 +168,10 @@ const tokenId = 1;
 let result = await firma.Nft.burn(wallet, tokenId);
 ```
 
-You can see everything usage of firma-js on the test folder.
-</br>
-https://github.com/FirmaChain/firma-js/tree/main/test
+## Complete Examples
+
+For comprehensive usage examples and test cases, please refer to the test suite:
+
+🔗 **[View Complete Examples](https://github.com/FirmaChain/firma-js/tree/main/test)**
+
+The test folder contains detailed examples for all SDK features including wallet management, token operations, NFT handling, smart contracts, governance, staking, and more.

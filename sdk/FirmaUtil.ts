@@ -23,6 +23,7 @@ import { SigningStargateClient, ArbitraryVerifyData } from "./firmachain/common/
 import { Any } from "./firmachain/google/protobuf/any";
 import Long from "long";
 import { CommonTxClient } from "./firmachain/common/CommonTxClient";
+import { Duration } from "cosmjs-types/google/protobuf/duration";
 
 const CryptoJS = require("crypto-js");
 const sha1 = require("crypto-js/sha1");
@@ -410,6 +411,168 @@ export class FirmaUtil {
     static getCommonTxClient(aliceWallet: FirmaWalletService) {
         return new CommonTxClient(aliceWallet, FirmaUtil.config.rpcAddress);
 	}
+
+    /**
+     * Parses a duration string to a Duration object.
+     * Supports formats like "336h0m0s", "21d", "1000ms", "1s", "1m", "1h", "1ns", "1µs"/"1us"
+     * 
+     * @param durationStr - Duration string to parse (e.g., "336h0m0s", "21d")
+     * @returns Duration object with seconds and nanos fields
+     */
+    static parseDurationString(durationStr: string): { seconds: bigint; nanos: number } {
+        if (!durationStr || durationStr.trim() === "") {
+            return { seconds: BigInt(0), nanos: 0 };
+        }
+    
+        const input = durationStr.trim();
+        let totalSeconds = 0;
+        let totalNanos = 0;
+    
+        // Handle negative durations
+        const isNegative = input.startsWith('-');
+        const cleanInput = isNegative ? input.substring(1) : input;
+    
+        // Regular expression to match duration components
+        const regex = /(\d+(?:\.\d+)?)(d|h|m|s|ms|µs|us|ns)/g;
+        let match;
+        let hasMatches = false;
+
+        while ((match = regex.exec(cleanInput)) !== null) {
+            hasMatches = true;
+            const value = parseFloat(match[1]);
+            const unit = match[2];
+
+            switch (unit) {
+                case 'd':  // days
+                    totalSeconds += value * 24 * 60 * 60;
+                    break;
+                case 'h':  // hours
+                    totalSeconds += value * 60 * 60;
+                    break;
+                case 'm':  // minutes
+                    totalSeconds += value * 60;
+                    break;
+                case 's':  // seconds
+                    totalSeconds += value;
+                    break;
+                case 'ms': // milliseconds
+                    totalNanos += value * 1_000_000;
+                    break;
+                case 'µs':
+                case 'us': // microseconds
+                    totalNanos += value * 1_000;
+                    break;
+                case 'ns': // nanoseconds
+                    totalNanos += value;
+                    break;
+            }
+        }
+
+        if (!hasMatches) {
+            throw new Error(`Invalid duration format: ${durationStr}`);
+        }
+
+        // Convert excess nanos to seconds
+        const extraSeconds = Math.floor(totalNanos / 1_000_000_000);
+        totalSeconds += extraSeconds;
+        totalNanos = totalNanos % 1_000_000_000;
+
+        // Apply negative sign
+        const finalSeconds = isNegative ? -totalSeconds : totalSeconds;
+        const finalNanos = isNegative ? -totalNanos : totalNanos;
+    
+        return {
+            seconds: BigInt(Math.floor(finalSeconds)),
+            nanos: Math.floor(finalNanos)
+        };
+    }
+
+    /**
+     * Creates a Duration object from a duration string.
+     * This is a convenience method that combines parseDurationString with Duration.fromPartial.
+     * 
+     * @param durationStr - Duration string to parse (e.g., "336h0m0s", "21d")
+     * @returns Duration object ready to use with protobuf
+     */
+    static createDurationFromString(durationStr: string): Duration {
+        const { seconds, nanos } = FirmaUtil.parseDurationString(durationStr);
+        
+        // Import Duration if not already imported
+        const { Duration } = require("./firmachain/google/protobuf/duration");
+        
+        return Duration.fromPartial({
+            seconds: seconds,
+            nanos: nanos
+        });
+    }
+
+    /**
+     * Normalizes decimal string for Cosmos SDK usage.
+     * Converts "0.000000000000000000" to empty string to avoid big.Int conversion errors.
+     * 
+     * @param decimalStr - Decimal string that might cause big.Int conversion issues
+     * @returns Normalized string safe for Cosmos SDK usage
+     */
+    static normalizeDecimalString(decimalStr: string): string {
+        if (!decimalStr || decimalStr.trim() === "") {
+            return "";
+        }
+
+        const trimmed = decimalStr.trim();
+        
+        // Check if it's a valid decimal number
+        if (!/^-?\d*\.?\d*$/.test(trimmed)) {
+            return trimmed; // Return as-is if not a valid decimal
+        }
+
+        try {
+            const num = parseFloat(trimmed);
+            
+            // If the number is 0 or very close to 0, return empty string
+            if (num === 0 || Math.abs(num) < 1e-18) {
+                return "";
+            }
+            
+            // For non-zero values, return the original string
+            return trimmed;
+            
+        } catch (error) {
+            // If parsing fails, return the original string
+            return trimmed;
+        }
+    }
+
+    /**
+     * Safely processes commission rate strings to prevent big.Int conversion errors.
+     * This is specifically for handling commission rates that might be "0.000000000000000000".
+     * 
+     * @param commissionRate - Commission rate string from staking params
+     * @returns Processed commission rate string safe for protobuf usage
+     */
+    static processCommissionRate(commissionRate: string): string {
+        if (!commissionRate || commissionRate.trim() === "") {
+            return "";
+        }
+
+        const normalized = FirmaUtil.normalizeDecimalString(commissionRate);
+        
+        // For commission rates, if it's effectively zero, return empty string
+        if (normalized === "") {
+            return "";
+        }
+
+        // Ensure the value is within valid commission rate range (0-1)
+        try {
+            const rate = parseFloat(normalized);
+            if (rate < 0 || rate > 1) {
+                throw new Error(`Invalid commission rate: ${commissionRate}. Must be between 0 and 1`);
+            }
+            
+            return normalized;
+        } catch (error) {
+            throw new Error(`Invalid commission rate format: ${commissionRate}`);
+        }
+    }
 }
 
 export const DefaultTxMisc = { memo: "", fee: 0, gas: 0, feeGranter: "" };

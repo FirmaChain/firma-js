@@ -1,6 +1,7 @@
 import { Registry, EncodeObject, OfflineDirectSigner } from "@cosmjs/proto-signing";
 import { MsgDeposit, MsgSubmitProposal, MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { MsgSubmitProposal as MsgSubmitGenericProposal } from "cosmjs-types/cosmos/gov/v1/tx";
+// temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
 import { MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 
 import { FirmaWalletService } from "../../FirmaWalletService";

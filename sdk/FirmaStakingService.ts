@@ -4,11 +4,11 @@ import {
     TxMisc,
     ValidatorDataType,
     PoolDataType,
-    ParamsDataType,
     DelegationInfo,
     RedelegationInfo,
     UndelegationInfo,
-    Pagination
+    Pagination,
+    StakingParamType
 } from "./firmachain/staking";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
@@ -18,6 +18,8 @@ import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil
 import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 import { Description } from "cosmjs-types/cosmos/staking/v1beta1/staking";
 import { MsgCreateValidator } from "cosmjs-types/cosmos/staking/v1beta1/tx";
+// temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
+import { Params as StakingParams } from "@kintsugi-tech/cosmjs-types/cosmos/staking/v1beta1/staking";
 
 export enum StakingValidatorStatus {
     ALL = "",
@@ -390,12 +392,32 @@ export class FirmaStakingService {
         }
     }
 
-    async getParams(): Promise<ParamsDataType> {
+    async getParams(): Promise<StakingParamType> {
         try {
             const queryClient = new StakingQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetParams();
 
             return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getParamsAsStakingParams(): Promise<StakingParams> {
+        try {
+            const queryClient = new StakingQueryClient(this.config.restApiAddress);
+            const result = await queryClient.queryGetParams();
+
+            return {
+                unbondingTime: FirmaUtil.createDurationFromString(result.unbonding_time),
+                maxValidators: result.max_validators,
+                maxEntries: result.max_entries,
+                historicalEntries: result.historical_entries,
+                bondDenom: result.bond_denom,
+                minCommissionRate: FirmaUtil.processCommissionRate(result.min_commission_rate)
+            };
 
         } catch (error) {
             FirmaUtil.printLog(error);

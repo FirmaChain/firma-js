@@ -1,7 +1,7 @@
 import Axios, { AxiosInstance } from "axios";
 import { Pagination } from "../common";
 
-export interface ParamsDataType {
+export interface StakingParamType {
     unbonding_time: string;
     max_validators: number;
     max_entries: number;
@@ -177,7 +177,7 @@ export class StakingQueryClient {
         return { dataList: result.data.delegation_responses, pagination: convertPagination };
     }
 
-    async queryGetParams(): Promise<ParamsDataType> {
+    async queryGetParams(): Promise<StakingParamType> {
 
         const path = "/cosmos/staking/v1beta1/params";
         const result = await this.axios.get(path);

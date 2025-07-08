@@ -3,13 +3,10 @@ import { VotingOption } from '../sdk/firmachain/common';
 import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { Plan } from '@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/upgrade';
-import { Params as StakingParams } from 'cosmjs-types/cosmos/staking/v1beta1/staking';
-import { Params as GovParams } from "cosmjs-types/cosmos/gov/v1/gov";
 
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 
 // If test it, the properties of the chain change, so skip it.
-
 describe('[16. Gov Tx Test]', () => {
 
 	let firma: FirmaSDK;
@@ -73,78 +70,26 @@ describe('[16. Gov Tx Test]', () => {
 		const summary = "This is a Staking Parameter change proposal";
 		const initialDepositFCT = 2500;
 		
-		const stakingParmas = await firma.Staking.getParams();
-		const changeValue = 100;
-		const unbondingData = parseDuration(stakingParmas.unbonding_time);
-
-		const changeStakingParams: StakingParams = {
-			unbondingTime: { seconds: BigInt(unbondingData.seconds), nanos: unbondingData.nanos },
-			maxValidators: changeValue,
-			maxEntries: stakingParmas.max_entries,
-			historicalEntries: stakingParmas.historical_entries,
-			bondDenom: stakingParmas.bond_denom,
-			minCommissionRate: toDec18String(stakingParmas.min_commission_rate)
-		};
+		const params = await firma.Staking.getParamsAsStakingParams();
+		params.maxValidators = 100;
+		params.historicalEntries = 10000;
 		const metadata = "";
-
-		const result = await firma.Gov.submitStakingParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, changeStakingParams, metadata);
+		
+		const result = await firma.Gov.submitStakingParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, params, metadata);
 		expect(result.code).to.equal(0);
-
-		function toDec18String(decimal: string): string {
-			return BigInt(parseFloat(decimal) * 1e18).toString();
-		}
-
-		function parseDuration(durationStr: string): { seconds: bigint; nanos: number } {
-			const match = /^(\d+)(\.(\d+))?s$/.exec(durationStr);
-			if (!match) throw new Error(`Invalid duration string: ${durationStr}`);
-		
-			const seconds = BigInt(match[1]);
-			const fractionalPart = match[3] || "";
-			const padded = (fractionalPart + "000000000").slice(0, 9);
-			const nanos = Number(padded);
-		
-			return { seconds, nanos };
-		}
 	});
 
 	it('SubmitGovParamsUpdateProposal Test', async () => {
 		
-		const title = "Staking Parameter Change proposal";
-		const summary = "This is a Staking Parameter change proposal";
+		const title = "Gov Parameter Change proposal";
+		const summary = "This is a Gov Parameter change proposal";
 		const initialDepositFCT = 2500;
-
-		const govParams = await firma.Gov.getParam();
-		const convertMaxDepositPeriod = parseDuration(govParams.deposit_params.max_deposit_period);
-		const convertVotingPeriod = parseDuration(govParams.voting_params.voting_period);
-
-		const changeGovParams: GovParams = {
-			minDeposit: govParams.deposit_params.min_deposit,
-			maxDepositPeriod: convertMaxDepositPeriod,
-			votingPeriod: convertVotingPeriod,
-			quorum: govParams.tally_params.quorum,
-			threshold: govParams.tally_params.threshold,
-			vetoThreshold: govParams.tally_params.veto_threshold,
-			minInitialDepositRatio: govParams.min_initial_deposit_ratio,
-			burnVoteQuorum: govParams.burn_vote_quorum,
-			burnProposalDepositPrevote: govParams.burn_proposal_deposit_prevote,
-			burnVoteVeto: govParams.burn_vote_veto
-		};
+		const params = await firma.Gov.getParamAsGovParams();
+		params.burnProposalDepositPrevote = true;
 		const metadata = "";
 
-		const result = await firma.Gov.submitGovParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, changeGovParams, metadata);
+		const result = await firma.Gov.submitGovParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, params, metadata);
 		expect(result.code).to.equal(0);
-
-		function parseDuration(durationStr: string): { seconds: bigint; nanos: number } {
-			const match = /^(\d+)(\.(\d+))?s$/.exec(durationStr);
-			if (!match) throw new Error(`Invalid duration string: ${durationStr}`);
-		
-			const seconds = BigInt(match[1]);
-			const fractionalPart = match[3] || "";
-			const padded = (fractionalPart + "000000000").slice(0, 9);
-			const nanos = Number(padded);
-		
-			return { seconds, nanos };
-		}
 	});
 
 	it('SubmitSoftwareUpgradeProposal Test', async () => {
@@ -242,5 +187,52 @@ describe('[16. Gov Tx Test]', () => {
 
 		result = await firma.Gov.vote(aliceWallet, proposalId, VotingOption.VOTE_OPTION_NO);
 		expect(result.code).to.equal(0);
+	});
+
+	it('SubmitGovParamsUpdateProposal Test - failure case (missing parameter)', async () => {
+
+		const title = "Gov Parameter Change fail proposal";
+		const summary = "This is a Gov Parameter change proposal";
+		const initialDeposit = 5000;
+
+		// Modify only the fields you want to update.
+		// For example:
+		// params.burnVoteVeto = false;
+		// params.threshold = "0.600000000000000000";
+		
+		// This will fail, because not all required fields are included in the object.
+		// Only some fields are selected from the full params.
+		const proposalParams: any = {
+			burnVoteQuorum: false
+		};
+		const metadata = "";
+		
+		const errorMsg = "All governance parameters must be provided. Use getParamAsGovParams() to get current values and override only the parameters you want to change.";
+
+		try {
+			await firma.Gov.submitGovParamsUpdateProposal(aliceWallet, title, summary, initialDeposit, proposalParams, metadata);
+		} catch (error: any) {
+			expect(error.message).to.equal(errorMsg);
+		}
+	});
+
+	it('SubmitStakingParamsUpdateProposal Test - failure case (missing parameter)', async () => {
+
+		const title = "Staking Parameter Change fail proposal";
+		const summary = "This is a Staking Parameter change proposal";
+		const initialDeposit = 5000;
+
+		const proposalParams: any = {
+			maxValidators: 100
+		};
+		const metadata = "";
+		
+		const errorMsg = "All staking parameters must be provided. Use Staking.getParamsAsStakingParams() to get current values and override only the parameters you want to change.";
+
+		try {
+			await firma.Gov.submitStakingParamsUpdateProposal(aliceWallet, title, summary, initialDeposit, proposalParams, metadata);
+		} catch (error: any) {
+			expect(error.message).to.equal(errorMsg);
+		}
 	});
 });
