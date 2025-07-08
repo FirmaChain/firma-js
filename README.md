@@ -13,18 +13,19 @@ Built with inspiration from CosmJS and other leading Cosmos SDK implementations,
 
 ## Features
 
-**Complete FirmaChain Integration**
+**Core FirmaChain Integration**
 - **Wallet Management**: Create, import, and manage wallets with mnemonic and private key support
-- **Banking Operations**: Send, receive, and query FIRMA tokens with full transaction control
-- **NFT Operations**: Mint, transfer, burn, and query NFTs with comprehensive metadata support
-- **Smart Contracts**: Deploy, execute, and query smart contracts with full parameter control
-- **IPFS Integration**: Upload, pin, and retrieve files from IPFS with built-in gateway support
-- **Governance**: Create proposals, vote, and query governance parameters
+- **Banking Operations**: Send, receive, and query FCT with full transaction control
 - **Staking & Delegation**: Stake tokens, delegate to validators, and manage rewards
-- **Distribution**: Claim rewards, set withdrawal addresses, and manage validator commissions
-- **Fee Grant**: Grant and revoke fee allowances for gasless transactions
 - **Authorization**: Grant and revoke permissions for account delegation
+- **Fee Grant**: Grant and revoke fee allowances for gasless transactions
+- **Governance**: Create proposals, vote, and query governance parameters
+
+**FirmaChain Ecosystem**
+- **Smart Contracts**: Deploy, execute, and query CosmWasm smart contracts with full parameter control
 - **IBC Operations**: Cross-chain transfers and communication protocols
+- **IPFS Integration**: Upload, pin, and retrieve files from IPFS with built-in gateway support
+- **NFT Operations**: Mint, transfer, burn, and query built-in NFTs with comprehensive metadata support
 
 **Developer Experience**
 - **TypeScript Support**: Full type definitions for enhanced IDE support and compile-time safety
