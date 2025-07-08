@@ -188,4 +188,51 @@ describe('[16. Gov Tx Test]', () => {
 		result = await firma.Gov.vote(aliceWallet, proposalId, VotingOption.VOTE_OPTION_NO);
 		expect(result.code).to.equal(0);
 	});
+
+	it('SubmitGovParamsUpdateProposal Test - failure case (missing parameter)', async () => {
+
+		const title = "Gov Parameter Change fail proposal";
+		const summary = "This is a Gov Parameter change proposal";
+		const initialDeposit = 5000;
+
+		// Modify only the fields you want to update.
+		// For example:
+		// params.burnVoteVeto = false;
+		// params.threshold = "0.600000000000000000";
+		
+		// This will fail, because not all required fields are included in the object.
+		// Only some fields are selected from the full params.
+		const proposalParams: any = {
+			burnVoteQuorum: false
+		};
+		const metadata = "";
+		
+		const errorMsg = "All governance parameters must be provided. Use getParamAsGovParams() to get current values and override only the parameters you want to change.";
+
+		try {
+			await firma.Gov.submitGovParamsUpdateProposal(aliceWallet, title, summary, initialDeposit, proposalParams, metadata);
+		} catch (error: any) {
+			expect(error.message).to.equal(errorMsg);
+		}
+	});
+
+	it('SubmitStakingParamsUpdateProposal Test - failure case (missing parameter)', async () => {
+
+		const title = "Staking Parameter Change fail proposal";
+		const summary = "This is a Staking Parameter change proposal";
+		const initialDeposit = 5000;
+
+		const proposalParams: any = {
+			maxValidators: 100
+		};
+		const metadata = "";
+		
+		const errorMsg = "All staking parameters must be provided. Use Staking.getParamsAsStakingParams() to get current values and override only the parameters you want to change.";
+
+		try {
+			await firma.Gov.submitStakingParamsUpdateProposal(aliceWallet, title, summary, initialDeposit, proposalParams, metadata);
+		} catch (error: any) {
+			expect(error.message).to.equal(errorMsg);
+		}
+	});
 });
