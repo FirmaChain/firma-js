@@ -250,52 +250,68 @@ describe('[18. util Test]', () => {
 		expect(duration.nanos).to.be.equal(0);
 	})
 
-	it('normalizeDecimalString test - success case', async () => {
+	it('processCommissionRateAsDecimal test - success case', async () => {
 
-		const result = FirmaUtil.normalizeDecimalString("0.000000000000000000");
-		expect(result).to.equal("");
+		let result = FirmaUtil.processCommissionRateAsDecimal("0.000000000000000000");
+		expect(result).to.equal("0");
+
+		result = FirmaUtil.processCommissionRateAsDecimal("0.0000000000000000000000000000001");
+		expect(result).to.equal("0");
+
+		result = FirmaUtil.processCommissionRateAsDecimal(".");
+		expect(result).to.equal("0");
+
+		result = FirmaUtil.processCommissionRateAsDecimal("1");
+		expect(result).to.equal("1000000000000000000");
+
+		result = FirmaUtil.processCommissionRateAsDecimal("1.000000000000000000");
+		expect(result).to.equal("1000000000000000000");
+
+		result = FirmaUtil.processCommissionRateAsDecimal(" 0.75 ");
+		expect(result).to.equal("750000000000000000");
+
+		result = FirmaUtil.processCommissionRateAsDecimal(".23");
+		expect(result).to.equal("230000000000000000");
+
+		result = FirmaUtil.processCommissionRateAsDecimal("0.999999999999999999999999999");
+		expect(result).to.equal("999999999999999999");
+
+		result = FirmaUtil.processCommissionRateAsDecimal("1.00000000000000000001");
+		expect(result).to.equal("1000000000000000000");
+		result = FirmaUtil.processCommissionRateAsDecimal("0.3719281729181018373290120300000831");
+		expect(result).to.equal("371928172918101837");
 	})
 
-	it('normalizeDecimalString test - failure case', async () => {
+	it('processCommissionRateAsDecimal - failure cases', async () => {
 
-		const result = FirmaUtil.normalizeDecimalString("0.000000000000000000");
-		expect(result).to.not.equal("0.000000000000000000");
-	})
+		expect(() => FirmaUtil.processCommissionRateAsDecimal("")).to.throw("Invalid commission rate format");
 
-	it('processCommissionRate test - success case', async () => {
+		expect(() => FirmaUtil.processCommissionRateAsDecimal("   ")).to.throw("Invalid commission rate format");
 
-		let result = FirmaUtil.processCommissionRate("0.000000000000000000");
-		expect(result).to.equal("");
+		expect(() => FirmaUtil.processCommissionRateAsDecimal("null")).to.throw("Invalid commission rate format");
 
-		result = FirmaUtil.processCommissionRate("0.1");
-		expect(result).to.equal("0.1");
+		expect(() => FirmaUtil.processCommissionRateAsDecimal("0.1abc")).to.throw("Invalid commission rate format");
 
-		result = FirmaUtil.processCommissionRate("1");
-		expect(result).to.equal("1");
+		expect(() => FirmaUtil.processCommissionRateAsDecimal("0.1.2")).to.throw("Invalid commission rate format");
 
-		result = FirmaUtil.processCommissionRate(" 0.75 ");
-		expect(result).to.equal("0.75");
+		expect(() => FirmaUtil.processCommissionRateAsDecimal("--0.5")).to.throw("Invalid commission rate format");
+		
+		expect(() => FirmaUtil.processCommissionRateAsDecimal("1.01")).to.throw("Invalid commission rate: 1.01. Must be between 0 and 1");
+		
+		expect(() => FirmaUtil.processCommissionRateAsDecimal("2")).to.throw("Invalid commission rate: 2. Must be between 0 and 1");
+		
+		expect(() => FirmaUtil.processCommissionRateAsDecimal("1.1")).to.throw("Invalid commission rate: 1.1. Must be between 0 and 1");
+		
+		expect(() => FirmaUtil.processCommissionRateAsDecimal("-0.1")).to.throw("Invalid commission rate: -0.1. Must be between 0 and 1");
 
-		result = FirmaUtil.processCommissionRate("");
-		expect(result).to.equal("");
-	})
+		expect(() => FirmaUtil.processCommissionRateAsDecimal("-1")).to.throw("Invalid commission rate: -1. Must be between 0 and 1");
 
-	it('processCommissionRate - failure cases', async () => {
+		expect(() => FirmaUtil.processCommissionRateAsDecimal("-0.01")).to.throw("Invalid commission rate: -0.01. Must be between 0 and 1");
 
-		// Invalid commission rate: 1.01. Must be <= 1
-		let testString = "1.01";
-		try {
-			FirmaUtil.processCommissionRate(testString);
-		} catch (error: any) {
-			expect(error.message).to.equal("Invalid commission rate format: 1.01");
-		}
-
-		// Invalid commission rate: -0.1. Must be >= 0
-		testString = "-0.1";
-		try {
-			FirmaUtil.processCommissionRate(testString)
-		} catch (error: any) {
-			expect(error.message).to.equal("Invalid commission rate format: -0.1");
-		}
+		expect(() => FirmaUtil.processCommissionRateAsDecimal("-0.000000000000000001")).to.throw("Invalid commission rate: -0.000000000000000001. Must be between 0 and 1");
+		
+		expect(() => FirmaUtil.processCommissionRateAsDecimal("0.5%")).to.throw("Invalid commission rate format");
+		
+		expect(() => FirmaUtil.processCommissionRateAsDecimal(" 0.5 extra")).to.throw("Invalid commission rate format");
 	})
 });
