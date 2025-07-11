@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { VotingOption } from '../sdk/firmachain/common';
 import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
+import { FirmaUtil } from '../sdk/FirmaUtil';
 import { Plan } from '@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/upgrade';
 
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
@@ -73,6 +74,10 @@ describe('[16. Gov Tx Test]', () => {
 		const params = await firma.Staking.getParamsAsStakingParams();
 		params.maxValidators = 100;
 		params.historicalEntries = 10000;
+		params.minCommissionRate = FirmaUtil.processCommissionRateAsDecimal(params.minCommissionRate);
+		// other use case
+		// params.minCommissionRate = FirmaUtil.processCommissionRateAsDecimal("0.015");
+		
 		const metadata = "";
 		
 		const result = await firma.Gov.submitStakingParamsUpdateProposal(aliceWallet, title, summary, initialDepositFCT, params, metadata);
