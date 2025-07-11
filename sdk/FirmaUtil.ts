@@ -525,6 +525,14 @@ export class FirmaUtil {
             throw new Error(`Invalid commission rate format: ${commissionRate}`);
         }
 
+        // Check if decimal precision exceeds 18 digits
+        if (trimmed.includes('.')) {
+            const decimalPart = trimmed.split('.')[1];
+            if (decimalPart && decimalPart.length > 18) {
+                throw new Error(`Invalid commission rate: ${commissionRate}. Decimal precision cannot exceed 18 digits`);
+            }
+        }
+
         const rate = parseFloat(trimmed);
         
         // Check if the value is within valid commission rate range (0-1)
