@@ -507,68 +507,61 @@ export class FirmaUtil {
     }
 
     /**
-     * Normalizes decimal string for Cosmos SDK usage.
-     * Converts "0.000000000000000000" to empty string to avoid big.Int conversion errors.
-     * 
-     * @param decimalStr - Decimal string that might cause big.Int conversion issues
-     * @returns Normalized string safe for Cosmos SDK usage
-     */
-    static normalizeDecimalString(decimalStr: string): string {
-        if (!decimalStr || decimalStr.trim() === "") {
-            return "";
-        }
-
-        const trimmed = decimalStr.trim();
-        
-        // Check if it's a valid decimal number
-        if (!/^-?\d*\.?\d*$/.test(trimmed)) {
-            return trimmed; // Return as-is if not a valid decimal
-        }
-
-        try {
-            const num = parseFloat(trimmed);
-            
-            // If the number is 0 or very close to 0, return empty string
-            if (num === 0 || Math.abs(num) < 1e-18) {
-                return "";
-            }
-            
-            // For non-zero values, return the original string
-            return trimmed;
-            
-        } catch (error) {
-            // If parsing fails, return the original string
-            return trimmed;
-        }
-    }
-
-    /**
      * Safely processes commission rate strings to prevent big.Int conversion errors.
-     * This is specifically for handling commission rates that might be "0.000000000000000000".
+     * Converts decimal commission rates to Cosmos SDK atomics format (integer representation).
      * 
      * @param commissionRate - Commission rate string from staking params
-     * @returns Processed commission rate string safe for protobuf usage
+     * @returns Processed commission rate string safe for protobuf usage (atomics format or empty string)
      */
-    static processCommissionRate(commissionRate: string): string {
+    static processCommissionRateAsDecimal(commissionRate: string): string {
         if (!commissionRate || commissionRate.trim() === "") {
-            return "";
+            throw new Error(`Invalid commission rate format: ${commissionRate}`);
         }
 
-        const normalized = FirmaUtil.normalizeDecimalString(commissionRate);
+        const trimmed = commissionRate.trim();
         
-        // For commission rates, if it's effectively zero, return empty string
-        if (normalized === "") {
-            return "";
+        // Validate decimal format
+        if (!/^-?\d*\.?\d*$/.test(trimmed)) {
+            throw new Error(`Invalid commission rate format: ${commissionRate}`);
         }
 
-        // Ensure the value is within valid commission rate range (0-1)
+        const rate = parseFloat(trimmed);
+        
+        // Check if the value is within valid commission rate range (0-1)
+        if (rate < 0 || rate > 1) {
+            throw new Error(`Invalid commission rate: ${commissionRate}. Must be between 0 and 1`);
+        }
+        
+        // For zero or near-zero values, return "0"
+        if (rate === 0 || Math.abs(rate) < 1e-18) {
+            return "0";
+        }
+        
         try {
-            const rate = parseFloat(normalized);
-            if (rate < 0 || rate > 1) {
-                throw new Error(`Invalid commission rate: ${commissionRate}. Must be between 0 and 1`);
+            // Convert to atomics format using string manipulation for precision
+            // Handle integer case
+            if (!trimmed.includes('.')) {
+                return (BigInt(trimmed) * BigInt('1000000000000000000')).toString();
             }
             
-            return normalized;
+            // Split into integer and decimal parts
+            const [integerPart, decimalPart] = trimmed.split('.');
+            
+            // Pad or truncate decimal part to 18 digits
+            let paddedDecimal = decimalPart.padEnd(18, '0');
+            if (paddedDecimal.length > 18) {
+                paddedDecimal = paddedDecimal.substring(0, 18);
+            }
+            
+            // Convert to BigInt for precise calculation
+            const integerBigInt = BigInt(integerPart || '0');
+            const decimalBigInt = BigInt(paddedDecimal);
+            
+            // Calculate atomics: integerPart * 10^18 + decimalPart
+            const atomics = integerBigInt * BigInt('1000000000000000000') + decimalBigInt;
+            
+            return atomics.toString();
+            
         } catch (error) {
             throw new Error(`Invalid commission rate format: ${commissionRate}`);
         }
