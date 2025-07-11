@@ -271,7 +271,7 @@ describe('[18. util Test]', () => {
 		expect(result).to.equal("230000000000000000");
 	})
 
-	it('processCommissionRateAsDecimal - failure cases', async () => {
+	it('processCommissionRateAsDecimal test - failure cases', async () => {
 
 		expect(() => FirmaUtil.processCommissionRateAsDecimal("")).to.throw("Invalid commission rate format");
 

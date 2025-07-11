@@ -100,7 +100,7 @@ describe('[16. Gov Tx Test]', () => {
 	it('SubmitSoftwareUpgradeProposal Test', async () => {
 
 		const initialDeposit = 5000;
-		const title = "CancelProposal test proposal";
+		const title = "Software upgrade proposal";
 		const summary = "This is a Text & CancelProposal";
 		// deprecated plan time option
 		const plan: Plan = {
