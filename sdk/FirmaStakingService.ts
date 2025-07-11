@@ -416,7 +416,7 @@ export class FirmaStakingService {
                 maxEntries: result.max_entries,
                 historicalEntries: result.historical_entries,
                 bondDenom: result.bond_denom,
-                minCommissionRate: FirmaUtil.processCommissionRate(result.min_commission_rate)
+                minCommissionRate: result.min_commission_rate
             };
 
         } catch (error) {
