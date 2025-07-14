@@ -514,65 +514,52 @@ export class FirmaUtil {
      * @returns Processed commission rate string safe for protobuf usage (atomics format or empty string)
      */
     static processCommissionRateAsDecimal(commissionRate: string): string {
+        
         if (!commissionRate || commissionRate.trim() === "") {
             throw new Error(`Invalid commission rate format: ${commissionRate}`);
         }
 
         const trimmed = commissionRate.trim();
-        
-        // Validate decimal format
-        if (!/^-?\d*\.?\d*$/.test(trimmed)) {
+        if (!/^(\d+\.?\d*|\.\d+)$/.test(trimmed)) {
             throw new Error(`Invalid commission rate format: ${commissionRate}`);
         }
 
-        // Check if decimal precision exceeds 18 digits
-        if (trimmed.includes('.')) {
-            const decimalPart = trimmed.split('.')[1];
-            if (decimalPart && decimalPart.length > 18) {
-                throw new Error(`Invalid commission rate: ${commissionRate}. Decimal precision cannot exceed 18 digits`);
-            }
-        }
-
-        const rate = parseFloat(trimmed);
+        let isNegative = false;
+        let processValue = trimmed;
         
-        // Check if the value is within valid commission rate range (0-1)
-        if (rate < 0 || rate > 1) {
-            throw new Error(`Invalid commission rate: ${commissionRate}. Must be between 0 and 1`);
+        if (trimmed.startsWith('-')) {
+            isNegative = true;
+            processValue = trimmed.substring(1);
         }
         
-        // For zero or near-zero values, return "0"
-        if (rate === 0 || Math.abs(rate) < 1e-18) {
-            return "0";
+        let integerPart = "0";
+        let decimalPart = "";
+        
+        if (processValue.includes('.')) {
+            const parts = processValue.split('.');
+            integerPart = parts[0] || "0";
+            decimalPart = parts[1] || "";
+        } else {
+            integerPart = processValue;
         }
         
-        try {
-            // Convert to atomics format using string manipulation for precision
-            // Handle integer case
-            if (!trimmed.includes('.')) {
-                return (BigInt(trimmed) * BigInt('1000000000000000000')).toString();
-            }
-            
-            // Split into integer and decimal parts
-            const [integerPart, decimalPart] = trimmed.split('.');
-            
-            // Pad or truncate decimal part to 18 digits
-            let paddedDecimal = decimalPart.padEnd(18, '0');
-            if (paddedDecimal.length > 18) {
-                paddedDecimal = paddedDecimal.substring(0, 18);
-            }
-            
-            // Convert to BigInt for precise calculation
-            const integerBigInt = BigInt(integerPart || '0');
-            const decimalBigInt = BigInt(paddedDecimal);
-            
-            // Calculate atomics: integerPart * 10^18 + decimalPart
-            const atomics = integerBigInt * BigInt('1000000000000000000') + decimalBigInt;
-            
-            return atomics.toString();
-            
-        } catch (error) {
+        decimalPart = decimalPart.substring(0, 18);
+        decimalPart = decimalPart.padEnd(18, '0');
+        const result = integerPart + decimalPart;
+        
+        let finalResult = result.replace(/^0+/, '') || "0";
+        if (isNegative && finalResult !== "0") {
+            finalResult = "-" + finalResult;
+        }
+        
+        const resultBigInt = BigInt(finalResult);
+        const maxValue = BigInt("1000000000000000000");
+        
+        if (resultBigInt < 0 || resultBigInt > maxValue) {
             throw new Error(`Invalid commission rate format: ${commissionRate}`);
         }
+        
+        return finalResult;
     }
 }
 
