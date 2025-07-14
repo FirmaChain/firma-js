@@ -533,7 +533,7 @@ export class FirmaUtil {
         if (!commissionRateBN.isFinite()) throw new Error("Invalid commission rate format: " + commissionRate);
 
         // Validates range (0 to 1 inclusive)
-        if (commissionRateBN.isNegative() || commissionRateBN.isGreaterThan(1)) throw new Error("Invalid commission rate format: " + commissionRate);
+        if (commissionRateBN.isNegative() || commissionRateBN.isGreaterThan(1)) throw new Error("Invalid commission rate range. Must be between 0 and 1 inclusive.");
 
         // Converts to atomics format (multiply by 10^18)
         const atomics = commissionRateBN.multipliedBy(new BigNumber(10).pow(18));
