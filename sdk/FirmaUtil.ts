@@ -22,6 +22,8 @@ import { FirmaWalletService } from "./FirmaWalletService";
 import { SigningStargateClient, ArbitraryVerifyData } from "./firmachain/common/signingstargateclient";
 import { Any } from "./firmachain/google/protobuf/any";
 import Long from "long";
+import BigNumber from "bignumber.js";
+
 import { CommonTxClient } from "./firmachain/common/CommonTxClient";
 import { Duration } from "cosmjs-types/google/protobuf/duration";
 
@@ -514,52 +516,30 @@ export class FirmaUtil {
      * @returns Processed commission rate string safe for protobuf usage (atomics format or empty string)
      */
     static processCommissionRateAsDecimal(commissionRate: string): string {
-        
-        if (!commissionRate || commissionRate.trim() === "") {
+        const trimmed = commissionRate.trim();
+
+        if (!commissionRate || trimmed === "") {
             throw new Error(`Invalid commission rate format: ${commissionRate}`);
         }
-
-        const trimmed = commissionRate.trim();
+        
         if (!/^(\d+\.?\d*|\.\d+)$/.test(trimmed)) {
             throw new Error(`Invalid commission rate format: ${commissionRate}`);
         }
+        
+        // Validates input and creates BigNumber instance
+        const commissionRateBN = new BigNumber(trimmed);
 
-        let isNegative = false;
-        let processValue = trimmed;
-        
-        if (trimmed.startsWith('-')) {
-            isNegative = true;
-            processValue = trimmed.substring(1);
-        }
-        
-        let integerPart = "0";
-        let decimalPart = "";
-        
-        if (processValue.includes('.')) {
-            const parts = processValue.split('.');
-            integerPart = parts[0] || "0";
-            decimalPart = parts[1] || "";
-        } else {
-            integerPart = processValue;
-        }
-        
-        decimalPart = decimalPart.substring(0, 18);
-        decimalPart = decimalPart.padEnd(18, '0');
-        const result = integerPart + decimalPart;
-        
-        let finalResult = result.replace(/^0+/, '') || "0";
-        if (isNegative && finalResult !== "0") {
-            finalResult = "-" + finalResult;
-        }
-        
-        const resultBigInt = BigInt(finalResult);
-        const maxValue = BigInt("1000000000000000000");
-        
-        if (resultBigInt < 0 || resultBigInt > maxValue) {
-            throw new Error(`Invalid commission rate format: ${commissionRate}`);
-        }
-        
-        return finalResult;
+        // Checks if it's a valid finite number
+        if (!commissionRateBN.isFinite()) throw new Error("Invalid commission rate format: " + commissionRate);
+
+        // Validates range (0 to 1 inclusive)
+        if (commissionRateBN.isNegative() || commissionRateBN.isGreaterThan(1)) throw new Error("Invalid commission rate format: " + commissionRate);
+
+        // Converts to atomics format (multiply by 10^18)
+        const atomics = commissionRateBN.multipliedBy(new BigNumber(10).pow(18));
+
+        // Returns integer string
+        return atomics.integerValue(BigNumber.ROUND_DOWN).toString();
     }
 }
 
