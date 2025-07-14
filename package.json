@@ -1,6 +1,6 @@
 {
   "name": "@firmachain/firma-js",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "The Official FirmaChain Javascript SDK written in Typescript",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -41,6 +41,7 @@
     "@types/pako": "2.0.0",
     "axios": "0.27.2",
     "big-number": "2.0.0",
+    "bignumber.js": "^9.3.0",
     "cosmjs-types": "0.9.0",
     "crypto-js": "4.1.1",
     "fast-deep-equal": "^3.1.3",
@@ -50,6 +51,7 @@
     "readline-sync": "1.4.10"
   },
   "devDependencies": {
+    "@types/bignumber.js": "^4.0.0",
     "@types/chai": "4.2.21",
     "@types/mocha": "9.0.0",
     "@types/node": "16.4.3",
