@@ -72,7 +72,7 @@ export class LedgerSigningStargateClient extends StargateClient {
 
       const path = "/abci_query";
       const params = {
-        path: "/store/auth/key",
+        path: "/store/acc/key",
         data: hexAccAddress,
       };
 
