@@ -70,13 +70,8 @@ export class LedgerSigningStargateClient extends StargateClient {
         timeout: 15000,
       });
 
-      const path = "/abci_query";
-      const params = {
-        path: "/store/acc/key",
-        data: hexAccAddress,
-      };
-
-      const response = await axios.get(path, { params });
+      const path = "/abci_query?path=\"/store/acc/key\"";
+      const response = await axios.get(path, { params: { data: hexAccAddress } });
 
       const base64Value = response.data.result.response.value;
       if (!base64Value) return null;
