@@ -522,7 +522,7 @@ export class FirmaUtil {
             throw new Error(`Invalid commission rate format: ${commissionRate}`);
         }
         
-        if (!/^(\d+\.?\d*|\.\d+)$/.test(trimmed)) {
+        if (!/^-?\d+\.?\d*$/.test(trimmed)) {
             throw new Error(`Invalid commission rate format: ${commissionRate}`);
         }
         
