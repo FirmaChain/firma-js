@@ -4,7 +4,7 @@ import { FirmaConfig } from "./FirmaConfig";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
+import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 import { EncodeObject } from "@cosmjs/proto-signing";
 
 export class NftService {
@@ -141,7 +141,7 @@ export class NftService {
     }
 
     async transfer(wallet: FirmaWalletService, toAddress: string, nftID: string, txMisc: TxMisc = DefaultTxMisc):
-        Promise<DeliverTxResponse> {
+        Promise<BroadcastTxResponse> {
 
         try {
             const txRaw = await this.getSignedTxTransfer(wallet, toAddress, nftID, txMisc);
@@ -199,7 +199,7 @@ export class NftService {
 
 
     async burn(wallet: FirmaWalletService, nftID: string, txMisc: TxMisc = DefaultTxMisc):
-        Promise<DeliverTxResponse> {
+        Promise<BroadcastTxResponse> {
 
         try {
             const txRaw = await this.getSignedTxBurn(wallet, nftID, txMisc);
@@ -271,7 +271,7 @@ export class NftService {
         }
     
     async mint(wallet: FirmaWalletService, tokenURI: string, txMisc: TxMisc = DefaultTxMisc):
-        Promise<DeliverTxResponse> {
+        Promise<BroadcastTxResponse> {
 
         try {
             const txRaw = await this.getSignedTxMint(wallet, tokenURI, txMisc);
@@ -286,7 +286,7 @@ export class NftService {
     }
 
     async signAndBroadcast(wallet: FirmaWalletService, msgList: EncodeObject[], txMisc: TxMisc = DefaultTxMisc):
-        Promise<DeliverTxResponse> {
+        Promise<BroadcastTxResponse> {
         try {
             const contractTxClient = new NftTxClient(wallet, this.config.rpcAddress);
             return await contractTxClient.signAndBroadcast(msgList,

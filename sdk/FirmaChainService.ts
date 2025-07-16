@@ -1,7 +1,7 @@
 import { FirmaConfig } from "./FirmaConfig";
 import { FirmaUtil } from "./FirmaUtil";
 import { ChainSyncInfo, TendermintQueryClient, TransactionHash } from "./firmachain/common/TendermintQueryClient";
-import Axios from "axios";
+import Axios, { AxiosInstance } from "axios";
 
 export class ChainService {
     constructor(private readonly config: FirmaConfig) { }

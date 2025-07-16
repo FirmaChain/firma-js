@@ -1,7 +1,6 @@
 /* eslint-disable */
 import { util, configure, Writer, Reader } from "protobufjs/minimal";
 import * as Long from "long";
-import { BinaryWriter } from "cosmjs-types/binary";
 
 export const protobufPackage = "google.protobuf";
 
@@ -124,7 +123,7 @@ export interface Any {
 const baseAny: object = { typeUrl: "" };
 
 export const Any = {
-  encode(message: Any, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
+  encode(message: Any, writer: Writer = Writer.create()): Writer {
     if (message.typeUrl !== "") {
       writer.uint32(10).string(message.typeUrl);
     }

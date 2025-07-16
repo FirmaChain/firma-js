@@ -1,9 +1,8 @@
-import { fromBase64, fromBech32, fromHex, toBase64, toBech32, toHex } from "@cosmjs/encoding";
+import { Bech32, fromBase64, fromHex, toBase64, toHex } from "@cosmjs/encoding";
 import { Uint53 } from "@cosmjs/math";
 import { arrayContentStartsWith } from "@cosmjs/utils";
 
 import {
-  Ed25519Pubkey,
   isEd25519Pubkey,
   isMultisigThresholdPubkey,
   isSecp256k1Pubkey,
@@ -13,30 +12,12 @@ import {
   Secp256k1Pubkey,
 } from "./pubkeys";
 
-/**
- * Takes a Secp256k1 public key as raw bytes and returns the Amino JSON
- * representation of it (the type/value wrapper object).
- */
 export function encodeSecp256k1Pubkey(pubkey: Uint8Array): Secp256k1Pubkey {
   if (pubkey.length !== 33 || (pubkey[0] !== 0x02 && pubkey[0] !== 0x03)) {
     throw new Error("Public key must be compressed secp256k1, i.e. 33 bytes starting with 0x02 or 0x03");
   }
   return {
     type: pubkeyType.secp256k1,
-    value: toBase64(pubkey),
-  };
-}
-
-/**
- * Takes an Edd25519 public key as raw bytes and returns the Amino JSON
- * representation of it (the type/value wrapper object).
- */
-export function encodeEd25519Pubkey(pubkey: Uint8Array): Ed25519Pubkey {
-  if (pubkey.length !== 32) {
-    throw new Error("Ed25519 public key must be 32 bytes long");
-  }
-  return {
-    type: pubkeyType.ed25519,
     value: toBase64(pubkey),
   };
 }
@@ -96,7 +77,7 @@ export function decodeAminoPubkey(data: Uint8Array): Pubkey {
  * @param bechEncoded the bech32 encoded pubkey
  */
 export function decodeBech32Pubkey(bechEncoded: string): Pubkey {
-  const { data } = fromBech32(bechEncoded);
+  const { data } = Bech32.decode(bechEncoded);
   return decodeAminoPubkey(data);
 }
 
@@ -219,5 +200,5 @@ export function encodeAminoPubkey(pubkey: Pubkey): Uint8Array {
  * @param prefix the bech32 prefix (human readable part)
  */
 export function encodeBech32Pubkey(pubkey: Pubkey, prefix: string): string {
-  return toBech32(prefix, encodeAminoPubkey(pubkey));
+  return Bech32.encode(prefix, encodeAminoPubkey(pubkey));
 }

@@ -3,7 +3,7 @@ import { SignDoc, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { TendermintQueryClient } from "./firmachain/common/TendermintQueryClient";
 import { FirmaConfig } from "./FirmaConfig";
 
-import { fromBech32, toBech32 } from "@cosmjs/encoding";
+import { Bech32 } from "@cosmjs/encoding";
 import { LedgerSigningStargateClient, SignerData } from "./firmachain/common/LedgerSigningStargateClient";
 import { SignAndBroadcastOptions, TxMisc } from "./firmachain/common";
 import { fromHex, toBase64, toHex, fromBase64 } from '@cosmjs/encoding';
@@ -15,17 +15,15 @@ import {
     Secp256k1Signature,
 } from '@cosmjs/crypto';
 
-import { pubkeyToAddress } from '@cosmjs/amino';
+import { decodeSignature, pubkeyToAddress } from '@cosmjs/amino';
 
+import { ArbitraryVerifyData, SigningAminoStargateClient } from "./firmachain/common/signingaminostargateclient";
 import { EncodeObject, makeSignBytes, Registry } from "@cosmjs/proto-signing";
 import { FirmaWalletService } from "./FirmaWalletService";
-import { SigningStargateClient, ArbitraryVerifyData } from "./firmachain/common/signingstargateclient";
+import { SigningStargateClient } from "./firmachain/common/signingstargateclient";
 import { Any } from "./firmachain/google/protobuf/any";
 import Long from "long";
-import BigNumber from "bignumber.js";
-
 import { CommonTxClient } from "./firmachain/common/CommonTxClient";
-import { Duration } from "cosmjs-types/google/protobuf/duration";
 
 const CryptoJS = require("crypto-js");
 const sha1 = require("crypto-js/sha1");
@@ -173,7 +171,7 @@ export class FirmaUtil {
 
         try {
             // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-            fromBech32(address).data;
+            Bech32.decode(address).data;
             return true;
         }
         catch (e) {
@@ -191,25 +189,25 @@ export class FirmaUtil {
 
     // for evm address support
     static getHexAddressFromAddress(address: string): string {
-        const data = fromBech32(address).data;
+        const data = Bech32.decode(address).data;
         return "0x" + FirmaUtil.buf2hex(data);
     }
 
     static getValOperAddressFromAccAddress(address: string): string {
-        const data = fromBech32(address).data;
-        return toBech32(FirmaUtil.config.prefix + "valoper", data);
+        const data = Bech32.decode(address).data;
+        return Bech32.encode(FirmaUtil.config.prefix + "valoper", data);
     }
 
     static getValConsAddressFromAccAddress(consensusPubkey: string): string {
 
         const ed25519PubkeyRaw = fromBase64(consensusPubkey);
         const addressData = sha256crypto(ed25519PubkeyRaw).slice(0, 20);
-        return toBech32(FirmaUtil.config.prefix + "valcons", addressData);
+        return Bech32.encode(FirmaUtil.config.prefix + "valcons", addressData);
     }
 
     static getAccAddressFromValOperAddress(address: string): string {
-        const data = fromBech32(address).data;
-        return toBech32(FirmaUtil.config.prefix, data);
+        const data = Bech32.decode(address).data;
+        return Bech32.encode(FirmaUtil.config.prefix, data);
     }
 
     static async getSignerDataForLedger(address: string): Promise<SignerData> {
@@ -250,7 +248,9 @@ export class FirmaUtil {
         try {
             const encodedTx = Uint8Array.from(txRaw);
             const hexTx = `0x${Buffer.from(encodedTx).toString("hex")}`;
-            
+
+            console.log("hexTx:" + hexTx);
+
             const queryClient = new TendermintQueryClient(FirmaUtil.config.rpcAddress);
             const gas = await queryClient.queryEstimateGas(hexTx);
 
@@ -270,17 +270,17 @@ export class FirmaUtil {
         console.log(`[FirmaSDK] ${log}`);
     }
 
-    public static async experimentalAdr36Sign(wallet: FirmaWalletService, data: string): Promise<ArbitraryVerifyData> {
+    static async experimentalAdr36Sign(wallet: FirmaWalletService, data: string): Promise<ArbitraryVerifyData> {
 
         try {
             const registry = new Registry();
-            const client = await SigningStargateClient.connectWithSigner(FirmaUtil.config.rpcAddress, wallet.getRawAminoWallet(), { registry: registry });
+            const aliceClient = await SigningAminoStargateClient.connectWithSigner(FirmaUtil.config.rpcAddress, wallet.getRawAminoWallet(), registry);
 
             const address = await wallet.getAddress();
 
             let userData: Uint8Array | Uint8Array[] = Buffer.from(data);
 
-            return await client.experimentalAdr36Sign(address, userData);
+            return await aliceClient.experimentalAdr36Sign(address, userData);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -289,7 +289,7 @@ export class FirmaUtil {
 
     static async experimentalAdr36Verify(data: ArbitraryVerifyData, checkMsg: string): Promise<boolean> {
         try {
-            return await SigningStargateClient.experimentalAdr36Verify(data, checkMsg);
+            return await SigningAminoStargateClient.experimentalAdr36Verify(data, checkMsg);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -413,134 +413,6 @@ export class FirmaUtil {
     static getCommonTxClient(aliceWallet: FirmaWalletService) {
         return new CommonTxClient(aliceWallet, FirmaUtil.config.rpcAddress);
 	}
-
-    /**
-     * Parses a duration string to a Duration object.
-     * Supports formats like "336h0m0s", "21d", "1000ms", "1s", "1m", "1h", "1ns", "1µs"/"1us"
-     * 
-     * @param durationStr - Duration string to parse (e.g., "336h0m0s", "21d")
-     * @returns Duration object with seconds and nanos fields
-     */
-    static parseDurationString(durationStr: string): { seconds: bigint; nanos: number } {
-        if (!durationStr || durationStr.trim() === "") {
-            return { seconds: BigInt(0), nanos: 0 };
-        }
-    
-        const input = durationStr.trim();
-        let totalSeconds = 0;
-        let totalNanos = 0;
-    
-        // Handle negative durations
-        const isNegative = input.startsWith('-');
-        const cleanInput = isNegative ? input.substring(1) : input;
-    
-        // Regular expression to match duration components
-        const regex = /(\d+(?:\.\d+)?)(d|h|m|s|ms|µs|us|ns)/g;
-        let match;
-        let hasMatches = false;
-
-        while ((match = regex.exec(cleanInput)) !== null) {
-            hasMatches = true;
-            const value = parseFloat(match[1]);
-            const unit = match[2];
-
-            switch (unit) {
-                case 'd':  // days
-                    totalSeconds += value * 24 * 60 * 60;
-                    break;
-                case 'h':  // hours
-                    totalSeconds += value * 60 * 60;
-                    break;
-                case 'm':  // minutes
-                    totalSeconds += value * 60;
-                    break;
-                case 's':  // seconds
-                    totalSeconds += value;
-                    break;
-                case 'ms': // milliseconds
-                    totalNanos += value * 1_000_000;
-                    break;
-                case 'µs':
-                case 'us': // microseconds
-                    totalNanos += value * 1_000;
-                    break;
-                case 'ns': // nanoseconds
-                    totalNanos += value;
-                    break;
-            }
-        }
-
-        if (!hasMatches) {
-            throw new Error(`Invalid duration format: ${durationStr}`);
-        }
-
-        // Convert excess nanos to seconds
-        const extraSeconds = Math.floor(totalNanos / 1_000_000_000);
-        totalSeconds += extraSeconds;
-        totalNanos = totalNanos % 1_000_000_000;
-
-        // Apply negative sign
-        const finalSeconds = isNegative ? -totalSeconds : totalSeconds;
-        const finalNanos = isNegative ? -totalNanos : totalNanos;
-    
-        return {
-            seconds: BigInt(Math.floor(finalSeconds)),
-            nanos: Math.floor(finalNanos)
-        };
-    }
-
-    /**
-     * Creates a Duration object from a duration string.
-     * This is a convenience method that combines parseDurationString with Duration.fromPartial.
-     * 
-     * @param durationStr - Duration string to parse (e.g., "336h0m0s", "21d")
-     * @returns Duration object ready to use with protobuf
-     */
-    static createDurationFromString(durationStr: string): Duration {
-        const { seconds, nanos } = FirmaUtil.parseDurationString(durationStr);
-        
-        // Import Duration if not already imported
-        const { Duration } = require("./firmachain/google/protobuf/duration");
-        
-        return Duration.fromPartial({
-            seconds: seconds,
-            nanos: nanos
-        });
-    }
-
-    /**
-     * Safely processes commission rate strings to prevent big.Int conversion errors.
-     * Converts decimal commission rates to Cosmos SDK atomics format (integer representation).
-     * 
-     * @param commissionRate - Commission rate string from staking params
-     * @returns Processed commission rate string safe for protobuf usage (atomics format or empty string)
-     */
-    static processCommissionRateAsDecimal(commissionRate: string): string {
-        const trimmed = commissionRate.trim();
-
-        if (!commissionRate || trimmed === "") {
-            throw new Error(`Invalid commission rate format: ${commissionRate}`);
-        }
-        
-        if (!/^-?\d+\.?\d*$/.test(trimmed)) {
-            throw new Error(`Invalid commission rate format: ${commissionRate}`);
-        }
-        
-        // Validates input and creates BigNumber instance
-        const commissionRateBN = new BigNumber(trimmed);
-
-        // Checks if it's a valid finite number
-        if (!commissionRateBN.isFinite()) throw new Error("Invalid commission rate format: " + commissionRate);
-
-        // Validates range (0 to 1 inclusive)
-        if (commissionRateBN.isNegative() || commissionRateBN.isGreaterThan(1)) throw new Error("Invalid commission rate range. Must be between 0 and 1 inclusive.");
-
-        // Converts to atomics format (multiply by 10^18)
-        const atomics = commissionRateBN.multipliedBy(new BigNumber(10).pow(18));
-
-        // Returns integer string
-        return atomics.integerValue(BigNumber.ROUND_DOWN).toString();
-    }
 }
 
 export const DefaultTxMisc = { memo: "", fee: 0, gas: 0, feeGranter: "" };

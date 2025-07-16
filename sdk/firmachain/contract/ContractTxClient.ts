@@ -4,19 +4,19 @@ import { ITxClient } from "../common/ITxClient";
 import { FirmaWalletService } from "../../FirmaWalletService";
 
 const types = [
-    ["/firmachain.contract.MsgCreateContractFile", MsgCreateContractFile],
-    ["/firmachain.contract.MsgAddContractLog", MsgAddContractLog]
+    ["/firmachain.firmachain.contract.MsgCreateContractFile", MsgCreateContractFile],
+    ["/firmachain.firmachain.contract.MsgAddContractLog", MsgAddContractLog]
 ];
 
 const registry = new Registry(types as any);
 
 export interface MsgAddContractLogEncodeObject extends EncodeObject {
-    readonly typeUrl: "/firmachain.contract.MsgAddContractLog";
+    readonly typeUrl: "/firmachain.firmachain.contract.MsgAddContractLog";
     readonly value: Partial<MsgAddContractLog>;
 }
 
 export interface MsgCreateContractFileEncodeObject extends EncodeObject {
-    readonly typeUrl: "/firmachain.contract.MsgCreateContractFile";
+    readonly typeUrl: "/firmachain.firmachain.contract.MsgCreateContractFile";
     readonly value: Partial<MsgCreateContractFile>;
 }
 
@@ -31,10 +31,10 @@ export class ContractTxClient extends ITxClient {
     }
 
     static msgAddContractLog(data: MsgAddContractLog): MsgAddContractLogEncodeObject {
-        return { typeUrl: "/firmachain.contract.MsgAddContractLog", value: data };
+        return { typeUrl: "/firmachain.firmachain.contract.MsgAddContractLog", value: data };
     }
 
     static msgCreateContractFile(data: MsgCreateContractFile): MsgCreateContractFileEncodeObject {
-        return { typeUrl: "/firmachain.contract.MsgCreateContractFile", value: data };
+        return { typeUrl: "/firmachain.firmachain.contract.MsgCreateContractFile", value: data };
     }
 }

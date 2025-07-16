@@ -1,6 +1,6 @@
 import { Reader, Writer } from "protobufjs/minimal";
 
-export const protobufPackage = "firmachain.nft";
+export const protobufPackage = "firmachain.firmachain.nft";
 
 export interface MsgTransfer {
     owner: string;
@@ -427,7 +427,7 @@ export class MsgClientImpl implements Msg {
     Transfer(request: MsgTransfer): Promise<MsgTransferResponse> {
         const data = MsgTransfer.encode(request).finish();
         const promise = this.rpc.request(
-            "firmachain.nft.Msg",
+            "firmachain.firmachain.nft.Msg",
             "Transfer",
             data
         );
@@ -437,7 +437,7 @@ export class MsgClientImpl implements Msg {
     Burn(request: MsgBurn): Promise<MsgBurnResponse> {
         const data = MsgBurn.encode(request).finish();
         const promise = this.rpc.request(
-            "firmachain.nft.Msg",
+            "firmachain.firmachain.nft.Msg",
             "Burn",
             data
         );
@@ -447,7 +447,7 @@ export class MsgClientImpl implements Msg {
     Mint(request: MsgMint): Promise<MsgMintResponse> {
         const data = MsgMint.encode(request).finish();
         const promise = this.rpc.request(
-            "firmachain.nft.Msg",
+            "firmachain.firmachain.nft.Msg",
             "Mint",
             data
         );

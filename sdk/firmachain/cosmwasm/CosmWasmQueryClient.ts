@@ -120,7 +120,7 @@ export class CosmWasmQueryClient {
         const path = `/cosmwasm/wasm/v1/contract/${contractAddress}/raw/${hexStringBase64}`;
         const result = await this.axios.get(path);
 
-        return result.data.data;
+        return result.data;
     }
 
     async getContractSmartQueryData(contractAddress: string, query: string): Promise<string> {

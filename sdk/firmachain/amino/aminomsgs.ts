@@ -183,19 +183,6 @@ export function isAminoMsgSubmitProposal(msg: AminoMsg): msg is AminoMsgSubmitPr
   return msg.type === "cosmos-sdk/MsgSubmitProposal";
 }
 
-export interface AminoMsgCancelProposal extends AminoMsg {
-  readonly type: "cosmos-sdk/MsgCancelProposal";
-  readonly value: {
-    readonly proposalId: string;
-    /** Bech32 account address */
-    readonly proposer: string;
-  };
-}
-
-export function isAminoMsgCancelProposal(msg: AminoMsg): msg is AminoMsgCancelProposal {
-  return msg.type === "cosmos-sdk/MsgCancelProposal";
-}
-
 /** Casts a vote */
 export interface AminoMsgVote extends AminoMsg {
   readonly type: "cosmos-sdk/MsgVote";
@@ -396,8 +383,6 @@ export interface AminoMsgTransfer extends AminoMsg {
      * 0 values must be omitted (https://github.com/cosmos/cosmos-sdk/blob/v0.42.7/x/ibc/applications/transfer/types/tx.pb.go#L52).
      */
     readonly timeout_timestamp?: string;
-
-    readonly memo?: string;
   };
 }
 

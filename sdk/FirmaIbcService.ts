@@ -3,8 +3,9 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
+import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 import { ClientState, IbcQueryClient, IbcTxClient, TxMisc } from "./firmachain/ibc";
+import Long from "long";
 import { Height } from "cosmjs-types/ibc/core/client/v1/client";
 
 export class FirmaIbcService {
@@ -22,7 +23,7 @@ export class FirmaIbcService {
         amount: string,
         receiver: string,
         timeoutHeight: Height,
-        timeoutTimestamp: bigint, txMisc: TxMisc = DefaultTxMisc):
+        timeoutTimestamp: Long, txMisc: TxMisc = DefaultTxMisc):
         Promise<number>  {
         try {
             const txRaw = await this.getSignedTxTransfer(wallet, sourcePort, sourceChannel, denom, amount, receiver, timeoutHeight, timeoutTimestamp, txMisc);
@@ -41,9 +42,8 @@ export class FirmaIbcService {
         amount: string,
         receiver: string,
         timeoutHeight: Height,
-        timeoutTimestamp: bigint,
-        txMisc: TxMisc = DefaultTxMisc):
-        Promise<DeliverTxResponse> {
+        timeoutTimestamp: Long, txMisc: TxMisc = DefaultTxMisc):
+        Promise<BroadcastTxResponse> {
         try {
             const txRaw = await this.getSignedTxTransfer(wallet, sourcePort, sourceChannel, denom, amount, receiver, timeoutHeight, timeoutTimestamp, txMisc);
 
@@ -63,17 +63,14 @@ export class FirmaIbcService {
         amount: string,
         receiver: string,
         timeoutHeight: Height,
-        timeoutTimestamp: bigint,
+        timeoutTimestamp: Long,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
         try {
             const address = await wallet.getAddress();
 
-            const message = IbcTxClient.msgTransfer({
-                sourcePort: sourcePort, sourceChannel: sourceChannel, sender: address, receiver: receiver,
-                token: { denom: denom, amount: amount },
-                timeoutHeight: timeoutHeight, timeoutTimestamp: timeoutTimestamp,
-                memo: ""
-            });
+            const message = IbcTxClient.msgTransfer({ sourcePort: sourcePort, sourceChannel: sourceChannel, sender: address, receiver: receiver, 
+                token: {denom: denom, amount: amount},
+                timeoutHeight: timeoutHeight, timeoutTimestamp: timeoutTimestamp });
 
             const ibcTxClient = new IbcTxClient(wallet, this.config.rpcAddress);
             return await ibcTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));

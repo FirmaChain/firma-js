@@ -4,7 +4,7 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
-import { DeliverTxResponse } from "@cosmjs/stargate";
+import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 
 export class FirmaBankService {
 
@@ -42,7 +42,7 @@ export class FirmaBankService {
     }
 
     async sendToken(wallet: FirmaWalletService, targetAddress: string, tokenID: string, amount: number, decimal: number, txMisc: TxMisc = DefaultTxMisc):
-        Promise<DeliverTxResponse> {
+        Promise<BroadcastTxResponse> {
         try {
 
             const txRaw = await this.getSignedTxSend(wallet, targetAddress, tokenID, FirmaUtil.getUTokenStringFromToken(amount, decimal), txMisc);
@@ -57,7 +57,7 @@ export class FirmaBankService {
     }
 
     async send(wallet: FirmaWalletService, targetAddress: string, amount: number, txMisc: TxMisc = DefaultTxMisc):
-        Promise<DeliverTxResponse> {
+        Promise<BroadcastTxResponse> {
         try {
             const txRaw = await this.getSignedTxSend(wallet, targetAddress, this.config.denom, FirmaUtil.getUFCTStringFromFCT(amount), txMisc);
 
@@ -71,7 +71,7 @@ export class FirmaBankService {
     }
 
     async send_raw(wallet: FirmaWalletService, targetAddress: string, ufctAmount: string, txMisc: TxMisc = DefaultTxMisc):
-        Promise<DeliverTxResponse> {
+        Promise<BroadcastTxResponse> {
         try {
             const txRaw = await this.getSignedTxSend(wallet, targetAddress, this.config.denom, ufctAmount, txMisc);
 

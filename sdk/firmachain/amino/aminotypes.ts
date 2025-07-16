@@ -25,7 +25,6 @@ import Long from "long";
 
 import {
   AminoMsgBeginRedelegate,
-  AminoMsgCancelProposal,
   AminoMsgCreateValidator,
   AminoMsgDelegate,
   AminoMsgDeposit,
@@ -42,8 +41,6 @@ import {
   AminoMsgWithdrawValidatorCommission,
 } from "./aminomsgs";
 import { decodeBech32Pubkey, encodeBech32Pubkey } from "./encoding";
-// temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
-import { MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 
 export interface AminoConverter {
   readonly aminoType: string;
@@ -51,7 +48,7 @@ export interface AminoConverter {
   readonly fromAmino: (value: any) => any;
 }
 
-function omitDefault<T extends string | number | Long | BigInt>(input: T): T | undefined {
+function omitDefault<T extends string | number | Long>(input: T): T | undefined {
   if (typeof input === "string") {
     return input === "" ? undefined : input;
   }
@@ -184,7 +181,7 @@ function createDefaultTypes(prefix: string): Record<string, AminoConverter> {
         return {
           amount: Array.from(amount),
           depositor,
-          proposalId: BigInt(proposal_id),
+          proposalId: Long.fromString(proposal_id),
         };
       },
     },
@@ -200,7 +197,7 @@ function createDefaultTypes(prefix: string): Record<string, AminoConverter> {
       fromAmino: ({ option, proposal_id, voter }: AminoMsgVote["value"]): MsgVote => {
         return {
           option: voteOptionFromJSON(option),
-          proposalId: BigInt(proposal_id),
+          proposalId: Long.fromString(proposal_id),
           voter: voter,
         };
       },
@@ -270,27 +267,8 @@ function createDefaultTypes(prefix: string): Record<string, AminoConverter> {
       },
     },
 
-    // cancel proposal
-    "/cosmos.gov.v1.MsgCancelProposal": {
-      aminoType: "cosmos-sdk/MsgCancelProposal",
-      toAmino: ({
-        proposalId,
-        proposer,
-      }: MsgCancelProposal): AminoMsgCancelProposal["value"] => {
-        return {
-          proposalId: proposalId.toString(),
-          proposer: proposer,
-        };
-      },
-      fromAmino: ({ proposalId, proposer }: AminoMsgCancelProposal["value"]): MsgCancelProposal => {
-        return {
-          proposalId: BigInt(proposalId),
-          proposer: proposer,
-        };
-      }
-    },
-
     // staking
+
     "/cosmos.staking.v1beta1.MsgBeginRedelegate": {
       aminoType: "cosmos-sdk/MsgBeginRedelegate",
       toAmino: ({
@@ -516,19 +494,19 @@ function createDefaultTypes(prefix: string): Record<string, AminoConverter> {
         receiver,
         timeout_height,
         timeout_timestamp,
-        memo
       }: AminoMsgTransfer["value"]): MsgTransfer => ({
         sourcePort: source_port,
         sourceChannel: source_channel,
-        token: token!,
+        token: token,
         sender: sender,
         receiver: receiver,
-        timeoutHeight: {
-            revisionHeight: BigInt(timeout_height.revision_height || "0"),
-            revisionNumber: BigInt(timeout_height.revision_number || "0"),
-        },
-        timeoutTimestamp: BigInt(timeout_timestamp || "0"),
-        memo: memo!
+        timeoutHeight: timeout_height
+          ? {
+            revisionHeight: Long.fromString(timeout_height.revision_height || "0", true),
+            revisionNumber: Long.fromString(timeout_height.revision_number || "0", true),
+          }
+          : undefined,
+        timeoutTimestamp: Long.fromString(timeout_timestamp || "0", true),
       }),
     },
   };

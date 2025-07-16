@@ -6,7 +6,7 @@ import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil
 import { TxMisc } from "./firmachain/common";
 import { CosmWasmTxClient } from "./firmachain/cosmwasm/CosmWasmTxClient";
 import { EncodeObject } from "@cosmjs/proto-signing";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
+import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 
 export interface Cw721ExpiresAtHeight {
     at_height: number;
@@ -304,7 +304,7 @@ export class FirmaCosmWasmCw721Service {
     }
 
     async signAndBroadcast(wallet: FirmaWalletService, msgList: EncodeObject[], txMisc: TxMisc = DefaultTxMisc):
-        Promise<DeliverTxResponse> {
+        Promise<BroadcastTxResponse> {
         try {
             const txClient = new CosmWasmTxClient(wallet, this.config.rpcAddress);
             return await txClient.signAndBroadcast(msgList,

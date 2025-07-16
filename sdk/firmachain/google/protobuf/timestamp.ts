@@ -1,7 +1,6 @@
 /* eslint-disable */
 import { util, configure, Writer, Reader } from "protobufjs/minimal";
 import * as Long from "long";
-import { BinaryWriter } from "cosmjs-types/binary";
 
 export const protobufPackage = "google.protobuf";
 
@@ -104,7 +103,7 @@ export interface Timestamp {
 const baseTimestamp: object = { seconds: 0, nanos: 0 };
 
 export const Timestamp = {
-  encode(message: Timestamp, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
+  encode(message: Timestamp, writer: Writer = Writer.create()): Writer {
     if (message.seconds !== 0) {
       writer.uint32(8).int64(message.seconds);
     }

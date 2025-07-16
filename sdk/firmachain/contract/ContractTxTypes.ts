@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { Reader, Writer } from "protobufjs/minimal";
 
-export const protobufPackage = "firmachain.contract";
+export const protobufPackage = "firmachain.firmachain.contract";
 
 export interface MsgCreateContractFile {
     creator: string;
@@ -467,7 +467,7 @@ export class MsgClientImpl implements Msg {
     ): Promise<MsgCreateContractFileResponse> {
         const data = MsgCreateContractFile.encode(request).finish();
         const promise = this.rpc.request(
-            "firmachain.contract.Msg",
+            "firmachain.firmachain.contract.Msg",
             "CreateContractFile",
             data
         );
@@ -481,7 +481,7 @@ export class MsgClientImpl implements Msg {
     ): Promise<MsgAddContractLogResponse> {
         const data = MsgAddContractLog.encode(request).finish();
         const promise = this.rpc.request(
-            "firmachain.contract.Msg",
+            "firmachain.firmachain.contract.Msg",
             "AddContractLog",
             data
         );

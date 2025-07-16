@@ -13,7 +13,7 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { FirmaConfig } from "./FirmaConfig";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
+import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 
 export class ContractService {
 
@@ -181,7 +181,7 @@ export class ContractService {
         timeStamp: number,
         ownerList: string[],
         metaDataJsonString: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
         try {
             const txRaw = await this.getSignedTxCreateContractFile(wallet,
                 fileHash,
@@ -255,7 +255,7 @@ export class ContractService {
         eventName: string,
         ownerAddress: string,
         jsonString: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 
         try {
             const txRaw = await this.getSignedTxAddContractLog(wallet,
@@ -317,7 +317,7 @@ export class ContractService {
     }
 
     async signAndBroadcast(wallet: FirmaWalletService, msgList: EncodeObject[], txMisc: TxMisc = DefaultTxMisc):
-        Promise<DeliverTxResponse> {
+        Promise<BroadcastTxResponse> {
         try {
             const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
             return await contractTxClient.signAndBroadcast(msgList,

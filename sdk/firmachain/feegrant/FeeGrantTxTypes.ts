@@ -1,7 +1,7 @@
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 
 import _m0 from "protobufjs/minimal";
-import { BinaryWriter } from "cosmjs-types/binary";
+import { Writer } from "protobufjs/minimal";
 
 import { Timestamp } from "../google/protobuf/timestamp";
 import { Any } from "../google/protobuf/any";
@@ -22,7 +22,7 @@ const baseMsgGrantAllowance: object = { granter: "", grantee: "" };
 const baseMsgRevokeAllowance: object = { granter: "", grantee: "" };
 
 export const MsgGrantAllowance = {
-    encode(message: MsgGrantAllowance, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
+    encode(message: MsgGrantAllowance, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
         if (message.granter !== "") {
             writer.uint32(10).string(message.granter);
         }
@@ -136,8 +136,8 @@ export interface AllowedMsgAllowance {
 export const AllowedMsgAllowance = {
     encode(
     message: AllowedMsgAllowance,
-    writer: BinaryWriter = BinaryWriter.create()
-    ): BinaryWriter {
+    writer: Writer = Writer.create()
+    ): Writer {
         if (message.allowance !== undefined) {
             Any.encode(message.allowance, writer.uint32(10).fork()).ldelim();
         }
@@ -149,7 +149,7 @@ export const AllowedMsgAllowance = {
 };
 
 export const PeriodicAllowance = {
-    encode(message: PeriodicAllowance, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
+    encode(message: PeriodicAllowance, writer: Writer = Writer.create()): Writer {
         if (message.basic !== undefined) {
             BasicAllowance.encode(message.basic, writer.uint32(10).fork()).ldelim();
         }
@@ -173,7 +173,7 @@ export const PeriodicAllowance = {
 };
 
 export const BasicAllowance = {
-    encode(message: BasicAllowance, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
+    encode(message: BasicAllowance, writer: Writer = Writer.create()): Writer {
         for (const v of message.spendLimit) {
             Coin.encode(v!, writer.uint32(10).fork()).ldelim();
         }
@@ -188,11 +188,9 @@ export const BasicAllowance = {
 };
 
 function toTimestamp(date: Date): Timestamp {
-    const millis = date.getTime();
-    return {
-        seconds: Math.floor(millis / 1000),
-        nanos: (millis % 1000) * 1_000_000,
-    };
+    const seconds = date.getTime() / 1_000;
+    const nanos = (date.getTime() % 1_000) * 1_000_000;
+    return { seconds, nanos };
 }
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined | Long;

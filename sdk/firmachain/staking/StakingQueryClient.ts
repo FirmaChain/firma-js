@@ -1,13 +1,12 @@
 import Axios, { AxiosInstance } from "axios";
 import { Pagination } from "../common";
 
-export interface StakingParamType {
+export interface ParamsDataType {
     unbonding_time: string;
     max_validators: number;
     max_entries: number;
     historical_entries: number;
     bond_denom: string;
-    min_commission_rate: string;
 }
 
 export interface PoolDataType {
@@ -108,7 +107,9 @@ export class StakingQueryClient {
         const path =
             `/cosmos/staking/v1beta1/validators/${validatorAddress}/delegations/${address}/unbonding_delegation`;
         const result = await this.axios.get(path);
+
         // If there is no data in the list, throw 404 exception.
+        //console.log(result);
 
         return result.data.unbond;
     }
@@ -177,7 +178,7 @@ export class StakingQueryClient {
         return { dataList: result.data.delegation_responses, pagination: convertPagination };
     }
 
-    async queryGetParams(): Promise<StakingParamType> {
+    async queryGetParams(): Promise<ParamsDataType> {
 
         const path = "/cosmos/staking/v1beta1/params";
         const result = await this.axios.get(path);

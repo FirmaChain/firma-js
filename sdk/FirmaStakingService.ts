@@ -4,22 +4,20 @@ import {
     TxMisc,
     ValidatorDataType,
     PoolDataType,
+    ParamsDataType,
     DelegationInfo,
     RedelegationInfo,
     UndelegationInfo,
-    Pagination,
-    StakingParamType
+    Pagination
 } from "./firmachain/staking";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
+import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
 import { Description } from "cosmjs-types/cosmos/staking/v1beta1/staking";
 import { MsgCreateValidator } from "cosmjs-types/cosmos/staking/v1beta1/tx";
-// temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
-import { Params as StakingParams } from "@kintsugi-tech/cosmjs-types/cosmos/staking/v1beta1/staking";
 
 export enum StakingValidatorStatus {
     ALL = "",
@@ -211,7 +209,7 @@ export class FirmaStakingService {
 
     async createValidator(wallet: FirmaWalletService,
         validatorInfo: MsgCreateValidator,
-        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 
         try {
             const txRaw = await this.getSignedTxCreateValidator(wallet, validatorInfo, txMisc);
@@ -230,7 +228,7 @@ export class FirmaStakingService {
         description: Description,
         commissionRate: string,
         minSelfDelegation: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 
         try {
             const txRaw = await this.getSignedTxEditValidator(wallet,
@@ -254,7 +252,7 @@ export class FirmaStakingService {
         validatorSrcAddress: string,
         validatorDstAddress: string,
         amount: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
 
         try {
             const txRaw =
@@ -270,7 +268,7 @@ export class FirmaStakingService {
     }
 
     async undelegate(wallet: FirmaWalletService, targetAddress: string, amount: number, txMisc: TxMisc = DefaultTxMisc):
-        Promise<DeliverTxResponse> {
+        Promise<BroadcastTxResponse> {
 
         try {
             const txRaw = await this.getSignedTxUndelegate(wallet, targetAddress, amount, txMisc);
@@ -285,7 +283,7 @@ export class FirmaStakingService {
     }
 
     async delegate(wallet: FirmaWalletService, targetAddress: string, amount: number, txMisc: TxMisc = DefaultTxMisc):
-        Promise<DeliverTxResponse> {
+        Promise<BroadcastTxResponse> {
 
         try {
             const txRaw = await this.getSignedTxDelegate(wallet, targetAddress, amount, txMisc);
@@ -392,32 +390,12 @@ export class FirmaStakingService {
         }
     }
 
-    async getParams(): Promise<StakingParamType> {
+    async getParams(): Promise<ParamsDataType> {
         try {
             const queryClient = new StakingQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetParams();
 
             return result;
-
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
-    }
-
-    async getParamsAsStakingParams(): Promise<StakingParams> {
-        try {
-            const queryClient = new StakingQueryClient(this.config.restApiAddress);
-            const result = await queryClient.queryGetParams();
-
-            return {
-                unbondingTime: FirmaUtil.createDurationFromString(result.unbonding_time),
-                maxValidators: result.max_validators,
-                maxEntries: result.max_entries,
-                historicalEntries: result.historical_entries,
-                bondDenom: result.bond_denom,
-                minCommissionRate: result.min_commission_rate
-            };
 
         } catch (error) {
             FirmaUtil.printLog(error);

@@ -2,38 +2,29 @@ import {
     GovTxClient,
     GovQueryClient,
     TxMisc,
+    ParamChangeOption,
+    SoftwareUpgradePlan,
     VotingOption,
+    ProposalInfo,
     ProposalStatus,
-    CurrentVoteInfo,
-    GovParamType,
+    ProposalParam,
+    CurrentVoteInfo
 } from "./firmachain/gov";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
-import { Any } from "./firmachain/google/protobuf/any";
+import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
-
-import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { Plan } from "cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
-import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
+import { BroadcastTxResponse } from "./firmachain/common/stargateclient";
+import { Any } from "./firmachain/google/protobuf/any";
 import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
-import { MsgUpdateParams as StakingMsgUpdateParams } from "cosmjs-types/cosmos/staking/v1beta1/tx";
-import equal from 'fast-deep-equal';
+import { CommunityPoolSpendProposal } from "cosmjs-types/cosmos/distribution/v1beta1/distribution";
+import { ParameterChangeProposal } from "cosmjs-types/cosmos/params/v1beta1/params";
+import { CancelSoftwareUpgradeProposal, SoftwareUpgradeProposal } from "cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
 
-// temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
-import {
-    MsgCancelProposal,
-    MsgSubmitProposal,
-    MsgUpdateParams as GovMsgUpdateParmas
-} from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
-import { MsgSoftwareUpgrade } from "@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/tx";
-import { MsgCommunityPoolSpend } from "@kintsugi-tech/cosmjs-types/cosmos/distribution/v1beta1/tx";
-import { Proposal, Params as GovParams } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov";
-import { Params as StakingParams } from "@kintsugi-tech/cosmjs-types/cosmos/staking/v1beta1/staking";
+import Long from "long";
 
 export class FirmaGovService {
-
-    static readonly GOV_AUTHORITY = "firma10d07y265gmmuvt4z0w9aw880jnsr700j53mj8f";
 
     constructor(private readonly config: FirmaConfig) { }
 
@@ -43,9 +34,9 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const bigIntId = BigInt(proposalId);
+            const longId = Long.fromInt(proposalId);
 
-            const txRaw = await this.getSignedTxVote(wallet, bigIntId, option, txMisc);
+            const txRaw = await this.getSignedTxVote(wallet, longId, option, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -60,9 +51,9 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const bigIntId = BigInt(proposalId);
+            const longId = Long.fromInt(proposalId);
 
-            const txRaw = await this.getSignedTxDeposit(wallet, bigIntId, amount, txMisc);
+            const txRaw = await this.getSignedTxDeposit(wallet, longId, amount, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -71,100 +62,63 @@ export class FirmaGovService {
         }
     }
 
-    async getGasEstimationSubmitSoftwareUpgradeProposal(wallet: FirmaWalletService,
+    async getGasEstimationSubmitCancelSoftwareUpgradeProposal(wallet: FirmaWalletService,
         title: string,
-        summary: string,
+        description: string,
         initialDepositFCT: number,
-        plan: Plan,
-        metadata: string = "",
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const message = {
-                typeUrl: "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade",
-                value: MsgSoftwareUpgrade.encode(MsgSoftwareUpgrade.fromPartial({
-                    authority: FirmaGovService.GOV_AUTHORITY,
-                    plan: plan
-                })).finish()
-            };
-            const txRaw = await this.getSignedTxSubmitSoftwareUpgradeProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
+            const txRaw = await this.getSignedTxSubmitCancelSoftwareUpgradeProposal(wallet, title, description, initialDepositFCT, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
+
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
         }
     }
 
-    async getGasEstimationSubmitStakingParamsUpdateProposal(wallet: FirmaWalletService,
+    async getGasEstimationSubmitSoftwareUpgradeProposalByHeight(wallet: FirmaWalletService,
         title: string,
-        summary: string,
+        description: string,
         initialDepositFCT: number,
-        params: StakingParams,
-        metadata: string = "",
+        upgradeName: string,
+        height: number,
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
-        
+
         try {
-            const requestedParams = {
-                authority: FirmaGovService.GOV_AUTHORITY,
-                params: params
-            }
-            const fromPartialParams = StakingMsgUpdateParams.fromPartial({
-                authority: FirmaGovService.GOV_AUTHORITY,
-                params: params
-            });
 
-            if (!equal(requestedParams.params, fromPartialParams.params)) {
-                throw new Error("All staking parameters must be provided. Use Staking.getParamsAsStakingParams() to get current values and override only the parameters you want to change.");
-            }
+            const upgradeHeight = Long.fromInt(height);
 
-            const message = {
-                typeUrl: "/cosmos.staking.v1beta1.MsgUpdateParams",
-                value: StakingMsgUpdateParams.encode(StakingMsgUpdateParams.fromPartial({
-                    authority: FirmaGovService.GOV_AUTHORITY,
-                    params: params
-                })).finish()
+            const plan = {
+                name: upgradeName,
+                time: undefined as any,
+                height: upgradeHeight,
+                info: undefined as any,
+                upgradedClientState: undefined as any
             };
 
-            const txRaw = await this.getSignedTxSubmitStakingParamsUpdateProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
+
+            const txRaw = await this.getSignedTxSubmitSoftwareUpgradeProposal(wallet, title, description, initialDepositFCT, plan, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
+
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
         }
     }
 
-    async getGasEstimationSubmitGovParamsUpdateProposal(wallet: FirmaWalletService,
+    async getGasEstimationSubmitParameterChangeProposal(wallet: FirmaWalletService,
         title: string,
-        summary: string,
+        description: string,
         initialDepositFCT: number,
-        params: GovParams,
-        metadata: string = "",
+        paramList: ParamChangeOption[],
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const requestedParams = {
-                authority: FirmaGovService.GOV_AUTHORITY,
-                params: params
-            }
-            const fromPartialParams = GovMsgUpdateParmas.fromPartial({
-                authority: FirmaGovService.GOV_AUTHORITY,
-                params: params
-            });
-
-            if (!equal(requestedParams.params, fromPartialParams.params)) {
-                throw new Error("All governance parameters must be provided. Use getParamAsGovParams() to get current values and override only the parameters you want to change.");
-            }
-            
-            const message = {
-                typeUrl: "/cosmos.gov.v1.MsgUpdateParams",
-                value: GovMsgUpdateParmas.encode(GovMsgUpdateParmas.fromPartial({
-                    authority: FirmaGovService.GOV_AUTHORITY,
-                    params: params
-                })).finish()
-            }
-
-            const txRaw = await this.getSignedTxSubmitGovParamsUpdateProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
+            const txRaw = await this.getSignedTxSubmitParameterChangeProposal(wallet, title, description, initialDepositFCT, paramList, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
+
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -173,28 +127,16 @@ export class FirmaGovService {
 
     async getGasEstimationSubmitCommunityPoolSpendProposal(wallet: FirmaWalletService,
         title: string,
-        summary: string,
+        description: string,
         initialDepositFCT: number,
-        amountFCT: number,
+        amount: number,
         recipient: string,
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const amount = FirmaUtil.getUFCTStringFromFCT(amountFCT);
-            const message = {
-                typeUrl: "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend",
-                value: Uint8Array.from(MsgCommunityPoolSpend.encode(MsgCommunityPoolSpend.fromPartial({
-                    authority: FirmaGovService.GOV_AUTHORITY, // gov module address
-                    recipient: recipient,
-                    amount: [{
-                        denom: this.config.denom,
-                        amount: amount.toString()
-                    }]
-                })).finish())
-            }
-
-            const txRaw = await this.getSignedTxSubmitCommunityPoolSpendProposal(wallet, title, summary, initialDepositFCT, [message], recipient, txMisc);
+            const txRaw = await this.getSignedTxSubmitCommunityPoolSpendProposal(wallet, title, description, initialDepositFCT, amount, recipient, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
+
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -211,19 +153,6 @@ export class FirmaGovService {
             const txRaw = await this.getSignedTxSubmitTextProposal(wallet, title, description, initialDepositFCT, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
 
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
-    }
-
-    async getGasEstimationCancelProposal(wallet: FirmaWalletService,
-        proposalId: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<number> {
-        
-        try {
-            const txRaw = await this.getSignedTxCancelProposal(wallet, proposalId, txMisc);
-            return await FirmaUtil.estimateGas(txRaw);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -261,102 +190,118 @@ export class FirmaGovService {
         }
     }
 
+    private async getSignedTxSubmitCancelSoftwareUpgradeProposal(wallet: FirmaWalletService,
+        title: string,
+        description: string,
+        initialDepositFCT: number,
+        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+
+        try {
+            const initialDepositAmount = {
+                denom: this.config.denom,
+                amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT)
+            };
+
+            const proposal = CancelSoftwareUpgradeProposal.fromPartial({
+                title: title,
+                description: description,
+            });
+
+            const content = Any.fromPartial({
+                typeUrl: "/cosmos.upgrade.v1beta1.CancelSoftwareUpgradeProposal",
+                value: Uint8Array.from(SoftwareUpgradeProposal.encode(proposal).finish()),
+            });
+
+            const proposer = await wallet.getAddress();
+            const message = GovTxClient.msgSubmitProposal({
+                content: content,
+                initialDeposit: [initialDepositAmount],
+                proposer: proposer
+            });
+
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     private async getSignedTxSubmitSoftwareUpgradeProposal(wallet: FirmaWalletService,
         title: string,
-        summary: string,
+        description: string,
         initialDepositFCT: number,
-        messages: {
-            typeUrl?: string | undefined;
-            value?: Uint8Array | undefined;
-        }[] | undefined,
-        metadata: string = "",
+        plan: SoftwareUpgradePlan,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const proposer = await wallet.getAddress();
-            const initialDeposit = [{ amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT), denom: this.config.denom }];
-            const message = {
-                typeUrl: "/cosmos.gov.v1.MsgSubmitProposal",
-                value: MsgSubmitProposal.fromPartial({
-                    title: title,
-                    summary: summary,
-                    metadata: metadata,
-                    messages: messages,
-                    proposer: proposer,
-                    initialDeposit: initialDeposit
-                })
+            const initialDepositAmount = {
+                denom: this.config.denom,
+                amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT)
             };
+
+            const proposal = SoftwareUpgradeProposal.fromPartial({
+                title: title,
+                description: description,
+                plan: plan,
+            });
+
+            const content = Any.fromPartial({
+                typeUrl: "/cosmos.upgrade.v1beta1.SoftwareUpgradeProposal",
+                value: Uint8Array.from(SoftwareUpgradeProposal.encode(proposal).finish()),
+            });
+
+            const proposer = await wallet.getAddress();
+            const message = GovTxClient.msgSubmitProposal({
+                content: content,
+                initialDeposit: [initialDepositAmount],
+                proposer: proposer
+            });
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
         }
     }
 
-    private async getSignedTxSubmitStakingParamsUpdateProposal(wallet: FirmaWalletService,
+    private async getSignedTxSubmitParameterChangeProposal(wallet: FirmaWalletService,
         title: string,
-        summary: string,
+        description: string,
         initialDepositFCT: number,
-        messages: {
-            typeUrl?: string | undefined;
-            value?: Uint8Array | undefined;
-        }[] | undefined,
-        metadata: string = "",
+        paramList: ParamChangeOption[],
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const proposer = await wallet.getAddress();
-            const initialDeposit = [{ amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT), denom: this.config.denom }];
-            const message = {
-                typeUrl: "/cosmos.gov.v1.MsgSubmitProposal",
-                value: MsgSubmitProposal.fromPartial({
-                    title: title,
-                    summary: summary,
-                    metadata: metadata,
-                    messages: messages,
-                    proposer: proposer,
-                    initialDeposit: initialDeposit
-                })
+            const initialDepositAmount = {
+                denom: this.config.denom,
+                amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT)
             };
+
+            const proposal = ParameterChangeProposal.fromPartial({
+                title: title,
+                description: description,
+                changes: paramList,
+            });
+
+            const content = Any.fromPartial({
+                typeUrl: "/cosmos.params.v1beta1.ParameterChangeProposal",
+                value: Uint8Array.from(ParameterChangeProposal.encode(proposal).finish()),
+            });
+
+            const proposer = await wallet.getAddress();
+            const message = GovTxClient.msgSubmitProposal({
+                content: content,
+                initialDeposit: [initialDepositAmount],
+                proposer: proposer
+            });
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
-    }
 
-    private async getSignedTxSubmitGovParamsUpdateProposal(wallet: FirmaWalletService,
-        title: string,
-        summary: string,
-        initialDepositFCT: number,
-        messages: {
-            typeUrl?: string | undefined;
-            value?: Uint8Array | undefined;
-        }[] | undefined,
-        metadata: string = "",
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
-
-        try {
-            const proposer = await wallet.getAddress();
-            const initialDeposit = [{ amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT), denom: this.config.denom }];
-            const message = {
-                typeUrl: "/cosmos.gov.v1.MsgSubmitProposal",
-                value: MsgSubmitProposal.fromPartial({
-                    title: title,
-                    summary: summary,
-                    metadata: metadata,
-                    messages: messages,
-                    proposer: proposer,
-                    initialDeposit: initialDeposit
-                })
-            };
-
-            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -365,156 +310,134 @@ export class FirmaGovService {
 
     private async getSignedTxSubmitCommunityPoolSpendProposal(wallet: FirmaWalletService,
         title: string,
-        summary: string,
+        description: string,
         initialDepositFCT: number,
-        messages: {
-            typeUrl?: string | undefined;
-            value?: Uint8Array | undefined;
-        }[] | undefined,
-        metadata: string = "",
+        amount: number,
+        recipient: string,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const proposer = await wallet.getAddress();
-            const initialDeposit = [{ amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT), denom: this.config.denom }];
-            const message = {
-                typeUrl: "/cosmos.gov.v1.MsgSubmitProposal",
-                value: MsgSubmitProposal.fromPartial({
-                    title: title,
-                    summary: summary,
-                    metadata: metadata,
-                    messages: messages,
-                    proposer: proposer,
-                    initialDeposit: initialDeposit,
-                })
+            const initialDepositAmount = {
+                denom: this.config.denom,
+                amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT)
             };
+            const sendAmount = { denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amount) };
+
+            const proposal = CommunityPoolSpendProposal.fromPartial({
+                title: title,
+                description: description,
+                recipient: recipient,
+                amount: [sendAmount]
+            });
+
+            const content = Any.fromPartial({
+                typeUrl: "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal",
+                value: Uint8Array.from(CommunityPoolSpendProposal.encode(proposal).finish()),
+            });
+
+            const proposer = await wallet.getAddress();
+            const message = GovTxClient.msgSubmitProposal({
+                content: content,
+                initialDeposit: [initialDepositAmount],
+                proposer: proposer
+            });
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
         }
     }
 
-    private async getSignedTxCancelProposal(wallet: FirmaWalletService,
-        proposalId: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
-
-        const proposer = await wallet.getAddress();
-        const message = {
-            typeUrl: "/cosmos.gov.v1.MsgCancelProposal",
-            value: MsgCancelProposal.fromPartial({
-              proposalId: BigInt(proposalId),
-              proposer: proposer
-            })
-        };
-
-        const txClient = new GovTxClient(wallet, this.config.rpcAddress);
-        return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
-    }
-   
-    async submitSoftwareUpgradeProposal(wallet: FirmaWalletService,
+    async submitCancelSoftwareUpgradeProposal(wallet: FirmaWalletService,
         title: string,
-        summary: string,
-        initialDepositFCT: number,
-        plan: Plan,
-        metadata: string = "",
-        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
-
+        description: string,
+        initialDeposit: number,
+        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
         try {
-            const message = {
-                typeUrl: "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade",
-                value: MsgSoftwareUpgrade.encode(MsgSoftwareUpgrade.fromPartial({
-                    authority: FirmaGovService.GOV_AUTHORITY,
-                    plan: plan
-                })).finish()
-            };
-
-            const txRaw = await this.getSignedTxSubmitSoftwareUpgradeProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
+            const txRaw = await this.getSignedTxSubmitCancelSoftwareUpgradeProposal(wallet, title, description, initialDeposit, txMisc);
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
+
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
         }
     }
 
-    async submitStakingParamsUpdateProposal(wallet: FirmaWalletService,
+    async submitSoftwareUpgradeProposalByHeight(wallet: FirmaWalletService,
         title: string,
-        summary: string,
-        initialDepositFCT: number,
-        params: StakingParams,
-        metadata: string = "",
-        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
-
+        description: string,
+        initialDeposit: number,
+        upgradeName: string,
+        height: number,
+        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
         try {
-            const requestedParams = {
-                authority: FirmaGovService.GOV_AUTHORITY,
-                params: params
-            }
-            const fromPartialParams = StakingMsgUpdateParams.fromPartial({
-                authority: FirmaGovService.GOV_AUTHORITY,
-                params: params
-            });
-    
-            if (!equal(requestedParams.params, fromPartialParams.params)) {
-                throw new Error("All staking parameters must be provided. Use Staking.getParamsAsStakingParams() to get current values and override only the parameters you want to change.");
-            }
 
-            const message = {
-                typeUrl: "/cosmos.staking.v1beta1.MsgUpdateParams",
-                value: StakingMsgUpdateParams.encode(StakingMsgUpdateParams.fromPartial({
-                    authority: FirmaGovService.GOV_AUTHORITY,
-                    params: params
-                })).finish()
+            const upgradeHeight = Long.fromInt(height);
+
+            const plan = {
+                name: upgradeName,
+                time: undefined as any,
+                height: upgradeHeight,
+                info: undefined as any,
+                upgradedClientState: undefined as any
             };
 
-            const txRaw = await this.getSignedTxSubmitStakingParamsUpdateProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
+            const txRaw = await this.getSignedTxSubmitSoftwareUpgradeProposal(wallet, title, description, initialDeposit, plan, txMisc);
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
+
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
         }
     }
 
-    async submitGovParamsUpdateProposal(wallet: FirmaWalletService,
+    async submitSoftwareUpgradeProposalByTime(wallet: FirmaWalletService,
         title: string,
-        summary: string,
-        initialDepositFCT: number,
-        params: GovParams,
-        metadata: string = "",
-        txmisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
-        
+        description: string,
+        initialDeposit: number,
+        upgradeName: string,
+        upgradeTime: Date,
+        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
         try {
-            const requestedParams = {
-                authority: FirmaGovService.GOV_AUTHORITY,
-                params: params
-            }
-            const fromPartialParams = GovMsgUpdateParmas.fromPartial({
-                authority: FirmaGovService.GOV_AUTHORITY,
-                params: params
-            });
-
-            if (!equal(requestedParams.params, fromPartialParams.params)) {
-                throw new Error("All governance parameters must be provided. Use getParamAsGovParams() to get current values and override only the parameters you want to change.");
-            }
-
-            const message = {
-                typeUrl: "/cosmos.gov.v1.MsgUpdateParams",
-                value: GovMsgUpdateParmas.encode(GovMsgUpdateParmas.fromPartial({
-                    authority: FirmaGovService.GOV_AUTHORITY,
-                    params: params
-                })).finish()
+            const plan = {
+                name: upgradeName,
+                time: upgradeTime,
+                height: undefined as any,
+                info: undefined as any,
+                upgradedClientState: undefined as any
             };
 
-            const txRaw = await this.getSignedTxSubmitGovParamsUpdateProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txmisc);
+            const txRaw = await this.getSignedTxSubmitSoftwareUpgradeProposal(wallet, title, description, initialDeposit, plan, txMisc);
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async submitParameterChangeProposal(wallet: FirmaWalletService,
+        title: string,
+        description: string,
+        initialDeposit: number,
+        paramList: ParamChangeOption[],
+        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
+        try {
+
+            const txRaw = await this.getSignedTxSubmitParameterChangeProposal(wallet, title, description, initialDeposit, paramList, txMisc);
+
+            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
+            return await txClient.broadcast(txRaw);
+
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -523,31 +446,24 @@ export class FirmaGovService {
 
     async submitCommunityPoolSpendProposal(wallet: FirmaWalletService,
         title: string,
-        summary: string,
-        initialDepositFCT: number,
-        amountFCT: number,
+        description: string,
+        initialDeposit: number,
+        amount: number,
         recipient: string,
-        metadata: string = "",
-        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
-
+        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
         try {
-            const amount = FirmaUtil.getUFCTStringFromFCT(amountFCT);
-            const message = {
-                typeUrl: "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend",
-                value: Uint8Array.from(MsgCommunityPoolSpend.encode(MsgCommunityPoolSpend.fromPartial({
-                    authority: FirmaGovService.GOV_AUTHORITY, // gov module address
-                    recipient: recipient,
-                    amount: [{
-                        denom: this.config.denom,
-                        amount: amount.toString()
-                    }]
-                })).finish())
-            }
 
-            const txRaw = await this.getSignedTxSubmitCommunityPoolSpendProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
+            const txRaw = await this.getSignedTxSubmitCommunityPoolSpendProposal(wallet,
+                title,
+                description,
+                initialDeposit,
+                amount,
+                recipient,
+                txMisc);
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
+
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -558,7 +474,7 @@ export class FirmaGovService {
         title: string,
         description: string,
         initialDeposit: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
+        txMisc: TxMisc = DefaultTxMisc): Promise<BroadcastTxResponse> {
         try {
             const txRaw = await this.getSignedTxSubmitTextProposal(wallet, title, description, initialDeposit, txMisc);
 
@@ -571,57 +487,8 @@ export class FirmaGovService {
         }
     }
 
-    async submitGenericProposal(wallet: FirmaWalletService,
-        title: string,
-        summary: string,
-        initialDeposit: Coin[],
-        metadata: string,
-        msgs: {
-            typeUrl?: string | undefined;
-            value?: Uint8Array | undefined;
-        }[] | undefined,
-        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
-            
-        try {
-            const proposer = await wallet.getAddress();
-            const message = {
-                typeUrl: "/cosmos.gov.v1.MsgSubmitProposal",
-                value: MsgSubmitProposal.fromPartial({
-                    title: title,
-                    summary: summary,
-                    metadata: metadata,
-                    messages: msgs,
-                    proposer: proposer,
-                    initialDeposit: initialDeposit,
-                })
-            };
-
-            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
-            const signed = await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
-            return await txClient.broadcast(signed);
-            
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
-    }
-
-    async cancelProposal(wallet: FirmaWalletService,
-        proposalId: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
-        try {
-            const txRaw = await this.getSignedTxCancelProposal(wallet, proposalId, txMisc);
-
-            const txClient = new GovTxClient(wallet, this.config.rpcAddress);
-            return await txClient.broadcast(txRaw);
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
-    }
-
     private async getSignedTxVote(wallet: FirmaWalletService,
-        proposalId: bigint,
+        proposalId: Long,
         option: VotingOption,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
@@ -639,11 +506,11 @@ export class FirmaGovService {
     }
 
     async vote(wallet: FirmaWalletService, proposalId: number, option: VotingOption, txMisc: TxMisc = DefaultTxMisc):
-        Promise<DeliverTxResponse> {
+        Promise<BroadcastTxResponse> {
         try {
 
-            const bigIntId = BigInt(proposalId);
-            const txRaw = await this.getSignedTxVote(wallet, bigIntId, option, txMisc);
+            const longId = Long.fromInt(proposalId);
+            const txRaw = await this.getSignedTxVote(wallet, longId, option, txMisc);
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
@@ -655,7 +522,7 @@ export class FirmaGovService {
     }
 
     private async getSignedTxDeposit(wallet: FirmaWalletService,
-        proposalId: bigint,
+        proposalId: Long,
         amount: number,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
@@ -674,10 +541,10 @@ export class FirmaGovService {
     }
 
     async deposit(wallet: FirmaWalletService, proposalId: number, amount: number, txMisc: TxMisc = DefaultTxMisc):
-        Promise<DeliverTxResponse> {
+        Promise<BroadcastTxResponse> {
         try {
-            const bigIntId = BigInt(proposalId);
-            const txRaw = await this.getSignedTxDeposit(wallet, bigIntId, amount, txMisc);
+            const longId = Long.fromInt(proposalId);
+            const txRaw = await this.getSignedTxDeposit(wallet, longId, amount, txMisc);
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
@@ -702,7 +569,7 @@ export class FirmaGovService {
         }
     }
 
-    async getParam(): Promise<GovParamType> {
+    async getParam(): Promise<ProposalParam> {
         try {
             const queryClient = new GovQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetParam();
@@ -715,38 +582,7 @@ export class FirmaGovService {
         }
     }
 
-    async getParamAsGovParams(): Promise<GovParams> {
-        try {
-            const queryClient = new GovQueryClient(this.config.restApiAddress);
-            const result = await queryClient.queryGetParam(); // get result as GovParamType
-
-            // return as GovParams type
-            return {
-                minDeposit: result.min_deposit,
-                maxDepositPeriod: FirmaUtil.createDurationFromString(result.max_deposit_period),
-                votingPeriod: FirmaUtil.createDurationFromString(result.voting_period),
-                quorum: result.quorum,
-                threshold: result.threshold,
-                vetoThreshold: result.veto_threshold,
-                minInitialDepositRatio: result.min_initial_deposit_ratio,
-                proposalCancelRatio: result.proposal_cancel_ratio,
-                proposalCancelDest: result.proposal_cancel_dest,
-                expeditedVotingPeriod: FirmaUtil.createDurationFromString(result.expedited_voting_period),
-                expeditedThreshold: result.expedited_threshold,
-                expeditedMinDeposit: result.expedited_min_deposit,
-                burnVoteQuorum: result.burn_vote_quorum,
-                burnProposalDepositPrevote: result.burn_proposal_deposit_prevote,
-                burnVoteVeto: result.burn_vote_veto,
-                minDepositRatio: result.min_deposit_ratio
-            };
-
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
-    }
-
-    async getProposal(id: string): Promise<Proposal> {
+    async getProposal(id: string): Promise<ProposalInfo> {
         try {
             const queryClient = new GovQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetProposal(id);
@@ -759,7 +595,7 @@ export class FirmaGovService {
         }
     }
 
-    async getProposalListByStatus(status: ProposalStatus): Promise<Proposal[]> {
+    async getProposalListByStatus(status: ProposalStatus): Promise<ProposalInfo[]> {
         try {
             const queryClient = new GovQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetProposalListByStatus(status);
@@ -772,7 +608,7 @@ export class FirmaGovService {
         }
     }
 
-    async getProposalList(): Promise<Proposal[]> {
+    async getProposalList(): Promise<ProposalInfo[]> {
         try {
             const queryClient = new GovQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetProposalList();
