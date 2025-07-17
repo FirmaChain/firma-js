@@ -26,21 +26,21 @@ export class ITxClient {
 
     async sign(msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions): Promise<TxRaw> {
 
-        const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet);
+        const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, { registry: this.registry });
         const address = (await this.rawWallet.getAccounts())[0].address;
 
         return await client.sign(address, msgs, fee, memo);
     }
 
     async broadcast(txRaw: TxRaw): Promise<DeliverTxResponse> {
-        const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet);
+        const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, { registry: this.registry });
         const txBytes = TxRaw.encode(txRaw).finish();
 
         return await client.broadcastTx(txBytes);
     }
 
     async broadcastTxBytes(txBytes: Uint8Array): Promise<DeliverTxResponse> {
-        const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet);
+        const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, { registry: this.registry });
         return await client.broadcastTx(txBytes);
     }
 
