@@ -1,10 +1,9 @@
 import { promises as fs } from "fs";
 import { SignDoc, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { TendermintQueryClient } from "./firmachain/common/TendermintQueryClient";
+
 import { FirmaConfig } from "./FirmaConfig";
 
-import { Bech32 } from "@cosmjs/encoding";
-import { LedgerSigningStargateClient, SignerData } from "./firmachain/common/LedgerSigningStargateClient";
+import { fromBech32, toBech32 } from "@cosmjs/encoding";
 import { SignAndBroadcastOptions, TxMisc } from "./firmachain/common";
 import { fromHex, toBase64, toHex, fromBase64 } from '@cosmjs/encoding';
 
@@ -15,15 +14,17 @@ import {
     Secp256k1Signature,
 } from '@cosmjs/crypto';
 
-import { decodeSignature, pubkeyToAddress } from '@cosmjs/amino';
+import { pubkeyToAddress } from '@cosmjs/amino';
 
-import { ArbitraryVerifyData, SigningAminoStargateClient } from "./firmachain/common/signingaminostargateclient";
+
 import { EncodeObject, makeSignBytes, Registry } from "@cosmjs/proto-signing";
 import { FirmaWalletService } from "./FirmaWalletService";
-import { SigningStargateClient } from "./firmachain/common/signingstargateclient";
+
 import { Any } from "./firmachain/google/protobuf/any";
 import Long from "long";
 import { CommonTxClient } from "./firmachain/common/CommonTxClient";
+import { TendermintQueryClient } from "./firmachain/common/TendermintQueryClient";
+import { SigningStargateClient } from "@cosmjs/stargate";
 
 const CryptoJS = require("crypto-js");
 const sha1 = require("crypto-js/sha1");
@@ -171,7 +172,7 @@ export class FirmaUtil {
 
         try {
             // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-            Bech32.decode(address).data;
+            fromBech32(address).data;
             return true;
         }
         catch (e) {
@@ -189,40 +190,25 @@ export class FirmaUtil {
 
     // for evm address support
     static getHexAddressFromAddress(address: string): string {
-        const data = Bech32.decode(address).data;
+        const data = fromBech32(address).data;
         return "0x" + FirmaUtil.buf2hex(data);
     }
 
     static getValOperAddressFromAccAddress(address: string): string {
-        const data = Bech32.decode(address).data;
-        return Bech32.encode(FirmaUtil.config.prefix + "valoper", data);
+        const data = fromBech32(address).data;
+        return toBech32(FirmaUtil.config.prefix + "valoper", data);
     }
 
     static getValConsAddressFromAccAddress(consensusPubkey: string): string {
 
         const ed25519PubkeyRaw = fromBase64(consensusPubkey);
         const addressData = sha256crypto(ed25519PubkeyRaw).slice(0, 20);
-        return Bech32.encode(FirmaUtil.config.prefix + "valcons", addressData);
+        return toBech32(FirmaUtil.config.prefix + "valcons", addressData);
     }
 
     static getAccAddressFromValOperAddress(address: string): string {
-        const data = Bech32.decode(address).data;
-        return Bech32.encode(FirmaUtil.config.prefix, data);
-    }
-
-    static async getSignerDataForLedger(address: string): Promise<SignerData> {
-
-        try {
-
-            let signingClient = await LedgerSigningStargateClient.connectWithSigner(FirmaUtil.config.rpcAddress);
-            let sequence = await signingClient.getSignerData(address);
-
-            return sequence;
-
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
+        const data = fromBech32(address).data;
+        return toBech32(FirmaUtil.config.prefix, data);
     }
 
     static async estimateGas(txRaw: TxRaw): Promise<number> {
@@ -268,32 +254,6 @@ export class FirmaUtil {
             return;
 
         console.log(`[FirmaSDK] ${log}`);
-    }
-
-    static async experimentalAdr36Sign(wallet: FirmaWalletService, data: string): Promise<ArbitraryVerifyData> {
-
-        try {
-            const registry = new Registry();
-            const aliceClient = await SigningAminoStargateClient.connectWithSigner(FirmaUtil.config.rpcAddress, wallet.getRawAminoWallet(), registry);
-
-            const address = await wallet.getAddress();
-
-            let userData: Uint8Array | Uint8Array[] = Buffer.from(data);
-
-            return await aliceClient.experimentalAdr36Sign(address, userData);
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
-    }
-
-    static async experimentalAdr36Verify(data: ArbitraryVerifyData, checkMsg: string): Promise<boolean> {
-        try {
-            return await SigningAminoStargateClient.experimentalAdr36Verify(data, checkMsg);
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
     }
 
     private static async recoverSigningAddress(
@@ -371,34 +331,6 @@ export class FirmaUtil {
             authInfoBytes: toHex(signDoc.authInfoBytes),
             accountNumber: signDoc.accountNumber.toString(),
           });
-    }
-
-    public static async makeSignDoc(
-        signerAddress: string,
-        pubkey: string,
-        messages: readonly EncodeObject[],        
-        txMisc: TxMisc = DefaultTxMisc
-    ): Promise<SignDoc> {
-
-        let result = FirmaUtil.getSignAndBroadcastOption(FirmaUtil.config.denom, txMisc);
-
-        let chainID = FirmaUtil.config.chainID;
-        let serverUrl = FirmaUtil.config.rpcAddress;
-        let registry = CommonTxClient.getRegistry();
-
-        return await SigningStargateClient.makeSignDocForSend(signerAddress, pubkey, messages, result.fee, result.memo, serverUrl, chainID, registry);
-    }
-
-    public static async makeSignDocWithStringify(signerAddress: string,
-        pubkey: string,
-        messages: readonly EncodeObject[],        
-        txMisc: TxMisc = DefaultTxMisc
-    ): Promise<string> {
-
-        let signDoc = await this.makeSignDoc(signerAddress, pubkey, messages, txMisc);
-        let stringSignDoc = this.stringifySignDocValues(signDoc);
-
-        return stringSignDoc;
     }
 
     public static getAnyData(registry: Registry, message: EncodeObject): Any {
