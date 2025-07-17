@@ -6,6 +6,7 @@ import { Writer } from "protobufjs/minimal";
 import { Timestamp } from "../google/protobuf/timestamp";
 import { Any } from "../google/protobuf/any";
 import { Duration } from "../google/protobuf/duration";
+import { BinaryWriter } from "cosmjs-types/binary";
 
 export interface MsgGrantAllowance {
     granter: string;
@@ -22,7 +23,7 @@ const baseMsgGrantAllowance: object = { granter: "", grantee: "" };
 const baseMsgRevokeAllowance: object = { granter: "", grantee: "" };
 
 export const MsgGrantAllowance = {
-    encode(message: MsgGrantAllowance, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    encode(message: MsgGrantAllowance, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
         if (message.granter !== "") {
             writer.uint32(10).string(message.granter);
         }
@@ -134,10 +135,7 @@ export interface AllowedMsgAllowance {
 }
 
 export const AllowedMsgAllowance = {
-    encode(
-    message: AllowedMsgAllowance,
-    writer: Writer = Writer.create()
-    ): Writer {
+    encode(message: AllowedMsgAllowance, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
         if (message.allowance !== undefined) {
             Any.encode(message.allowance, writer.uint32(10).fork()).ldelim();
         }
@@ -149,7 +147,7 @@ export const AllowedMsgAllowance = {
 };
 
 export const PeriodicAllowance = {
-    encode(message: PeriodicAllowance, writer: Writer = Writer.create()): Writer {
+    encode(message: PeriodicAllowance, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
         if (message.basic !== undefined) {
             BasicAllowance.encode(message.basic, writer.uint32(10).fork()).ldelim();
         }
@@ -173,7 +171,7 @@ export const PeriodicAllowance = {
 };
 
 export const BasicAllowance = {
-    encode(message: BasicAllowance, writer: Writer = Writer.create()): Writer {
+    encode(message: BasicAllowance, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
         for (const v of message.spendLimit) {
             Coin.encode(v!, writer.uint32(10).fork()).ldelim();
         }
