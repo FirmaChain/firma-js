@@ -63,7 +63,7 @@ export const MsgGrantAllowance = {
 
 
 export const MsgRevokeAllowance = {
-    encode(message: MsgRevokeAllowance, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    encode(message: MsgRevokeAllowance, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
         if (message.granter !== "") {
             writer.uint32(10).string(message.granter);
         }
