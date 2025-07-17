@@ -2,9 +2,9 @@ import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 
 import _m0 from "protobufjs/minimal";
 
-import { Timestamp } from "../google/protobuf/timestamp";
 import { Any } from "../google/protobuf/any";
 import { BinaryWriter } from "cosmjs-types/binary";
+import { Timestamp } from "cosmjs-types/google/protobuf/timestamp";
 
 export interface GenericAuthorization {
   /** Msg, identified by it's type URL, to grant unrestricted permissions to execute */
