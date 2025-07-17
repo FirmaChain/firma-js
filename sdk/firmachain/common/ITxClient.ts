@@ -8,7 +8,6 @@ import { AuthInfo, SignDoc, TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1
 import { FirmaWalletService } from "../../FirmaWalletService";
 import { DeliverTxResponse, SigningStargateClient } from "@cosmjs/stargate";
 import { Any } from "cosmjs-types/google/protobuf/any";
-import { FirmaUtil } from "../../FirmaUtil";
 import { rawSecp256k1PubkeyToRawAddress } from "@cosmjs/tendermint-rpc";
 import { arrayContentEquals } from "@cosmjs/utils";
 
@@ -108,8 +107,8 @@ export class ITxClient {
             bodyBytes: toBase64(signDoc.bodyBytes),
             authInfoBytes: toBase64(signDoc.authInfoBytes),
             signerAddress: signerAddress,
-            pubkey: FirmaUtil.arrayBufferToBase64(account.pubkey),
-            signature: FirmaUtil.arrayBufferToBase64(sigBytes),
+            pubkey: toBase64(account.pubkey),
+            signature: toBase64(sigBytes),
         };
     }
 
