@@ -234,8 +234,6 @@ export class FirmaUtil {
             const encodedTx = Uint8Array.from(txRaw);
             const hexTx = `0x${Buffer.from(encodedTx).toString("hex")}`;
 
-            console.log("hexTx:" + hexTx);
-
             const queryClient = new TendermintQueryClient(FirmaUtil.config.rpcAddress);
             const gas = await queryClient.queryEstimateGas(hexTx);
 

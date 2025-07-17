@@ -1,20 +1,6 @@
 import { Any } from "../google/protobuf/any";
 import { StdFee } from "@cosmjs/stargate";
 
-export interface BasicFeeGrantOption {
-    spendLimit?: number,
-    expiration?: Date,
-}
-
-export interface PeriodicFeeGrantOption {
-    basicSpendLimit?: number,
-    basicExpiration?: Date,
-    periodSeconds: number,
-    periodSpendLimit: number,
-    periodCanSpend: number,
-    periodReset: Date;
-}
-
 export const DefaultBasicFeeGrantOption = { spendLimit: undefined, expiration: undefined };
 
 export interface TxMisc {
