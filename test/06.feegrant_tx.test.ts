@@ -3,6 +3,8 @@ import { FirmaSDK } from '../sdk/FirmaSDK';
 
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
+import { PeriodicAllowance } from 'cosmjs-types/cosmos/feegrant/v1beta1/feegrant';
+import { FirmaUtil } from '../sdk/FirmaUtil';
 
 describe('[06. Feegrant Tx Test]', () => {
 
@@ -23,19 +25,23 @@ describe('[06. Feegrant Tx Test]', () => {
 	it('feegrant GrantPeriodicAllowance tx', async () => {
 		
 		const expirationDate = new Date();
-		expirationDate.setMinutes(expirationDate.getMinutes() + 20);
+		expirationDate.setDate(expirationDate.getDate() + 1);
 
-		const periodicAllowanceData = {
-			// basicSpendLimit: undefined,
-			// basicExpiration: undefined,
-			periodSeconds: 30,
-			periodSpendLimit: 2000,
-			periodCanSpend: 10000,
-			periodReset: expirationDate
-		};
-
-		const result = await firma.FeeGrant.grantPeriodicAllowance(aliceWallet, bobAddress, periodicAllowanceData);
-		expect(result.code).to.equal(0);
+		const grantResult = await firma.FeeGrant.grantBasicAllowance(
+			aliceWallet,
+			bobAddress,
+			{
+				spendLimit: [{
+					amount: "10000",
+					denom: firma.Config.denom
+				}],
+				expiration: {
+					seconds: BigInt(Math.floor(expirationDate.getTime() / 1000)),
+					nanos: (expirationDate.getTime() % 1000) * 1000000
+				}
+			}
+		);
+		expect(grantResult.code).to.equal(0);
 	});
 
 	it('feegrant RevokeAllowance tx', async () => {
@@ -45,14 +51,18 @@ describe('[06. Feegrant Tx Test]', () => {
 	});
 
 	it('feegrant GrantBasicAllowance tx', async () => {
-
-		const expirationDate = new Date();
-		expirationDate.setMonth(12);
-
-		// var result = await firma.FeeGrant.GrantBasicAllowance(aliceWallet, await bobWallet.getAddress(), {spendLimit : spendLimit, expiration : expirationDate});
-		// var result = await firma.FeeGrant.GrantBasicAllowance(aliceWallet, await bobWallet.getAddress(), {expiration : expirationDate});
-		// var result = await firma.FeeGrant.GrantBasicAllowance(aliceWallet, await bobWallet.getAddress(), {spendLimit : spendLimit});
-		const result = await firma.FeeGrant.grantBasicAllowance(aliceWallet, bobAddress, { expiration : expirationDate});
+		
+		// Use spend limit without expiration date
+		const result = await firma.FeeGrant.grantBasicAllowance(
+			aliceWallet, 
+			bobAddress, 
+			{
+				spendLimit: [{
+					denom: firma.Config.denom,
+					amount: "10000"
+				}]
+			}
+		);
 		expect(result.code).to.be.equal(0);
 
 		const revokeResult = await firma.FeeGrant.revokeAllowance(aliceWallet, bobAddress);
@@ -61,18 +71,32 @@ describe('[06. Feegrant Tx Test]', () => {
 
 	it('feegrant send tx', async () => {
 
+		try {
+			await firma.FeeGrant.revokeAllowance(aliceWallet, bobAddress);
+		} catch (error) {}
+
+		const spendAmount = FirmaUtil.getUFCTStringFromFCTStr("10");
 		const amount = 0.1;
-		// await firma.FeeGrant.grantBasicAllowance()
 		const expirationDate = new Date();
 		expirationDate.setMinutes(expirationDate.getMinutes() + 20);
 
-		const periodicAllowanceData = {
-			// basicSpendLimit: undefined,
-			// basicExpiration: undefined,
-			periodSeconds: 30,
-			periodSpendLimit: 1000000,
-			periodCanSpend: 200000,
-			periodReset: expirationDate
+		const periodicAllowanceData: PeriodicAllowance = {
+			basic: {
+				spendLimit: [
+					{ amount: spendAmount, denom: firma.Config.denom }
+				]
+			},
+			period: { seconds: BigInt(60 * 60 * 24), nanos: 0 }, // 1일 주기
+			periodSpendLimit: [
+				{ amount: spendAmount, denom: firma.Config.denom }
+			],
+			periodCanSpend: [
+				{ amount: spendAmount, denom: firma.Config.denom }
+			],
+			periodReset: {
+				seconds: BigInt(Math.floor(expirationDate.getTime() / 1000)),
+				nanos: (expirationDate.getTime() % 1000) * 1000000
+			}
 		};
 		const grantResult = await firma.FeeGrant.grantPeriodicAllowance(aliceWallet, bobAddress, periodicAllowanceData);
 		expect(grantResult.code).to.equal(0);

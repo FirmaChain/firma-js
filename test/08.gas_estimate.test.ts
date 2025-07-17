@@ -6,6 +6,7 @@ import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { Plan } from '@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/upgrade';
 
 import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
+import { BasicAllowance, PeriodicAllowance } from 'cosmjs-types/cosmos/feegrant/v1beta1/feegrant';
 
 describe('[08. Gas Estimation Test]', () => {
 
@@ -134,35 +135,58 @@ describe('[08. Gas Estimation Test]', () => {
 		expect(gas).to.not.equal(0);
 	});
 
-	it("4-1. Feegrant GrantPeriodicAllowance gas estimation", async () => {
+	it.only("4-1. Feegrant GrantPeriodicAllowance gas estimation", async () => {
 
-		const spendLimit = 2000;
+		const spendAmount = FirmaUtil.getUFCTStringFromFCTStr("10");
 		const expirationDate = new Date();
-		expirationDate.setMinutes(expirationDate.getMinutes() + 2);
-		const periodicAllowanceData = {
-			// basicSpendLimit: undefined,
-			// basicExpiration: undefined,
-			periodSeconds: 30,
-			periodSpendLimit: spendLimit,
-			periodCanSpend: 10000,
-			periodReset: expirationDate
+		const periodicAllowanceData: PeriodicAllowance = {
+			basic: {
+				spendLimit: [
+					{ amount: spendAmount, denom: firma.Config.denom }
+				]
+			},
+			period: { seconds: BigInt(60 * 60 * 24), nanos: 0 }, // 1일 주기
+			periodSpendLimit: [
+				{ amount: spendAmount, denom: firma.Config.denom }
+			],
+			periodCanSpend: [
+				{ amount: spendAmount, denom: firma.Config.denom }
+			],
+			periodReset: {
+				seconds: BigInt(Math.floor(expirationDate.getTime() / 1000)),
+				nanos: (expirationDate.getTime() % 1000) * 1000000
+			}
 		};
 
 		const gas = await firma.FeeGrant.getGasEstimationGrantPeriodicAllowance(bobWallet, aliceAddress, periodicAllowanceData);
 		expect(gas).to.not.equal(0);
 	});
 
-	it("4-2. Feegrant GrantBasicAllowance gas estimation", async () => {
+	it.only("4-2. Feegrant GrantBasicAllowance gas estimation", async () => {
 
-		const gas = await firma.FeeGrant.getGasEstimationGrantBasicAllowance(bobWallet, aliceAddress);
+		const basicAllowance: BasicAllowance = {
+			spendLimit: [
+				{ amount: "20000", denom: firma.Config.denom }
+			]
+		};
+		const gas = await firma.FeeGrant.getGasEstimationGrantBasicAllowance(bobWallet, aliceAddress, basicAllowance);
 		expect(gas).to.not.equal(0);
 	});
 
-	it("4-3. Feegrant revokeAllowance gas estimation", async () => {
+	it.only("4-3. Feegrant revokeAllowance gas estimation", async () => {
 
-		const expirationDate = new Date();
-		expirationDate.setMinutes(expirationDate.getMinutes() + 20);
-		const result = await firma.FeeGrant.grantBasicAllowance(aliceWallet, bobAddress, { expiration : expirationDate});
+		try {
+			await firma.FeeGrant.revokeAllowance(aliceWallet, bobAddress);
+		} catch (error) {
+		}
+		
+		const basicAllowance: BasicAllowance = {
+			spendLimit: [
+				{ amount: "20000", denom: firma.Config.denom }
+			]
+		};
+
+		const result = await firma.FeeGrant.grantBasicAllowance(aliceWallet, bobAddress, basicAllowance);
 		expect(result.code).to.equal(0);
 
 		const gas = await firma.FeeGrant.getGasEstimationRevokeAllowance(aliceWallet, bobAddress);
