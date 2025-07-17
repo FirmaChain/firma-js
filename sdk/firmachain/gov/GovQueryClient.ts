@@ -1,4 +1,6 @@
 import Axios, { AxiosInstance } from "axios";
+// temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
+import { Proposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 
 export enum ProposalStatus {
@@ -8,22 +10,6 @@ export enum ProposalStatus {
     PROPOSAL_STATUS_PASSED = 3,
     PROPOSAL_STATUS_REJECTED = 4,
     PROPOSAL_STATUS_FAILED = 5,
-}
-
-export interface ProposalParam {
-    voting_period: string;
-    deposit_params: {
-        min_deposit: {
-            denom: string,
-            amount: string;
-        }[],
-        max_deposit_period: string;
-    };
-    tally_params: {
-        quorum: string,
-        threshold: string,
-        veto_threshold: string,
-    };
 }
 
 export interface GovParamType {
@@ -46,34 +32,10 @@ export interface GovParamType {
 }
 
 export interface CurrentVoteInfo {
-    yes: string,
-    abstain: string,
-    no: string,
+    yes: string;
+    abstain: string;
+    no: string;
     no_with_veto: string;
-}
-
-export interface ProposalInfo {
-    proposal_id: string;
-    content: {
-        "@type": string,
-        title: string,
-        description: string;
-    };
-    status: string;
-    final_tally_result: {
-        yes: string,
-        abstain: string,
-        no: string,
-        no_with_veto: string;
-    };
-    submit_time: string;
-    deposit_end_time: string;
-    total_deposit: {
-        denom: string,
-        amount: string;
-    }[];
-    voting_start_time: string;
-    voting_end_time: string;
 }
 
 export class GovQueryClient {
@@ -104,24 +66,24 @@ export class GovQueryClient {
         return result.data.params;
     }
 
-    async queryGetProposal(id: string): Promise<ProposalInfo> {
-        const path = `/cosmos/gov/v1beta1/proposals/${id}`;
+    async queryGetProposal(id: string): Promise<Proposal> {
+        const path = `/cosmos/gov/v1/proposals/${id}`;
 
         const result = await this.axios.get(path);
         return result.data.proposal;
     }
 
-    async queryGetProposalListByStatus(status: ProposalStatus): Promise<ProposalInfo[]> {
-        const path = "/cosmos/gov/v1beta1/proposals";
+    async queryGetProposalListByStatus(status: ProposalStatus): Promise<Proposal[]> {
+        const path = "/cosmos/gov/v1/proposals";
 
         const result = await this.axios.get(path, { params: { proposalStatus: status } });
         return result.data.proposals;
     }
 
-    async queryGetProposalList(): Promise<ProposalInfo[]> {
-        const path = "/cosmos/gov/v1beta1/proposals";
+    async queryGetProposalList(pagination?: { limit?: number; key?: string; }): Promise<Proposal[]> {
+        const path = "/cosmos/gov/v1/proposals";
 
-        const result = await this.axios.get(path);
+        const result = await this.axios.get(path, { params: { ...pagination } });
         return result.data.proposals;
     }
 }
