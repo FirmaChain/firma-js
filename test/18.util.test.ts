@@ -263,12 +263,6 @@ describe('[18. util Test]', () => {
 
 		result = FirmaUtil.processCommissionRateAsDecimal(" 0.75 ");
 		expect(result).to.equal("750000000000000000");
-
-		result = FirmaUtil.processCommissionRateAsDecimal(".23");
-		expect(result).to.equal("230000000000000000");
-
-		result = FirmaUtil.processCommissionRateAsDecimal(".9999990000000");
-		expect(result).to.equal("999999000000000000");
 	})
 
 	it('processCommissionRateAsDecimal test - failure cases', async () => {

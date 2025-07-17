@@ -86,7 +86,7 @@ describe('[06. Feegrant Tx Test]', () => {
 					{ amount: spendAmount, denom: firma.Config.denom }
 				]
 			},
-			period: { seconds: BigInt(60 * 60 * 24), nanos: 0 }, // 1일 주기
+			period: { seconds: BigInt(60 * 60 * 24), nanos: 0 },
 			periodSpendLimit: [
 				{ amount: spendAmount, denom: firma.Config.denom }
 			],

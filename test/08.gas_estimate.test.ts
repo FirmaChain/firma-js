@@ -135,7 +135,7 @@ describe('[08. Gas Estimation Test]', () => {
 		expect(gas).to.not.equal(0);
 	});
 
-	it.only("4-1. Feegrant GrantPeriodicAllowance gas estimation", async () => {
+	it("4-1. Feegrant GrantPeriodicAllowance gas estimation", async () => {
 
 		const spendAmount = FirmaUtil.getUFCTStringFromFCTStr("10");
 		const expirationDate = new Date();
@@ -145,7 +145,7 @@ describe('[08. Gas Estimation Test]', () => {
 					{ amount: spendAmount, denom: firma.Config.denom }
 				]
 			},
-			period: { seconds: BigInt(60 * 60 * 24), nanos: 0 }, // 1일 주기
+			period: { seconds: BigInt(60 * 60 * 24), nanos: 0 },
 			periodSpendLimit: [
 				{ amount: spendAmount, denom: firma.Config.denom }
 			],
@@ -162,7 +162,7 @@ describe('[08. Gas Estimation Test]', () => {
 		expect(gas).to.not.equal(0);
 	});
 
-	it.only("4-2. Feegrant GrantBasicAllowance gas estimation", async () => {
+	it("4-2. Feegrant GrantBasicAllowance gas estimation", async () => {
 
 		const basicAllowance: BasicAllowance = {
 			spendLimit: [
@@ -173,7 +173,7 @@ describe('[08. Gas Estimation Test]', () => {
 		expect(gas).to.not.equal(0);
 	});
 
-	it.only("4-3. Feegrant revokeAllowance gas estimation", async () => {
+	it("4-3. Feegrant revokeAllowance gas estimation", async () => {
 
 		try {
 			await firma.FeeGrant.revokeAllowance(aliceWallet, bobAddress);
@@ -297,11 +297,12 @@ describe('[08. Gas Estimation Test]', () => {
 
 	it("7-3. Gov submitStakingParamsUpdateProposal gas estimation", async () => {
 		
-		const initialDepositFCT = 5000;
+		const initialDepositFCT = 2500;
 		const title = "Staking parameter change proposal";
 		const summary = "This is a Staking parameter change proposal";
 		const params = await firma.Staking.getParamsAsStakingParams();
 		params.maxValidators = 100;
+		params.minCommissionRate = FirmaUtil.processCommissionRateAsDecimal(params.minCommissionRate);
 		const metadata = "";
 
 		const gas = await firma.Gov.getGasEstimationSubmitStakingParamsUpdateProposal(
