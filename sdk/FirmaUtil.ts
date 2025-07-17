@@ -23,6 +23,7 @@ import { FirmaWalletService } from "./FirmaWalletService";
 import { Any } from "./firmachain/google/protobuf/any";
 import { CommonTxClient } from "./firmachain/common/CommonTxClient";
 import { TendermintQueryClient } from "./firmachain/common/TendermintQueryClient";
+import { BigNumber } from "bignumber.js";
 
 const CryptoJS = require("crypto-js");
 const sha1 = require("crypto-js/sha1");
@@ -317,7 +318,7 @@ export class FirmaUtil {
             ...signDoc,
             bodyBytes: fromHex(signDoc.bodyBytes),
             authInfoBytes: fromHex(signDoc.authInfoBytes),
-            accountNumber: Long.fromString(signDoc.accountNumber),
+            accountNumber: BigInt(signDoc.accountNumber),
           };
     }
 
@@ -422,6 +423,40 @@ export class FirmaUtil {
             seconds: seconds,
             nanos: nanos
         });
+    }
+
+    /**
+     * Safely processes commission rate strings to prevent big.Int conversion errors.
+     * Converts decimal commission rates to Cosmos SDK atomics format (integer representation).
+     * 
+     * @param commissionRate - Commission rate string from staking params
+     * @returns Processed commission rate string safe for protobuf usage (atomics format or empty string)
+     */
+    static processCommissionRateAsDecimal(commissionRate: string): string {
+        const trimmed = commissionRate.trim();
+
+        if (!commissionRate || trimmed === "") {
+            throw new Error(`Invalid commission rate format: ${commissionRate}`);
+        }
+        
+        if (!/^-?\d+\.?\d*$/.test(trimmed)) {
+            throw new Error(`Invalid commission rate format: ${commissionRate}`);
+        }
+        
+        // Validates input and creates BigNumber instance
+        const commissionRateBN = new BigNumber(trimmed);
+
+        // Checks if it's a valid finite number
+        if (!commissionRateBN.isFinite()) throw new Error("Invalid commission rate format: " + commissionRate);
+
+        // Validates range (0 to 1 inclusive)
+        if (commissionRateBN.isNegative() || commissionRateBN.isGreaterThan(1)) throw new Error("Invalid commission rate range. Must be between 0 and 1 inclusive.");
+
+        // Converts to atomics format (multiply by 10^18)
+        const atomics = commissionRateBN.multipliedBy(new BigNumber(10).pow(18));
+
+        // Returns integer string
+        return atomics.integerValue(BigNumber.ROUND_DOWN).toString();
     }
 }
 
