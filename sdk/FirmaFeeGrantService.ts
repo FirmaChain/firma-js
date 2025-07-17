@@ -1,19 +1,16 @@
 import {
     FeeGrantTxClient,
     TxMisc,
-    DefaultBasicFeeGrantOption,
-    BasicFeeGrantOption,
-    PeriodicFeeGrantOption
 } from "./firmachain/feegrant";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { BasicAllowance, PeriodicAllowance } from "./firmachain/feegrant/FeeGrantTxTypes";
 import { FeeAllowanceType, FeeAllowanceType1, FeeGrantQueryClient } from "./firmachain/feegrant/FeeGrantQueryClient";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { Any } from "./firmachain/google/protobuf/any";
 import { DeliverTxResponse } from "@cosmjs/stargate";
+import { BasicAllowance, PeriodicAllowance } from "cosmjs-types/cosmos/feegrant/v1beta1/feegrant";
 
 export class FirmaFeeGrantService {
 
@@ -79,7 +76,7 @@ export class FirmaFeeGrantService {
 
     async getGasEstimationGrantPeriodicAllowance(wallet: FirmaWalletService,
         granteeAddress: string,
-        feegrantOption: PeriodicFeeGrantOption,
+        feegrantOption: PeriodicAllowance,
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
@@ -97,7 +94,7 @@ export class FirmaFeeGrantService {
 
     private async getSignedTxGrantPeriodicAllowance(wallet: FirmaWalletService,
         granteeAddress: string,
-        feegrantOption: PeriodicFeeGrantOption,
+        feegrantOption: PeriodicAllowance,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
@@ -105,18 +102,7 @@ export class FirmaFeeGrantService {
 
             const feeGrantTxClient = new FeeGrantTxClient(wallet, this.config.rpcAddress);
 
-            const periodicAllowanceData = {
-                basic: {
-                    spendLimit: this.getCoinType(feegrantOption.basicSpendLimit),
-                    expiration: feegrantOption.basicExpiration
-                },
-                period: { seconds: feegrantOption.periodSeconds, nanos: 0 },
-                periodSpendLimit: [{ denom: this.config.denom, amount: feegrantOption.periodSpendLimit.toString() }],
-                periodCanSpend: [{ denom: this.config.denom, amount: feegrantOption.periodCanSpend.toString() }],
-                periodReset: feegrantOption.periodReset
-            };
-
-            const bytes = PeriodicAllowance.encode(periodicAllowanceData).finish();
+            const bytes = PeriodicAllowance.encode(feegrantOption).finish();
 
             const allowanceAnyData = {
                 typeUrl: "/cosmos.feegrant.v1beta1.PeriodicAllowance",
@@ -139,7 +125,7 @@ export class FirmaFeeGrantService {
 
     async getGasEstimationGrantBasicAllowance(wallet: FirmaWalletService,
         granteeAddress: string,
-        feegrantOption: BasicFeeGrantOption = DefaultBasicFeeGrantOption,
+        feegrantOption: BasicAllowance,
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
@@ -157,30 +143,18 @@ export class FirmaFeeGrantService {
 
     private async getSignedTxGrantBasicAllowance(wallet: FirmaWalletService,
         granteeAddress: string,
-        feegrantOption: BasicFeeGrantOption = DefaultBasicFeeGrantOption,
+        feegrantOption: BasicAllowance,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
             const feeGrantTxClient = new FeeGrantTxClient(wallet, this.config.rpcAddress);
-
+            
             const address = await wallet.getAddress();
-
-            const basicAllowanceData = {
-                spendLimit: this.getCoinType(feegrantOption.spendLimit),
-                expiration: feegrantOption.expiration
-            };
-
-            const bytes = BasicAllowance.encode(basicAllowanceData).finish();
-
+            const bytes = BasicAllowance.encode(feegrantOption).finish();
             const allowanceAnyData = {
                 typeUrl: "/cosmos.feegrant.v1beta1.BasicAllowance",
                 value: bytes
             };
-
-
-            //console.log('Any.fromJSON(allowanceAnyData)');
-            //console.log(Any.fromJSON(allowanceAnyData));
-            //console.log('Any.fromJSON(allowanceAnyData)---');
 
             const message = FeeGrantTxClient.msgGrantAllowance({
                 granter: address,
@@ -198,7 +172,7 @@ export class FirmaFeeGrantService {
 
     async grantPeriodicAllowance(wallet: FirmaWalletService,
         granteeAddress: string,
-        feegrantOption: PeriodicFeeGrantOption,
+        feegrantOption: PeriodicAllowance,
         txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
 
         try {
@@ -216,7 +190,7 @@ export class FirmaFeeGrantService {
 
     async grantBasicAllowance(wallet: FirmaWalletService,
         granteeAddress: string,
-        feegrantOption: BasicFeeGrantOption = DefaultBasicFeeGrantOption,
+        feegrantOption: BasicAllowance,
         txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxGrantBasicAllowance(wallet, granteeAddress, feegrantOption, txMisc);
