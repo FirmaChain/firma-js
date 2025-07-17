@@ -55,25 +55,15 @@ export class ITxClient {
             throw new Error("Account not found in rawWallet");
         }
 
-        // Create arbitrary data message
-        const arbitraryMsg = Any.fromPartial({
-            typeUrl: "/cosmos.base.v1beta1.MsgSignArbitraryData",
-            value: Uint8Array.from([
-                // Simple encoding: signer address length + address + data
-                ...toUtf8(signerAddress).length.toString().padStart(2, '0').split('').map(c => c.charCodeAt(0)),
-                ...toUtf8(signerAddress),
-                ...data
-            ])
-        });
-
-        // Create TxBody
+        // ADR-036 compatible: Create empty transaction with arbitrary data as memo
+        // This is more compatible with standard ADR-036 approach
         const txBody = TxBody.fromPartial({
-            messages: [arbitraryMsg],
-            memo: "",
+            messages: [], // Empty messages for arbitrary signing
+            memo: new TextDecoder().decode(data), // Store arbitrary data in memo field
             timeoutHeight: BigInt(0),
         });
 
-        // Create AuthInfo (empty for arbitrary signing)
+        // Create minimal AuthInfo for ADR-036
         const authInfo = AuthInfo.fromPartial({
             signerInfos: [],
             fee: {
@@ -84,12 +74,12 @@ export class ITxClient {
             }
         });
 
-        // Create SignDoc
+        // Create SignDoc following ADR-036 pattern
         const signDoc = SignDoc.fromPartial({
             bodyBytes: TxBody.encode(txBody).finish(),
             authInfoBytes: AuthInfo.encode(authInfo).finish(),
-            chainId: "",
-            accountNumber: BigInt(0),
+            chainId: "", // Empty for arbitrary signing
+            accountNumber: BigInt(0), // 0 for arbitrary signing
         });
 
         // Sign the document
@@ -122,48 +112,50 @@ export class ITxClient {
                 accountNumber: BigInt(data.accountNumber),
             });
 
-            // Verify the message content
+            // Verify the message content - ADR-036 style with memo
             const txBody = TxBody.decode(signDoc.bodyBytes);
-            if (txBody.messages.length !== 1) {
-                throw new Error("Invalid message count");
-            }
-
-            const arbitraryMsg = txBody.messages[0];
-            if (arbitraryMsg.typeUrl !== "/cosmos.base.v1beta1.MsgSignArbitraryData") {
-                throw new Error("Invalid message type");
-            }
-
-            // Extract and verify the original data
-            const msgValue = arbitraryMsg.value;
-            const signerAddressUtf8 = toUtf8(data.signerAddress);
-            const expectedPrefix = [
-                ...signerAddressUtf8.length.toString().padStart(2, '0').split('').map(c => c.charCodeAt(0)),
-                ...signerAddressUtf8
-            ];
             
-            // Check if the message contains our expected data structure
-            const extractedData = msgValue.slice(expectedPrefix.length);
-            if (!arrayContentEquals(extractedData, originalMessage)) {
-                throw new Error("Message data mismatch");
+            // For ADR-036 arbitrary signing, messages should be empty
+            if (txBody.messages.length !== 0) {
+                console.log("Invalid message count - should be 0 for arbitrary signing");
+                return false;
+            }
+
+            // Extract data from memo field
+            const memoData = txBody.memo;
+            const originalMessageString = new TextDecoder().decode(originalMessage);
+            
+            if (memoData !== originalMessageString) {
+                console.log("Message data mismatch in memo");
+                return false;
             }
 
             // Verify signature
             const signBytes = makeSignBytes(signDoc);
             const hash = sha256(signBytes);
 
-            const pubkeyBytes = fromBase64(data.pubkey);
-            const signatureBytes = fromBase64(data.signature);
-            const secpSig = Secp256k1Signature.fromFixedLength(signatureBytes);
+            try {
+                const pubkeyBytes = fromBase64(data.pubkey);
+                const signatureBytes = fromBase64(data.signature);
+                
+                const secpSig = Secp256k1Signature.fromFixedLength(signatureBytes);
 
-            // Verify address matches pubkey
-            const rawSignerAddr = rawSecp256k1PubkeyToRawAddress(pubkeyBytes);
-            const bech32SignerAddr = fromBech32(data.signerAddress).data;
-            
-            if (!rawSignerAddr || !bech32SignerAddr || !arrayContentEquals(rawSignerAddr, bech32SignerAddr)) {
-                throw new Error("Signer address mismatch");
+                // Verify address matches pubkey
+                const rawSignerAddr = rawSecp256k1PubkeyToRawAddress(pubkeyBytes);
+                const bech32SignerAddr = fromBech32(data.signerAddress).data;
+                
+                if (!rawSignerAddr || !bech32SignerAddr || !arrayContentEquals(rawSignerAddr, bech32SignerAddr)) {
+                    console.log("Signer address mismatch");
+                    return false;
+                }
+
+                const isValid = await Secp256k1.verifySignature(secpSig, hash, pubkeyBytes);
+                
+                return isValid;
+            } catch (error: any) {
+                console.log("Signature verification error:", error.message);
+                return false;
             }
-
-            return await Secp256k1.verifySignature(secpSig, hash, pubkeyBytes);
 
         } catch (error) {
             console.error("Verification failed:", error);
