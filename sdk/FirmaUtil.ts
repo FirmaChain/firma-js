@@ -1,11 +1,12 @@
 import { promises as fs } from "fs";
 import { SignDoc, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
-import { FirmaConfig } from "./FirmaConfig";
-
+import { Duration } from "cosmjs-types/google/protobuf/duration";
 import { fromBech32, toBech32 } from "@cosmjs/encoding";
-import { SignAndBroadcastOptions, TxMisc } from "./firmachain/common";
 import { fromHex, toBase64, toHex, fromBase64 } from '@cosmjs/encoding';
+import { EncodeObject, makeSignBytes, Registry } from "@cosmjs/proto-signing";
+
+import { SignAndBroadcastOptions, TxMisc } from "./firmachain/common";
 
 import {
     ExtendedSecp256k1Signature,
@@ -17,14 +18,11 @@ import {
 import { pubkeyToAddress } from '@cosmjs/amino';
 
 
-import { EncodeObject, makeSignBytes, Registry } from "@cosmjs/proto-signing";
+import { FirmaConfig } from "./FirmaConfig";
 import { FirmaWalletService } from "./FirmaWalletService";
-
 import { Any } from "./firmachain/google/protobuf/any";
-import Long from "long";
 import { CommonTxClient } from "./firmachain/common/CommonTxClient";
 import { TendermintQueryClient } from "./firmachain/common/TendermintQueryClient";
-import { SigningStargateClient } from "@cosmjs/stargate";
 
 const CryptoJS = require("crypto-js");
 const sha1 = require("crypto-js/sha1");
@@ -345,6 +343,86 @@ export class FirmaUtil {
     static getCommonTxClient(aliceWallet: FirmaWalletService) {
         return new CommonTxClient(aliceWallet, FirmaUtil.config.rpcAddress);
 	}
+
+    static parseDurationString(durationStr: string): { seconds: bigint; nanos: number } {
+        if (!durationStr || durationStr.trim() === "") {
+            return { seconds: BigInt(0), nanos: 0 };
+        }
+    
+        const input = durationStr.trim();
+        let totalSeconds = 0;
+        let totalNanos = 0;
+    
+        // Handle negative durations
+        const isNegative = input.startsWith('-');
+        const cleanInput = isNegative ? input.substring(1) : input;
+    
+        // Regular expression to match duration components
+        const regex = /(\d+(?:\.\d+)?)(d|h|m|s|ms|µs|us|ns)/g;
+        let match;
+        let hasMatches = false;
+
+        while ((match = regex.exec(cleanInput)) !== null) {
+            hasMatches = true;
+            const value = parseFloat(match[1]);
+            const unit = match[2];
+
+            switch (unit) {
+                case 'd':  // days
+                    totalSeconds += value * 24 * 60 * 60;
+                    break;
+                case 'h':  // hours
+                    totalSeconds += value * 60 * 60;
+                    break;
+                case 'm':  // minutes
+                    totalSeconds += value * 60;
+                    break;
+                case 's':  // seconds
+                    totalSeconds += value;
+                    break;
+                case 'ms': // milliseconds
+                    totalNanos += value * 1_000_000;
+                    break;
+                case 'µs':
+                case 'us': // microseconds
+                    totalNanos += value * 1_000;
+                    break;
+                case 'ns': // nanoseconds
+                    totalNanos += value;
+                    break;
+            }
+        }
+
+        if (!hasMatches) {
+            throw new Error(`Invalid duration format: ${durationStr}`);
+        }
+
+        // Convert excess nanos to seconds
+        const extraSeconds = Math.floor(totalNanos / 1_000_000_000);
+        totalSeconds += extraSeconds;
+        totalNanos = totalNanos % 1_000_000_000;
+
+        // Apply negative sign
+        const finalSeconds = isNegative ? -totalSeconds : totalSeconds;
+        const finalNanos = isNegative ? -totalNanos : totalNanos;
+    
+        return {
+            seconds: BigInt(Math.floor(finalSeconds)),
+            nanos: Math.floor(finalNanos)
+        };
+    }
+
+    static createDurationFromString(durationStr: string): Duration {
+        const { seconds, nanos } = FirmaUtil.parseDurationString(durationStr);
+        
+        // Import Duration if not already imported
+        const { Duration } = require("./firmachain/google/protobuf/duration");
+        
+        return Duration.fromPartial({
+            seconds: seconds,
+            nanos: nanos
+        });
+    }
 }
 
 export const DefaultTxMisc = { memo: "", fee: 0, gas: 0, feeGranter: "" };

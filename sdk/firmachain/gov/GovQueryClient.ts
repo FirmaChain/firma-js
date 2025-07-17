@@ -1,4 +1,5 @@
 import Axios, { AxiosInstance } from "axios";
+import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 
 export enum ProposalStatus {
     PROPOSAL_STATUS_UNSPECIFIED = 0,
@@ -23,6 +24,25 @@ export interface ProposalParam {
         threshold: string,
         veto_threshold: string,
     };
+}
+
+export interface GovParamType {
+    min_deposit: Coin[];
+    max_deposit_period: string;
+    voting_period: string;
+    quorum: string;
+    threshold: string;
+    veto_threshold: string;
+    min_initial_deposit_ratio: string;
+    proposal_cancel_ratio: string;
+    proposal_cancel_dest: string;
+    expedited_voting_period: string;
+    expedited_threshold: string;
+    expedited_min_deposit: Coin[];
+    burn_vote_quorum: boolean;
+    burn_proposal_deposit_prevote: boolean;
+    burn_vote_veto: boolean;
+    min_deposit_ratio: string;
 }
 
 export interface CurrentVoteInfo {
@@ -76,22 +96,12 @@ export class GovQueryClient {
         return result.data.tally;
     }
 
-    async queryGetParam(): Promise<ProposalParam> {
+    async queryGetParam(): Promise<GovParamType> {
 
-        let path = "/cosmos/gov/v1beta1/params/voting";
-        const votingResult = await this.axios.get(path);
+        let path = "/cosmos/gov/v1/params/deposit";
+        const result = await this.axios.get(path);
 
-        path = "/cosmos/gov/v1beta1/params/deposit";
-        const depositResult = await this.axios.get(path);
-
-        path = "/cosmos/gov/v1beta1/params/tallying";
-        const tallyingResult = await this.axios.get(path);
-
-        return {
-            voting_period: votingResult.data.voting_params.voting_period,
-            deposit_params: depositResult.data.deposit_params,
-            tally_params: tallyingResult.data.tally_params
-        };
+        return result.data.params;
     }
 
     async queryGetProposal(id: string): Promise<ProposalInfo> {

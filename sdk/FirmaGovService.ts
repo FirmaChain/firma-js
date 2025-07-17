@@ -6,8 +6,8 @@ import {
     VotingOption,
     ProposalInfo,
     ProposalStatus,
-    ProposalParam,
-    CurrentVoteInfo
+    CurrentVoteInfo,
+    GovParamType
 } from "./firmachain/gov";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
@@ -22,6 +22,7 @@ import { SoftwareUpgradeProposal } from "cosmjs-types/cosmos/upgrade/v1beta1/upg
 
 import { DeliverTxResponse } from "@cosmjs/stargate";
 import { Plan } from "@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
+import { Proposal, Params as GovParams } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/gov";
 
 export class FirmaGovService {
 
@@ -470,12 +471,43 @@ export class FirmaGovService {
         }
     }
 
-    async getParam(): Promise<ProposalParam> {
+    async getParam(): Promise<GovParamType> {
         try {
             const queryClient = new GovQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetParam();
 
             return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getParamAsGovParams(): Promise<GovParams> {
+        try {
+            const queryClient = new GovQueryClient(this.config.restApiAddress);
+            const result = await queryClient.queryGetParam(); // get result as GovParamType
+
+            // return as GovParams type
+            return {
+                minDeposit: result.min_deposit,
+                maxDepositPeriod: FirmaUtil.createDurationFromString(result.max_deposit_period),
+                votingPeriod: FirmaUtil.createDurationFromString(result.voting_period),
+                quorum: result.quorum,
+                threshold: result.threshold,
+                vetoThreshold: result.veto_threshold,
+                minInitialDepositRatio: result.min_initial_deposit_ratio,
+                proposalCancelRatio: result.proposal_cancel_ratio,
+                proposalCancelDest: result.proposal_cancel_dest,
+                expeditedVotingPeriod: FirmaUtil.createDurationFromString(result.expedited_voting_period),
+                expeditedThreshold: result.expedited_threshold,
+                expeditedMinDeposit: result.expedited_min_deposit,
+                burnVoteQuorum: result.burn_vote_quorum,
+                burnProposalDepositPrevote: result.burn_proposal_deposit_prevote,
+                burnVoteVeto: result.burn_vote_veto,
+                minDepositRatio: result.min_deposit_ratio
+            };
 
         } catch (error) {
             FirmaUtil.printLog(error);
