@@ -1,6 +1,6 @@
 import { Reader, Writer } from "protobufjs/minimal";
 
-export const protobufPackage = "firmachain.firmachain.token";
+export const protobufPackage = "token";
 
 export interface MsgCreateToken {
   owner: string;
@@ -698,7 +698,7 @@ export class MsgClientImpl implements Msg {
   CreateToken(request: MsgCreateToken): Promise<MsgCreateTokenResponse> {
     const data = MsgCreateToken.encode(request).finish();
     const promise = this.rpc.request(
-      "firmachain.firmachain.token.Msg",
+      "firmachain.token.Msg",
       "CreateToken",
       data
     );
@@ -710,7 +710,7 @@ export class MsgClientImpl implements Msg {
   Mint(request: MsgMint): Promise<MsgMintResponse> {
     const data = MsgMint.encode(request).finish();
     const promise = this.rpc.request(
-      "firmachain.firmachain.token.Msg",
+      "firmachain.token.Msg",
       "Mint",
       data
     );
@@ -720,7 +720,7 @@ export class MsgClientImpl implements Msg {
   Burn(request: MsgBurn): Promise<MsgBurnResponse> {
     const data = MsgBurn.encode(request).finish();
     const promise = this.rpc.request(
-      "firmachain.firmachain.token.Msg",
+      "firmachain.token.Msg",
       "Burn",
       data
     );
@@ -732,7 +732,7 @@ export class MsgClientImpl implements Msg {
   ): Promise<MsgUpdateTokenURIResponse> {
     const data = MsgUpdateTokenURI.encode(request).finish();
     const promise = this.rpc.request(
-      "firmachain.firmachain.token.Msg",
+      "firmachain.token.Msg",
       "UpdateTokenURI",
       data
     );
