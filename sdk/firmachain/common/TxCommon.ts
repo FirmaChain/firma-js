@@ -60,20 +60,6 @@ export enum VotingOption {
     UNRECOGNIZED = -1
 }
 
-export interface ParamChangeOption {
-    subspace: string;
-    key: string;
-    value: string;
-}
-
-export interface SoftwareUpgradePlan {
-    name: string;
-    time?: Date;
-    height?: Long;
-    info?: string,
-    upgradedClientState?: Any;
-}
-
 export interface ArbitraryVerifyData {
     chainId: string;
     accountNumber: string;
