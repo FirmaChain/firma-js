@@ -25,11 +25,15 @@ export class ITxClient {
     public getRegistry(): Registry { return this.registry; }
 
     async sign(msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions): Promise<TxRaw> {
-
-        const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, { registry: this.registry });
-        const address = (await this.rawWallet.getAccounts())[0].address;
-
-        return await client.sign(address, msgs, fee, memo);
+        
+        if (this.wallet.isLedger()) {
+            return this.wallet.signLedger(msgs, { fee, memo }, this.registry);
+        } else {
+            const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, { registry: this.registry });
+            const address = (await this.rawWallet.getAccounts())[0].address;
+    
+            return await client.sign(address, msgs, fee, memo);
+        }
     }
 
     async broadcast(txRaw: TxRaw): Promise<DeliverTxResponse> {
@@ -117,7 +121,6 @@ export class ITxClient {
             
             // For ADR-036 arbitrary signing, messages should be empty
             if (txBody.messages.length !== 0) {
-                console.log("Invalid message count - should be 0 for arbitrary signing");
                 return false;
             }
 
@@ -126,7 +129,6 @@ export class ITxClient {
             const originalMessageString = new TextDecoder().decode(originalMessage);
             
             if (memoData !== originalMessageString) {
-                console.log("Message data mismatch in memo");
                 return false;
             }
 
@@ -145,7 +147,6 @@ export class ITxClient {
                 const bech32SignerAddr = fromBech32(data.signerAddress).data;
                 
                 if (!rawSignerAddr || !bech32SignerAddr || !arrayContentEquals(rawSignerAddr, bech32SignerAddr)) {
-                    console.log("Signer address mismatch");
                     return false;
                 }
 
@@ -153,12 +154,10 @@ export class ITxClient {
                 
                 return isValid;
             } catch (error: any) {
-                console.log("Signature verification error:", error.message);
                 return false;
             }
 
         } catch (error) {
-            console.error("Verification failed:", error);
             return false;
         }
     }
