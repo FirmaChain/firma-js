@@ -55,8 +55,9 @@ describe.skip('[28. IBC Tx Test]', () => {
 
 		const gas = await firma.Ibc.getGasEstimationTransfer(aliceWallet, sourcePort, sourceChannel, denom, amount, receiver, height, timeoutTimeStamp);
 		const fee = FirmaUtil.getUFCTFromFCT(gas * 0.1);
+		const metadata = "";
 
-		const result = await firma.Ibc.transfer(aliceWallet, sourcePort, sourceChannel, denom, amount, receiver, height, timeoutTimeStamp,  { gas: gas, fee: fee });
+		const result = await firma.Ibc.transfer(aliceWallet, sourcePort, sourceChannel, denom, amount, receiver, height, timeoutTimeStamp, metadata, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
 	});
 });

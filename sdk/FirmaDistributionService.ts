@@ -10,9 +10,9 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { DelegationInfo } from "./firmachain/staking";
+import { DeliverTxResponse } from "@cosmjs/stargate";
 
 export class FirmaDistributionService {
 

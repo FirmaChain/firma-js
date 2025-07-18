@@ -117,7 +117,7 @@ describe('[26. cosmwasm query Test]', () => {
 	it('CosmWasm getContractState', async () => {
 
 		const result = await firma.CosmWasm.getContractState(contractAddress);
-		
+
 		expect(result).to.be.an('array');
 		expect(result.length).to.be.greaterThan(0);
 
@@ -128,9 +128,10 @@ describe('[26. cosmwasm query Test]', () => {
 
 	it('CosmWasm getContractRawQueryData', async () => {
 
-		const hexString = '0006636F6E666967';
+		const hexString = "0006636F6E666967";
 		const result = await firma.CosmWasm.getContractRawQueryData(contractAddress, hexString);
-		expect(result).to.be.a('string');
+		
+		expect(result).to.be.equal('"eyJwdXJjaGFzZV9wcmljZSI6eyJkZW5vbSI6InVmY3QiLCJhbW91bnQiOiIxMDAifSwidHJhbnNmZXJfcHJpY2UiOnsiZGVub20iOiJ1ZmN0IiwiYW1vdW50IjoiOTk5In19"');
 	});
 
 	it('CosmWasm getContractSmartQueryData', async () => {

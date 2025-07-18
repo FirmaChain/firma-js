@@ -4,20 +4,20 @@ import {
     TxMisc,
     ValidatorDataType,
     PoolDataType,
+    ParamsDataType,
     DelegationInfo,
     RedelegationInfo,
     UndelegationInfo,
-    Pagination,
-    StakingParamType
+    Pagination
 } from "./firmachain/staking";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 import { Description } from "cosmjs-types/cosmos/staking/v1beta1/staking";
 import { MsgCreateValidator } from "cosmjs-types/cosmos/staking/v1beta1/tx";
+import { DeliverTxResponse } from "@cosmjs/stargate";
 // temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
 import { Params as StakingParams } from "@kintsugi-tech/cosmjs-types/cosmos/staking/v1beta1/staking";
 
@@ -392,7 +392,7 @@ export class FirmaStakingService {
         }
     }
 
-    async getParams(): Promise<StakingParamType> {
+    async getParams(): Promise<ParamsDataType> {
         try {
             const queryClient = new StakingQueryClient(this.config.restApiAddress);
             const result = await queryClient.queryGetParams();

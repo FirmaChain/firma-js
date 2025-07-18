@@ -1,116 +1,165 @@
-import { TxBodyEncodeObject, encodePubkey } from "@cosmjs/proto-signing";
-import { AuthInfo, SignerInfo } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { EncodeObject, Registry } from "@cosmjs/proto-signing";
-import { Int53 } from "@cosmjs/math";
-import { fromBase64 } from "@cosmjs/encoding";
-
-import { AminoMsg, serializeSignDoc } from "../amino/signdoc";
-
-import { encodeSecp256k1Pubkey } from "../amino/encoding";
-import { makeSignDoc as makeSignDocAmino } from "../amino/signdoc";
-
-import { fromUtf8 } from "@cosmjs/encoding";
-import { Any } from "../google/protobuf/any";
-
+import { EncodeObject, encodePubkey, makeSignDoc, Registry, TxBodyEncodeObject } from "@cosmjs/proto-signing";
+import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
-import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-
-import { FirmaUtil } from "../../FirmaUtil";
-import { SignAndBroadcastOptions } from "../common";
-import { Coin } from "../amino/coins";
-import { AminoTypes } from "@cosmjs/stargate";
+import { AuthInfo, SignDoc, SignerInfo, TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { Any } from "cosmjs-types/google/protobuf/any";
+import { SignAndBroadcastOptions } from "./TxCommon";
+import { toBase64 } from "@cosmjs/encoding";
+import { PubKey as Secp256k1PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
 
 export interface LedgerWalletInterface {
-    getAddress(): Promise<string>;
-    sign(message: string): Promise<Uint8Array>;
-    getPublicKey(): Promise<Uint8Array>;
-    getAddressAndPublicKey(): Promise<{ address: string, publicKey: Uint8Array }>;
-    showAddressOnDevice(): Promise<void>;
+  getAddress(): Promise<string>;
+  sign(message: string): Promise<Uint8Array>; // Must return Uint8Array for protobuf mode 
+  getPublicKey(): Promise<Uint8Array>;
+  getAddressAndPublicKey(): Promise<{ address: string; publicKey: Uint8Array }>;
+  showAddressOnDevice?(): Promise<void>; // Optional
 }
 
-function makeSignerInfos(
-    signers: ReadonlyArray<{ readonly pubkey: Any; readonly sequence: number }>,
-    signMode: SignMode,
-): SignerInfo[] {
-    return signers.map(
-        ({ pubkey, sequence }): SignerInfo => ({
-            publicKey: pubkey,
-            modeInfo: {
-                single: { mode: signMode },
-            },
-            sequence: BigInt(sequence),
-        }),
-    );
+export interface SignerData {
+  readonly account_number: number;
+  readonly sequence: number;
+  readonly chain_id: string;
 }
 
-function makeAuthInfoBytes(
-    signers: ReadonlyArray<{ pubkey: Any; sequence: number }>,
-    feeAmount: readonly Coin[],
-    gasLimit: number,
-    granter: string,
-    signMode = SignMode.SIGN_MODE_LEGACY_AMINO_JSON,
+// Creates AuthInfoBytes for "SIGN_MODE_DIRECT"
+function makeAuthInfoBytesDirect(
+  pubkey: Any,
+  feeAmount: readonly Coin[],
+  gasLimit: number,
+  sequence: number
 ): Uint8Array {
-    const authInfo = {
-        signerInfos: makeSignerInfos(signers, signMode),
-        fee: {
-            amount: [...feeAmount],
-            gasLimit: BigInt(gasLimit),
-            granter: granter,
-        },
-    };
-    return AuthInfo.encode(AuthInfo.fromPartial(authInfo)).finish();
+  const signerInfo: SignerInfo = {
+    publicKey: pubkey,
+    modeInfo: {
+      single: { mode: SignMode.SIGN_MODE_DIRECT },
+    },
+    sequence: BigInt(sequence),
+  };
+
+  const authInfo = {
+    signerInfos: [signerInfo],
+    fee: {
+      amount: [...feeAmount],
+      gasLimit: BigInt(gasLimit),
+    },
+  };
+
+  return AuthInfo.encode(AuthInfo.fromPartial(authInfo)).finish();
 }
 
-export async function signFromLedger(ledger: LedgerWalletInterface, messages: EncodeObject[], option: SignAndBroadcastOptions, registry: Registry): Promise<TxRaw> {
+/**
+ * Signs a protobuf-based Cosmos transaction using a general Signer
+ * compatible with SIGN_MODE_DIRECT (e.g. Ledger, Keplr, etc.)
+ *
+ * @param signer - SignerInterface instance
+ * @param messages - Cosmos transaction messages
+ * @param signerData - Chain ID, account number, sequence
+ * @param option - Fee, memo, granter info
+ * @param registry - Protobuf registry for message encoding
+ * @returns TxRaw - fully signed transaction
+ */
+export async function signWithSignerProtobuf(
+  signer: LedgerWalletInterface,
+  messages: EncodeObject[],
+  signerData: SignerData,
+  option: SignAndBroadcastOptions,
+  registry: Registry,
+): Promise<TxRaw> {
+  // 1. Encode messages
+  const anyMsgs = messages.map((msg) => registry.encodeAsAny(msg));
 
-    let { address, publicKey } = await ledger.getAddressAndPublicKey();
+  const txBody = TxBody.fromPartial({
+    messages: anyMsgs,
+    memo: option.memo || "",
+  });
 
-    let signerData = await FirmaUtil.getSignerDataForLedger(address);
+  const bodyBytes = TxBody.encode(txBody).finish();
 
-    const pubkey = encodePubkey(encodeSecp256k1Pubkey(publicKey));
+  // 2. AuthInfo (fee + signer info)
+  const pubkey = await signer.getPublicKey();
 
-    let aminoTypes = new AminoTypes({});
+  const pubkeyProto: Any = {
+    typeUrl: "/cosmos.crypto.secp256k1.PubKey",
+    value: Secp256k1PubKey.encode({ key: pubkey }).finish(),
+  };
 
-    const msgs = messages.map((msg) => aminoTypes.toAmino(msg));
-    const chainId = signerData.chain_id;
-    const accountNumber = Number.parseInt(signerData.account_number);
-    const sequence = Number.parseInt(signerData.sequence);
-    const memo = option.memo;
+  const feeAmount: Coin[] = option.fee.amount.map((a) => ({
+    denom: a.denom,
+    amount: a.amount,
+  }));
 
-    const fee = { amount: option.fee.amount, gas: option.fee.gas };
+  // Use makeAuthInfoBytesDirect function for consistency
+  const authInfoBytes = makeAuthInfoBytesDirect(
+    pubkeyProto,
+    feeAmount,
+    parseInt(option.fee.gas),
+    signerData.sequence
+  );
 
-    const signDoc = makeSignDocAmino(msgs, fee, chainId, memo, accountNumber, sequence);
-    const signMessage = serializeSignDoc(signDoc);
+  const signDoc = SignDoc.fromPartial({
+    bodyBytes,
+    authInfoBytes,
+    chainId: signerData.chain_id,
+    accountNumber: BigInt(signerData.account_number),
+  });
 
-    const ledgerSignature = await ledger.sign(fromUtf8(signMessage));;
+  // Verify SignDoc has all required fields
+  if (!signDoc.chainId) {
+    throw new Error(`SignDoc chainId is missing: ${signDoc.chainId}`);
+  }
+  if (!signDoc.accountNumber) {
+    throw new Error(`SignDoc accountNumber is missing: ${signDoc.accountNumber}`);
+  }
 
-    const signedTxBody = {
-        messages: signDoc.msgs.map((msg: AminoMsg) => aminoTypes.fromAmino(msg)),
-        memo: memo,
-    };
+  // Create proper SignDoc protobuf bytes for Ledger
+  const signDocBytes = SignDoc.encode(signDoc).finish();
+  const base64SignBytes = toBase64(signDocBytes);
+  
+  let signature: Uint8Array | undefined;
+  let lastError: any;
 
-    const signedTxBodyEncodeObject: TxBodyEncodeObject = {
-        typeUrl: "/cosmos.tx.v1beta1.TxBody",
-        value: signedTxBody,
-    };
+  // FirmaChain dedicated app supports Protobuf, so only try Protobuf formats
+  const protobufAttempts = [
+    { name: "SignDoc Base64", data: base64SignBytes },
+    { name: "SignDoc Hex", data: Buffer.from(signDocBytes).toString('hex') },
+    { name: "SignDoc Hex with 0x", data: '0x' + Buffer.from(signDocBytes).toString('hex') },
+  ];
+  
+  for (const attempt of protobufAttempts) {
+    try {
+      signature = await signer.sign(attempt.data);
+      
+      if (signature && signature.length > 0) {
+        break; // Success! Exit loop
+      }
+      
+    } catch (signError) {
+      lastError = signError;
+      continue; // Try next format
+    }
+  }
 
-    const signedTxBodyBytes = registry.encode(signedTxBodyEncodeObject);
-    const signedGasLimit = Int53.fromString(option.fee.gas).toNumber();
+  // If all Protobuf attempts failed, provide guidance
+  if (!signature || signature.length === 0) {
+    const errorMsg = lastError instanceof Error ? lastError.message : String(lastError);
+    throw new Error(`FirmaChain Ledger app signing failed: ${errorMsg}. Please ensure FirmaChain app is properly installed and up to date.`);
+  }
+  
+  // Signature validation
+  if (!signature || signature.length === 0) {
+    throw new Error("Signature is empty. Please confirm that the transaction was approved on Ledger or check Ledger connection.");
+  }
+  
+  if (signature.length !== 64) {
+    throw new Error(`Unexpected signature length: ${signature.length} bytes (expected: 64 bytes)`);
+  }
 
-    const signedAuthInfoBytes = makeAuthInfoBytes(
-        [{ pubkey, sequence }],
-        option.fee.amount,
-        signedGasLimit,
-        option.fee.granter,
-        SignMode.SIGN_MODE_LEGACY_AMINO_JSON,
-    );
-
-    let txRaw = TxRaw.fromPartial({
-        bodyBytes: signedTxBodyBytes,
-        authInfoBytes: signedAuthInfoBytes,
-        signatures: [fromBase64(Buffer.from(ledgerSignature).toString('base64'))],
-    });
-
-    return txRaw;
+  const txRaw = TxRaw.fromPartial({
+    bodyBytes,
+    authInfoBytes,
+    signatures: [signature],
+  });
+  
+  return txRaw;
 }
 

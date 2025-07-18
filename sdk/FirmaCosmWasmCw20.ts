@@ -6,7 +6,7 @@ import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil
 import { TxMisc } from "./firmachain/common";
 import { EncodeObject } from "@cosmjs/proto-signing";
 import { CosmWasmTxClient } from "./firmachain/cosmwasm";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
+import { DeliverTxResponse } from "@cosmjs/stargate";
 
 export interface Cw20Minter {
     minter: string;
