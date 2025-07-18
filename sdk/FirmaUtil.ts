@@ -246,6 +246,34 @@ export class FirmaUtil {
         }
     }
 
+    static async getAccountInfo(address: string): Promise<{ account_number: string; sequence: string }> {
+        try {
+            const url = `${FirmaUtil.config.restApiAddress}/cosmos/auth/v1beta1/accounts/${address}`;
+            const res = await fetch(url);
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+            
+            const json = await res.json();
+            const baseAccount = json.account.base_account || json.account;
+            const result = {
+                account_number: baseAccount.account_number,
+                sequence: baseAccount.sequence,
+            };
+            
+            return result;
+            
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static async getChainId(): Promise<string> {
+        const res = await fetch(`${FirmaUtil.config.restApiAddress}/cosmos/base/tendermint/v1beta1/node_info`);
+        const json = await res.json();
+        return json.default_node_info.network;
+    }
+
     static printLog(log: any) {
         if (FirmaUtil.config.isShowLog === false)
             return;
