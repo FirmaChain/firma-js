@@ -1,4 +1,4 @@
-import { Registry, EncodeObject, OfflineDirectSigner } from "@cosmjs/proto-signing";
+import { Registry, EncodeObject } from "@cosmjs/proto-signing";
 import { MsgDeposit, MsgSubmitProposal, MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { MsgSubmitProposal as MsgSubmitGenericProposal } from "cosmjs-types/cosmos/gov/v1/tx";
 // temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged

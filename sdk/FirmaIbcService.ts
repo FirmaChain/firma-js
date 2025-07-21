@@ -3,9 +3,9 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 import { ClientState, IbcQueryClient, IbcTxClient, TxMisc } from "./firmachain/ibc";
 import { Height } from "cosmjs-types/ibc/core/client/v1/client";
+import { DeliverTxResponse } from "@cosmjs/stargate";
 
 export class FirmaIbcService {
 
@@ -22,10 +22,11 @@ export class FirmaIbcService {
         amount: string,
         receiver: string,
         timeoutHeight: Height,
-        timeoutTimestamp: bigint, txMisc: TxMisc = DefaultTxMisc):
-        Promise<number>  {
+        timeoutTimestamp: bigint,
+        memo: string = "",
+        txMisc: TxMisc = DefaultTxMisc): Promise<number>  {
         try {
-            const txRaw = await this.getSignedTxTransfer(wallet, sourcePort, sourceChannel, denom, amount, receiver, timeoutHeight, timeoutTimestamp, txMisc);
+            const txRaw = await this.getSignedTxTransfer(wallet, sourcePort, sourceChannel, denom, amount, receiver, timeoutHeight, timeoutTimestamp, memo, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -42,10 +43,10 @@ export class FirmaIbcService {
         receiver: string,
         timeoutHeight: Height,
         timeoutTimestamp: bigint,
-        txMisc: TxMisc = DefaultTxMisc):
-        Promise<DeliverTxResponse> {
+        memo: string = "",
+        txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
-            const txRaw = await this.getSignedTxTransfer(wallet, sourcePort, sourceChannel, denom, amount, receiver, timeoutHeight, timeoutTimestamp, txMisc);
+            const txRaw = await this.getSignedTxTransfer(wallet, sourcePort, sourceChannel, denom, amount, receiver, timeoutHeight, timeoutTimestamp, memo, txMisc);
 
             const txClient = new IbcTxClient(wallet, this.config.rpcAddress);
             return await txClient.broadcast(txRaw);
@@ -64,6 +65,7 @@ export class FirmaIbcService {
         receiver: string,
         timeoutHeight: Height,
         timeoutTimestamp: bigint,
+        memo: string = "",
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
         try {
             const address = await wallet.getAddress();
@@ -72,7 +74,7 @@ export class FirmaIbcService {
                 sourcePort: sourcePort, sourceChannel: sourceChannel, sender: address, receiver: receiver,
                 token: { denom: denom, amount: amount },
                 timeoutHeight: timeoutHeight, timeoutTimestamp: timeoutTimestamp,
-                memo: ""
+                memo: memo
             });
 
             const ibcTxClient = new IbcTxClient(wallet, this.config.rpcAddress);

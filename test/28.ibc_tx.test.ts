@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import { Height } from 'cosmjs-types/ibc/core/client/v1/client';
 import { FirmaSDK } from '../sdk/FirmaSDK';
-import { FirmaUtil } from '../sdk/FirmaUtil';
 
 import { aliceMnemonic, TestChainConfig } from './config_test';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
@@ -21,9 +20,9 @@ describe.skip('[28. IBC Tx Test]', () => {
 	it('IBC transfer', async () => {
 		
 		const sourcePort = "transfer";
-		const sourceChannel = "channel-3";
+		const sourceChannel = "channel-1";
 		const denom = "ufct";
-		const amount = "1000000";
+		const amount = "10";
 		const receiver = "firma1320eclh4dwzx89qjap2q5n2hna07zs2vm8tzlu";
 
 		// new by dh
@@ -54,9 +53,10 @@ describe.skip('[28. IBC Tx Test]', () => {
 		const timeoutTimeStamp = BigInt(timeStamp);
 
 		const gas = await firma.Ibc.getGasEstimationTransfer(aliceWallet, sourcePort, sourceChannel, denom, amount, receiver, height, timeoutTimeStamp);
-		const fee = FirmaUtil.getUFCTFromFCT(gas * 0.1);
+		const fee = Math.ceil(gas * 0.1);
+		const metadata = "";
 
-		const result = await firma.Ibc.transfer(aliceWallet, sourcePort, sourceChannel, denom, amount, receiver, height, timeoutTimeStamp,  { gas: gas, fee: fee });
+		const result = await firma.Ibc.transfer(aliceWallet, sourcePort, sourceChannel, denom, amount, receiver, height, timeoutTimeStamp, metadata, { gas: gas, fee: fee });
 		expect(result.code).to.be.equal(0);
 	});
 });

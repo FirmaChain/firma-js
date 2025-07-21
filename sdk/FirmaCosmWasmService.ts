@@ -6,12 +6,12 @@ import { toUtf8 } from "@cosmjs/encoding";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 
 import pako from "pako";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { AccessConfig } from "cosmjs-types/cosmwasm/wasm/v1/types";
 import { EncodeObject } from "@cosmjs/proto-signing";
+import { DeliverTxResponse } from "@cosmjs/stargate";
 
 export { AccessConfig, AccessType } from "cosmjs-types/cosmwasm/wasm/v1/types";
 

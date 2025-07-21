@@ -13,7 +13,7 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { FirmaConfig } from "./FirmaConfig";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
+import { DeliverTxResponse } from "@cosmjs/stargate";
 
 export class ContractService {
 

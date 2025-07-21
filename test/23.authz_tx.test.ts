@@ -30,8 +30,12 @@ describe('[23. Authz Tx Test]', () => {
 	it('Authz Grant Send', async () => {
 
 		// add a year expiration to test.
-		const expirationDate = new Date();
-		expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+		const date = new Date();
+		date.setDate(date.getDate() + 1);
+		const expirationDate = {
+			seconds: BigInt(Math.floor(date.getTime() / 1000)),
+			nanos: (date.getTime() % 1000) * 1000000
+		};
 
 		// spend-limit should be greater than zero
 		const maxFCT = 10;
@@ -67,8 +71,13 @@ describe('[23. Authz Tx Test]', () => {
 		const delegationInfo = (await firma.Staking.getTotalDelegationInfo(aliceAddress)).dataList;
 		const validatorAddress = delegationInfo[0].delegation.validator_address;
 		// add a year expiration to test.
-		const expirationDate = new Date();
-		expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+		const date = new Date();
+		date.setDate(date.getDate() + 1);
+		const expirationDate = {
+			seconds: BigInt(Math.floor(date.getTime() / 1000)),
+			nanos: (date.getTime() % 1000) * 1000000
+		};
+		
 		// if set zero, unlimited delegation enabled.
 		const maxFCT = 100;
 		const result = await firma.Authz.grantStakeAuthorization(aliceWallet, bobAddress, [validatorAddress], AuthorizationType.AUTHORIZATION_TYPE_DELEGATE, expirationDate, maxFCT);
@@ -104,8 +113,12 @@ describe('[23. Authz Tx Test]', () => {
 		const delegationInfo = (await firma.Staking.getTotalDelegationInfo(aliceAddress)).dataList;
 		const validatorAddress = delegationInfo[0].delegation.validator_address;
 		// add a year expiration to test.
-		const expirationDate = new Date();
-		expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+		const date = new Date();
+		date.setDate(date.getDate() + 1);
+		const expirationDate = {
+			seconds: BigInt(Math.floor(date.getTime() / 1000)),
+			nanos: (date.getTime() % 1000) * 1000000
+		};
 		const maxFCT = 10;
 		const result = await firma.Authz.grantStakeAuthorization(aliceWallet, bobAddress, [validatorAddress], AuthorizationType.AUTHORIZATION_TYPE_UNDELEGATE, expirationDate, maxFCT);
 		expect(result.code).to.be.equal(0);
@@ -125,16 +138,10 @@ describe('[23. Authz Tx Test]', () => {
 			validatorAddress: validatorAddress,
 			amount: sendAmount
 		});
-		const anyData = FirmaUtil.getAnyData(StakingTxClient.getRegistry(), msgUndelegate)
+		const anyData = FirmaUtil.getAnyData(StakingTxClient.getRegistry(), msgUndelegate);
 		const gas = await firma.Authz.getGasEstimationExecuteAllowance(bobWallet, [anyData]);
 		const fee = Math.ceil(gas * 0.1);
 		const result = await firma.Authz.executeAllowance(bobWallet, [anyData], { gas, fee });
-		expect(result.code).to.be.equal(0);
-	});
-
-	it('Authz Revoke UnDelegate', async () => {
-
-		const result = await firma.Authz.revokeStakeAuthorization(aliceWallet, bobAddress, AuthorizationType.AUTHORIZATION_TYPE_UNDELEGATE);
 		expect(result.code).to.be.equal(0);
 	});
 
@@ -144,11 +151,21 @@ describe('[23. Authz Tx Test]', () => {
 		const validatorAddress1 = delegationInfo[0].delegation.validator_address;
 		const validatorAddress2 = delegationInfo[1].delegation.validator_address;
 
-		const expirationDate = new Date();
-		expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+		const date = new Date();
+		date.setDate(date.getDate() + 1);
+		const expirationDate = {
+			seconds: BigInt(Math.floor(date.getTime() / 1000)),
+			nanos: (date.getTime() % 1000) * 1000000
+		};
 		const maxFCT = 10;
 
 		const result = await firma.Authz.grantStakeAuthorization(aliceWallet, bobAddress, [validatorAddress1, validatorAddress2], AuthorizationType.AUTHORIZATION_TYPE_REDELEGATE, expirationDate, maxFCT);
+		expect(result.code).to.be.equal(0);
+	});
+
+	it('Authz Revoke UnDelegate', async () => {
+
+		const result = await firma.Authz.revokeStakeAuthorization(aliceWallet, bobAddress, AuthorizationType.AUTHORIZATION_TYPE_UNDELEGATE);
 		expect(result.code).to.be.equal(0);
 	});
 
@@ -157,11 +174,20 @@ describe('[23. Authz Tx Test]', () => {
 		const delegationInfo = (await firma.Staking.getTotalDelegationInfo(aliceAddress)).dataList;
 		const validatorAddress1 = delegationInfo[0].delegation.validator_address;
 		const validatorAddress2 = delegationInfo[1].delegation.validator_address;
-		const expirationDate = new Date();
-		expirationDate.setFullYear(expirationDate.getFullYear() + 1);
-		const maxFCT = 10;
+		const amountFCT = 1;
+		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
 
-		const result = await firma.Authz.grantStakeAuthorization(aliceWallet, bobAddress, [validatorAddress1, validatorAddress2], AuthorizationType.AUTHORIZATION_TYPE_REDELEGATE, expirationDate, maxFCT);
+		const msgUndelegate = StakingTxClient.msgRedelegate({
+			delegatorAddress: aliceAddress,
+			validatorSrcAddress: validatorAddress1,
+			validatorDstAddress: validatorAddress2,
+			amount: sendAmount
+		});
+
+		const anyData = FirmaUtil.getAnyData(StakingTxClient.getRegistry(), msgUndelegate);
+		const gas = await firma.Authz.getGasEstimationExecuteAllowance(bobWallet, [anyData]);
+		const fee = Math.ceil(gas * 0.1);
+		const result = await firma.Authz.executeAllowance(bobWallet, [anyData], { gas, fee });
 		expect(result.code).to.be.equal(0);
 	});
 
@@ -177,8 +203,12 @@ describe('[23. Authz Tx Test]', () => {
 		const msg = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward";
 
 		// add a year expiration to test.
-		const expirationDate = new Date();
-		expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+		const date = new Date();
+		date.setDate(date.getDate() + 1);
+		const expirationDate = {
+			seconds: BigInt(Math.floor(date.getTime() / 1000)),
+			nanos: (date.getTime() % 1000) * 1000000
+		};
 		const result = await firma.Authz.grantGenericAuthorization(aliceWallet, bobAddress, msg, expirationDate);
 		expect(result.code).to.be.equal(0);
 	});

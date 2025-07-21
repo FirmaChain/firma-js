@@ -1,6 +1,6 @@
 import { Reader, Writer } from "protobufjs/minimal";
 
-export const protobufPackage = "firmachain.token";
+export const protobufPackage = "token";
 
 export interface MsgCreateToken {
   owner: string;

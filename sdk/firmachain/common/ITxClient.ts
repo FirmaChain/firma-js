@@ -1,87 +1,51 @@
-import { Registry, EncodeObject, DirectSecp256k1Wallet } from "@cosmjs/proto-signing";
-import { fromBase64 } from '@cosmjs/encoding';
+import { Registry, EncodeObject } from "@cosmjs/proto-signing";
+import { DirectSecp256k1Wallet } from "@cosmjs/proto-signing";
+
 import { SignAndBroadcastOptions } from ".";
-import { SignDoc, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { SigningStargateClient, StargateClient, DeliverTxResponse, SignerData } from "@cosmjs/stargate";
+import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { FirmaWalletService } from "../../FirmaWalletService";
+import { DeliverTxResponse, SigningStargateClient } from "@cosmjs/stargate";
+import { Any } from "cosmjs-types/google/protobuf/any";
 
 export class ITxClient {
-  private rawWallet: DirectSecp256k1Wallet;
 
-  constructor(
-    private readonly wallet: FirmaWalletService,
-    private readonly serverUrl: string,
-    private readonly registry: Registry
-  ) {
-    this.rawWallet = wallet.getRawWallet();
-  }
+    private rawWallet: DirectSecp256k1Wallet;
 
-  public getRegistry(): Registry {
-    return this.registry;
-  }
+    constructor(private readonly wallet: FirmaWalletService,
+        private readonly serverUrl: string,
+        private readonly registry: Registry) {
 
-  async sign(msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions): Promise<TxRaw> {
-    if (this.wallet.isLedger()) {
-      return this.wallet.signLedger(msgs, { fee, memo }, this.registry);
-    } else {
-      const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, {
-        registry: this.registry,
-      });
-
-      const [account] = await this.rawWallet.getAccounts();
-      const accountData = await client.getAccount(account.address);
-      const chainId = await client.getChainId();
-
-      if (!accountData) throw new Error("Account data not found");
-
-      const signerData: SignerData = {
-        accountNumber: accountData.accountNumber,
-        sequence: accountData.sequence,
-        chainId: chainId,
-      };
-
-      return await client.sign(account.address, msgs, fee, memo, signerData);
+        this.rawWallet = wallet.getRawWallet();
     }
-  }
 
-  async broadcast(txRaw: TxRaw): Promise<DeliverTxResponse> {
-    const client = await StargateClient.connect(this.serverUrl);
-    const txBytes = TxRaw.encode(txRaw).finish();
-    return await client.broadcastTx(txBytes);
-  }
+    public getRegistry(): Registry { return this.registry; }
 
-  async broadcastTxBytes(txBytes: Uint8Array): Promise<DeliverTxResponse> {
-    const client = await StargateClient.connect(this.serverUrl);
-    return await client.broadcastTx(txBytes);
-  }
+    async sign(msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions): Promise<TxRaw> {
+        
+        if (this.wallet.isLedger()) {
+            return this.wallet.signLedger(msgs, { fee, memo }, this.registry);
+        } else {
+            const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, { registry: this.registry });
+            const address = (await this.rawWallet.getAccounts())[0].address;
+    
+            return await client.sign(address, msgs, fee, memo);
+        }
+    }
 
-  // sign() → broadcast()
-  async signAndBroadcast(msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions): Promise<DeliverTxResponse> {
-    const txRaw = await this.sign(msgs, { fee, memo });
-    return await this.broadcast(txRaw);
-  }
+    async broadcast(txRaw: TxRaw): Promise<DeliverTxResponse> {
+        const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, { registry: this.registry });
+        const txBytes = TxRaw.encode(txRaw).finish();
 
-  public async signDirectForSignDoc(signerAddress: string, signDoc: SignDoc): Promise<DeliverTxResponse> {
-    const signatureResponse = await this.rawWallet.signDirect(signerAddress, signDoc);
+        return await client.broadcastTx(txBytes);
+    }
 
-    const txRaw: TxRaw = TxRaw.fromPartial({
-      bodyBytes: signDoc.bodyBytes,
-      authInfoBytes: signDoc.authInfoBytes,
-      signatures: [fromBase64(signatureResponse.signature.signature)],
-    });
+    async broadcastTxBytes(txBytes: Uint8Array): Promise<DeliverTxResponse> {
+        const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, { registry: this.registry });
+        return await client.broadcastTx(txBytes);
+    }
 
-    return await this.broadcast(txRaw);
-  }
+    async signAndBroadcast(msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions): Promise<DeliverTxResponse> {
+        return await this.broadcast(await this.sign(msgs, { fee, memo }));
+    }
 
-  public async signDirectForSignDocTxRaw(signerAddress: string, signDoc: SignDoc): Promise<TxRaw> {
-    const signatureResponse = await this.rawWallet.signDirect(signerAddress, signDoc);
-
-    const txRaw: TxRaw = TxRaw.fromPartial({
-      bodyBytes: signDoc.bodyBytes,
-      authInfoBytes: signDoc.authInfoBytes,
-      signatures: [fromBase64(signatureResponse.signature.signature)],
-    });
-
-    return txRaw;
-  }
 }

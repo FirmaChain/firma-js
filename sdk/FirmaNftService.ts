@@ -4,8 +4,8 @@ import { FirmaConfig } from "./FirmaConfig";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
 import { EncodeObject } from "@cosmjs/proto-signing";
+import { DeliverTxResponse } from "@cosmjs/stargate";
 
 export class NftService {
 

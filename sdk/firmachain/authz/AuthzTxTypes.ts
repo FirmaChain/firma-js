@@ -1,11 +1,8 @@
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 
-import _m0 from "protobufjs/minimal";
-import { Writer } from "protobufjs/minimal";
-
-import { Timestamp } from "../google/protobuf/timestamp";
 import { Any } from "../google/protobuf/any";
 import { BinaryWriter } from "cosmjs-types/binary";
+import { Timestamp } from "cosmjs-types/google/protobuf/timestamp";
 
 export interface GenericAuthorization {
   /** Msg, identified by it's type URL, to grant unrestricted permissions to execute */
@@ -93,7 +90,7 @@ function createBaseMsgExecResponse(): MsgExecResponse {
 }
 
 export const MsgExecResponse = {
-  encode(message: MsgExecResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: MsgExecResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     for (const v of message.results) {
       writer.uint32(10).bytes(v!);
     }
@@ -137,7 +134,7 @@ function createBaseMsgGrantResponse(): MsgGrantResponse {
 }
 
 export const MsgGrantResponse = {
-  encode(_: MsgGrantResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(_: MsgGrantResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     return writer;
   },
 
@@ -152,7 +149,7 @@ function createBaseMsgRevoke(): MsgRevoke {
 }
 
 export const MsgRevoke = {
-  encode(message: MsgRevoke, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: MsgRevoke, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.granter !== "") {
       writer.uint32(10).string(message.granter);
     }
@@ -179,7 +176,7 @@ function createBaseMsgRevokeResponse(): MsgRevokeResponse {
 }
 
 export const MsgRevokeResponse = {
-  encode(_: MsgRevokeResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(_: MsgRevokeResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     return writer;
   },
 
@@ -226,7 +223,7 @@ function createBaseGenericAuthorization(): GenericAuthorization {
 }
 
 export const GenericAuthorization = {
-  encode(message: GenericAuthorization, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: GenericAuthorization, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.msg !== "") {
       writer.uint32(10).string(message.msg);
     }
@@ -341,6 +338,7 @@ export const StakeAuthorization = {
     return writer;
   },
 
+  
   fromPartial(object : DeepPartial<StakeAuthorization>): StakeAuthorization {
     const message = createBaseStakeAuthorization();
     message.maxTokens =
@@ -404,7 +402,7 @@ export const SendAuthorization = {
 };
 
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined | Long;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined | bigint;
 export type DeepPartial<T> = T extends Builtin
     ? T
     : T extends Array<infer U>

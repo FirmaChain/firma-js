@@ -1,12 +1,12 @@
 import { promises as fs } from "fs";
-import { SignDoc, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { TendermintQueryClient } from "./firmachain/common/TendermintQueryClient";
-import { FirmaConfig } from "./FirmaConfig";
+import { SignDoc, TxRaw, AuthInfo, TxBody } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import axios from "axios";
 
-import { fromBech32, toBech32 } from "@cosmjs/encoding";
-import { LedgerSigningStargateClient, SignerData } from "./firmachain/common/LedgerSigningStargateClient";
-import { SignAndBroadcastOptions, TxMisc } from "./firmachain/common";
-import { fromHex, toBase64, toHex, fromBase64 } from '@cosmjs/encoding';
+import { Duration } from "cosmjs-types/google/protobuf/duration";
+import { fromBech32, toBech32, fromHex, toBase64, toHex, fromBase64 } from '@cosmjs/encoding';
+import { EncodeObject, makeSignBytes, makeSignDoc, Registry } from "@cosmjs/proto-signing";
+
+import { SignAndBroadcastOptions, TxMisc, ArbitraryVerifyData } from "./firmachain/common";
 
 import {
     ExtendedSecp256k1Signature,
@@ -17,15 +17,15 @@ import {
 
 import { pubkeyToAddress } from '@cosmjs/amino';
 
-import { EncodeObject, makeSignBytes, Registry } from "@cosmjs/proto-signing";
-import { FirmaWalletService } from "./FirmaWalletService";
-import { SigningStargateClient, ArbitraryVerifyData } from "./firmachain/common/signingstargateclient";
-import { Any } from "./firmachain/google/protobuf/any";
-import Long from "long";
-import BigNumber from "bignumber.js";
 
+import { FirmaConfig } from "./FirmaConfig";
+import { FirmaWalletService } from "./FirmaWalletService";
+import { Any } from "./firmachain/google/protobuf/any";
 import { CommonTxClient } from "./firmachain/common/CommonTxClient";
-import { Duration } from "cosmjs-types/google/protobuf/duration";
+import { TendermintQueryClient } from "./firmachain/common/TendermintQueryClient";
+import { BigNumber } from "bignumber.js";
+import { rawSecp256k1PubkeyToRawAddress } from "@cosmjs/tendermint-rpc";
+import { arrayContentEquals } from "@cosmjs/utils";
 
 const CryptoJS = require("crypto-js");
 const sha1 = require("crypto-js/sha1");
@@ -168,9 +168,7 @@ export class FirmaUtil {
         return sha256(data).toString(encHex);
     }
 
-
     static isValidAddress(address: string): boolean {
-
         try {
             // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             fromBech32(address).data;
@@ -212,21 +210,6 @@ export class FirmaUtil {
         return toBech32(FirmaUtil.config.prefix, data);
     }
 
-    static async getSignerDataForLedger(address: string): Promise<SignerData> {
-
-        try {
-
-            let signingClient = await LedgerSigningStargateClient.connectWithSigner(FirmaUtil.config.rpcAddress);
-            let sequence = await signingClient.getSignerData(address);
-
-            return sequence;
-
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
-    }
-
     static async estimateGas(txRaw: TxRaw): Promise<number> {
 
         try {
@@ -250,7 +233,7 @@ export class FirmaUtil {
         try {
             const encodedTx = Uint8Array.from(txRaw);
             const hexTx = `0x${Buffer.from(encodedTx).toString("hex")}`;
-            
+
             const queryClient = new TendermintQueryClient(FirmaUtil.config.rpcAddress);
             const gas = await queryClient.queryEstimateGas(hexTx);
 
@@ -263,37 +246,38 @@ export class FirmaUtil {
         }
     }
 
+    static async getAccountInfo(address: string): Promise<{ account_number: string; sequence: string }> {
+        try {
+            const res = await axios.get(`${FirmaUtil.config.restApiAddress}/cosmos/auth/v1beta1/accounts/${address}`);
+            if (res.status !== 200) {
+                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+            
+            const json = res.data;
+            const baseAccount = json.account.base_account || json.account;
+            const result = {
+                account_number: baseAccount.account_number,
+                sequence: baseAccount.sequence,
+            };
+            
+            return result;
+            
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static async getChainId(): Promise<string> {
+        const res = await axios.get(`${FirmaUtil.config.restApiAddress}/cosmos/base/tendermint/v1beta1/node_info`);
+        const json = res.data;
+        return json.default_node_info.network;
+    }
+
     static printLog(log: any) {
         if (FirmaUtil.config.isShowLog === false)
             return;
 
         console.log(`[FirmaSDK] ${log}`);
-    }
-
-    public static async experimentalAdr36Sign(wallet: FirmaWalletService, data: string): Promise<ArbitraryVerifyData> {
-
-        try {
-            const registry = new Registry();
-            const client = await SigningStargateClient.connectWithSigner(FirmaUtil.config.rpcAddress, wallet.getRawAminoWallet(), { registry: registry });
-
-            const address = await wallet.getAddress();
-
-            let userData: Uint8Array | Uint8Array[] = Buffer.from(data);
-
-            return await client.experimentalAdr36Sign(address, userData);
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
-    }
-
-    static async experimentalAdr36Verify(data: ArbitraryVerifyData, checkMsg: string): Promise<boolean> {
-        try {
-            return await SigningStargateClient.experimentalAdr36Verify(data, checkMsg);
-        } catch (error) {
-            FirmaUtil.printLog(error);
-            throw error;
-        }
     }
 
     private static async recoverSigningAddress(
@@ -359,7 +343,7 @@ export class FirmaUtil {
             ...signDoc,
             bodyBytes: fromHex(signDoc.bodyBytes),
             authInfoBytes: fromHex(signDoc.authInfoBytes),
-            accountNumber: Long.fromString(signDoc.accountNumber),
+            accountNumber: BigInt(signDoc.accountNumber),
           };
     }
 
@@ -371,34 +355,6 @@ export class FirmaUtil {
             authInfoBytes: toHex(signDoc.authInfoBytes),
             accountNumber: signDoc.accountNumber.toString(),
           });
-    }
-
-    public static async makeSignDoc(
-        signerAddress: string,
-        pubkey: string,
-        messages: readonly EncodeObject[],        
-        txMisc: TxMisc = DefaultTxMisc
-    ): Promise<SignDoc> {
-
-        let result = FirmaUtil.getSignAndBroadcastOption(FirmaUtil.config.denom, txMisc);
-
-        let chainID = FirmaUtil.config.chainID;
-        let serverUrl = FirmaUtil.config.rpcAddress;
-        let registry = CommonTxClient.getRegistry();
-
-        return await SigningStargateClient.makeSignDocForSend(signerAddress, pubkey, messages, result.fee, result.memo, serverUrl, chainID, registry);
-    }
-
-    public static async makeSignDocWithStringify(signerAddress: string,
-        pubkey: string,
-        messages: readonly EncodeObject[],        
-        txMisc: TxMisc = DefaultTxMisc
-    ): Promise<string> {
-
-        let signDoc = await this.makeSignDoc(signerAddress, pubkey, messages, txMisc);
-        let stringSignDoc = this.stringifySignDocValues(signDoc);
-
-        return stringSignDoc;
     }
 
     public static getAnyData(registry: Registry, message: EncodeObject): Any {
@@ -414,13 +370,6 @@ export class FirmaUtil {
         return new CommonTxClient(aliceWallet, FirmaUtil.config.rpcAddress);
 	}
 
-    /**
-     * Parses a duration string to a Duration object.
-     * Supports formats like "336h0m0s", "21d", "1000ms", "1s", "1m", "1h", "1ns", "1µs"/"1us"
-     * 
-     * @param durationStr - Duration string to parse (e.g., "336h0m0s", "21d")
-     * @returns Duration object with seconds and nanos fields
-     */
     static parseDurationString(durationStr: string): { seconds: bigint; nanos: number } {
         if (!durationStr || durationStr.trim() === "") {
             return { seconds: BigInt(0), nanos: 0 };
@@ -489,13 +438,6 @@ export class FirmaUtil {
         };
     }
 
-    /**
-     * Creates a Duration object from a duration string.
-     * This is a convenience method that combines parseDurationString with Duration.fromPartial.
-     * 
-     * @param durationStr - Duration string to parse (e.g., "336h0m0s", "21d")
-     * @returns Duration object ready to use with protobuf
-     */
     static createDurationFromString(durationStr: string): Duration {
         const { seconds, nanos } = FirmaUtil.parseDurationString(durationStr);
         
@@ -540,6 +482,141 @@ export class FirmaUtil {
 
         // Returns integer string
         return atomics.integerValue(BigNumber.ROUND_DOWN).toString();
+    }
+
+    /**
+     * ADR-036 protobuf arbitrary signing
+     * 
+     * @param wallet - FirmaWalletService instance
+     * @param signerAddress - Address of the signer
+     * @param data - Arbitrary data to sign
+     * @returns ArbitraryVerifyData for verification
+     */
+    static async protobufArbitrarySign(wallet: FirmaWalletService, signerAddress: string, data: Uint8Array): Promise<ArbitraryVerifyData> {
+        try {
+            const rawWallet = wallet.getRawWallet();
+            const accounts = await rawWallet.getAccounts();
+            const account = accounts.find(acc => acc.address === signerAddress);
+            if (!account) {
+                throw new Error("Account not found in rawWallet");
+            }
+
+            // ADR-036 compatible: Create empty transaction with arbitrary data as memo
+            // This is more compatible with standard ADR-036 approach
+            const txBody = TxBody.fromPartial({
+                messages: [], // Empty messages for arbitrary signing
+                memo: new TextDecoder().decode(data), // Store arbitrary data in memo field
+                timeoutHeight: BigInt(0),
+            });
+
+            // Create minimal AuthInfo for ADR-036
+            const authInfo = AuthInfo.fromPartial({
+                signerInfos: [],
+                fee: {
+                    amount: [],
+                    gasLimit: BigInt(0),
+                    payer: "",
+                    granter: ""
+                }
+            });
+
+            // Create SignDoc following ADR-036 pattern
+            const signDoc = makeSignDoc(
+                TxBody.encode(txBody).finish(),
+                AuthInfo.encode(authInfo).finish(),
+                "", // Empty chainId for arbitrary signing
+                0   // 0 account number for arbitrary signing
+            );
+
+            // Sign the document
+            const signBytes = makeSignBytes(signDoc);
+            const hash = sha256crypto(signBytes);
+
+            const privKey = (rawWallet as any)["privkey"];
+            if (!privKey) {
+                throw new Error("Private key not accessible from wallet");
+            }
+
+            const signature = await Secp256k1.createSignature(hash, privKey);
+            const sigBytes = new Uint8Array([...signature.r(32), ...signature.s(32)]);
+
+            return {
+                chainId: signDoc.chainId,
+                accountNumber: signDoc.accountNumber.toString(),
+                sequence: "0",
+                bodyBytes: toBase64(signDoc.bodyBytes),
+                authInfoBytes: toBase64(signDoc.authInfoBytes),
+                signerAddress: signerAddress,
+                pubkey: toBase64(account.pubkey),
+                signature: toBase64(sigBytes),
+            };
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    /**
+     * ADR-036 protobuf arbitrary signature verification
+     * 
+     * @param data - ArbitraryVerifyData to verify
+     * @param originalMessage - Original message that was signed
+     * @returns boolean indicating if the signature is valid
+     */
+    static async protobufArbitraryVerify(data: ArbitraryVerifyData, originalMessage: Uint8Array): Promise<boolean> {
+        try {
+            // Reconstruct SignDoc
+            const signDoc = makeSignDoc(
+                fromBase64(data.bodyBytes),
+                fromBase64(data.authInfoBytes),
+                data.chainId,
+                Number(data.accountNumber)
+            );
+
+            // Verify the message content - ADR-036 style with memo
+            const txBody = TxBody.decode(signDoc.bodyBytes);
+            
+            // For ADR-036 arbitrary signing, messages should be empty
+            if (txBody.messages.length !== 0) {
+                return false;
+            }
+
+            // Extract data from memo field
+            const memoData = txBody.memo;
+            const originalMessageString = new TextDecoder().decode(originalMessage);
+            
+            if (memoData !== originalMessageString) {
+                return false;
+            }
+
+            // Verify signature
+            const signBytes = makeSignBytes(signDoc);
+            const hash = sha256crypto(signBytes);
+
+            try {
+                const pubkeyBytes = fromBase64(data.pubkey);
+                const signatureBytes = fromBase64(data.signature);
+                
+                const secpSig = Secp256k1Signature.fromFixedLength(signatureBytes);
+
+                // Verify address matches pubkey
+                const rawSignerAddr = rawSecp256k1PubkeyToRawAddress(pubkeyBytes);
+                const bech32SignerAddr = fromBech32(data.signerAddress).data;
+                
+                if (!rawSignerAddr || !bech32SignerAddr || !arrayContentEquals(rawSignerAddr, bech32SignerAddr)) {
+                    return false;
+                }
+
+                const isValid = await Secp256k1.verifySignature(secpSig, hash, pubkeyBytes);
+                
+                return isValid;
+            } catch (error: any) {
+                return false;
+            }
+
+        } catch (error) {
+            return false;
+        }
     }
 }
 

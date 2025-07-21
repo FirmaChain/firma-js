@@ -20,18 +20,18 @@ export interface Account {
 }
 
 function uint64FromProto(input: number | bigint): Uint64 {
-  return Uint64.fromString(input.toString());
+    return Uint64.fromString(input.toString());
 }
 
 function accountFromBaseAccount(input: BaseAccount): Account {
-  const { address, pubKey, accountNumber, sequence } = input;
-  const pubkey = decodeOptionalPubkey(pubKey);
-  return {
-    address: address,
-    pubkey: pubkey,
-    accountNumber: uint64FromProto(accountNumber).toNumber(),
-    sequence: uint64FromProto(sequence).toNumber(),
-  };
+    const { address, pubKey, accountNumber, sequence } = input;
+    const pubkey = decodeOptionalPubkey(pubKey);
+    return {
+        address: address,
+        pubkey: pubkey,
+        accountNumber: uint64FromProto(accountNumber).toNumber(),
+        sequence: uint64FromProto(sequence).toNumber(),
+    };
 }
 
 /**
@@ -49,18 +49,17 @@ export function accountFromAny(input: Any): Account {
   const { typeUrl, value } = input;
 
   switch (typeUrl) {
-    // auth
 
+    // auth
     case "/cosmos.auth.v1beta1.BaseAccount":
       return accountFromBaseAccount(BaseAccount.decode(value));
     case "/cosmos.auth.v1beta1.ModuleAccount": {
       const baseAccount = ModuleAccount.decode(value).baseAccount;
       assert(baseAccount);
-      return accountFromBaseAccount(baseAccount);
+      return accountFromBaseAccount(baseAccount!);
     }
 
     // vesting
-
     case "/cosmos.vesting.v1beta1.BaseVestingAccount": {
       const baseAccount = BaseVestingAccount.decode(value)?.baseAccount;
       assert(baseAccount);

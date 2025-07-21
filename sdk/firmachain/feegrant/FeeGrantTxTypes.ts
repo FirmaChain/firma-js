@@ -1,11 +1,5 @@
-import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
-
-import _m0 from "protobufjs/minimal";
-import { BinaryWriter } from "cosmjs-types/binary";
-
-import { Timestamp } from "../google/protobuf/timestamp";
 import { Any } from "../google/protobuf/any";
-import { Duration } from "../google/protobuf/duration";
+import { BinaryWriter } from "cosmjs-types/binary";
 
 export interface MsgGrantAllowance {
     granter: string;
@@ -62,7 +56,7 @@ export const MsgGrantAllowance = {
 
 
 export const MsgRevokeAllowance = {
-    encode(message: MsgRevokeAllowance, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    encode(message: MsgRevokeAllowance, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
         if (message.granter !== "") {
             writer.uint32(10).string(message.granter);
         }
@@ -90,41 +84,6 @@ export const MsgRevokeAllowance = {
     },
 };
 
-
-export interface BasicAllowance {
-    /**
-     * spend_limit specifies the maximum amount of tokens that can be spent
-     * by this allowance and will be updated as tokens are spent. If it is
-     * empty, there is no spend limit and any amount of coins can be spent.
-     */
-    spendLimit: Coin[];
-    /** expiration specifies an optional time when this allowance expires */
-    expiration: Date | undefined;
-}
-
-export interface PeriodicAllowance {
-    /** basic specifies a struct of `BasicAllowance` */
-    basic: BasicAllowance | undefined;
-    /**
-     * period specifies the time duration in which period_spend_limit coins can
-     * be spent before that allowance is reset
-     */
-    period: Duration | undefined;
-    /**
-     * period_spend_limit specifies the maximum number of coins that can be spent
-     * in the period
-     */
-    periodSpendLimit: Coin[];
-    /** period_can_spend is the number of coins left to be spent before the period_reset time */
-    periodCanSpend: Coin[];
-    /**
-     * period_reset is the time at which this period resets and a new one begins,
-     * it is calculated from the start time of the first transaction after the
-     * last period ended
-     */
-    periodReset: Date | undefined;
-}
-
 /** AllowedMsgAllowance creates allowance only for specified message types. */
 export interface AllowedMsgAllowance {
     /** allowance can be any of basic and filtered fee allowance. */
@@ -134,10 +93,7 @@ export interface AllowedMsgAllowance {
 }
 
 export const AllowedMsgAllowance = {
-    encode(
-    message: AllowedMsgAllowance,
-    writer: BinaryWriter = BinaryWriter.create()
-    ): BinaryWriter {
+    encode(message: AllowedMsgAllowance, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
         if (message.allowance !== undefined) {
             Any.encode(message.allowance, writer.uint32(10).fork()).ldelim();
         }
@@ -147,53 +103,6 @@ export const AllowedMsgAllowance = {
         return writer;
     },
 };
-
-export const PeriodicAllowance = {
-    encode(message: PeriodicAllowance, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
-        if (message.basic !== undefined) {
-            BasicAllowance.encode(message.basic, writer.uint32(10).fork()).ldelim();
-        }
-        if (message.period !== undefined) {
-            Duration.encode(message.period, writer.uint32(18).fork()).ldelim();
-        }
-        for (const v of message.periodSpendLimit) {
-            Coin.encode(v!, writer.uint32(26).fork()).ldelim();
-        }
-        for (const v of message.periodCanSpend) {
-            Coin.encode(v!, writer.uint32(34).fork()).ldelim();
-        }
-        if (message.periodReset !== undefined) {
-            Timestamp.encode(
-                toTimestamp(message.periodReset),
-                writer.uint32(42).fork()
-            ).ldelim();
-        }
-        return writer;
-    },
-};
-
-export const BasicAllowance = {
-    encode(message: BasicAllowance, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
-        for (const v of message.spendLimit) {
-            Coin.encode(v!, writer.uint32(10).fork()).ldelim();
-        }
-        if (message.expiration !== undefined) {
-            Timestamp.encode(
-                toTimestamp(message.expiration),
-                writer.uint32(18).fork()
-            ).ldelim();
-        }
-        return writer;
-    },
-};
-
-function toTimestamp(date: Date): Timestamp {
-    const millis = date.getTime();
-    return {
-        seconds: Math.floor(millis / 1000),
-        nanos: (millis % 1000) * 1_000_000,
-    };
-}
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined | Long;
 export type DeepPartial<T> = T extends Builtin

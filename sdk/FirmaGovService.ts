@@ -7,7 +7,7 @@ import {
     CurrentVoteInfo,
     GovParamType,
 } from "./firmachain/gov";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
+import { DeliverTxResponse } from "@cosmjs/stargate";
 import { Any } from "./firmachain/google/protobuf/any";
 import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";

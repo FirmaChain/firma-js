@@ -2,11 +2,12 @@ import { FirmaWalletService } from "./FirmaWalletService";
 import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
+
 import { Any } from "./firmachain/google/protobuf/any";
 import { AuthzQueryClient, AuthzTxClient, GrantGenericData, GrantSendData, GrantStakingData, Pagination, TxMisc } from "./firmachain/authz";
 import { AuthorizationType, SendAuthorization, GenericAuthorization, StakeAuthorization } from "./firmachain/authz/AuthzTxTypes";
-import { Timestamp } from "./firmachain/google/protobuf/timestamp";
+import { DeliverTxResponse } from "@cosmjs/stargate";
+import { Timestamp } from "cosmjs-types/google/protobuf/timestamp";
 
 export class FirmaAuthzService {
     constructor(private readonly config: FirmaConfig) { }
@@ -14,7 +15,7 @@ export class FirmaAuthzService {
     private async getSignedTxGrantSendAutorization(wallet: FirmaWalletService,
         granteeAddress: string,
         maxTokens: string,
-        expirationDate: Date,
+        expirationDate: Timestamp,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
@@ -27,17 +28,12 @@ export class FirmaAuthzService {
                 })).finish()),
             });
 
-            const seconds = Math.floor(expirationDate.getTime() / 1000);
-            const nanos = (expirationDate.getMilliseconds() % 1000) * 1_000_000;
-
-            const timestamp = Timestamp.fromPartial({ seconds, nanos });
-
             const message = AuthzTxClient.msgGrantAllowance({
                 granter: address,
                 grantee: granteeAddress,
                 grant: {
                     authorization: authorization,
-                    expiration: timestamp
+                    expiration: expirationDate
                 }
             });
 
@@ -55,7 +51,7 @@ export class FirmaAuthzService {
         validatorAddressList: string[],
         type: AuthorizationType,
         maxTokens: string,
-        expirationDate: Date,
+        expirationDate: Timestamp,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
@@ -70,17 +66,12 @@ export class FirmaAuthzService {
                 })).finish()),
             });
 
-            const seconds = Math.floor(expirationDate.getTime() / 1000);
-            const nanos = (expirationDate.getMilliseconds() % 1000) * 1_000_000;
-
-            const timestamp = Timestamp.fromPartial({ seconds, nanos });
-
             const message = AuthzTxClient.msgGrantAllowance({
                 granter: address,
                 grantee: granteeAddress,
                 grant: {
                     authorization: authorization,
-                    expiration: timestamp
+                    expiration: expirationDate
                 }
             });
 
@@ -96,7 +87,7 @@ export class FirmaAuthzService {
     private async getSignedTxGrantGenericAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
         msgType: string,
-        expirationDate: Date,
+        expirationDate: Timestamp,
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
@@ -109,17 +100,12 @@ export class FirmaAuthzService {
                 })).finish()),
             });
 
-            const seconds = Math.floor(expirationDate.getTime() / 1000);
-            const nanos = (expirationDate.getMilliseconds() % 1000) * 1_000_000;
-
-            const timestamp = Timestamp.fromPartial({ seconds, nanos });
-
             const message = AuthzTxClient.msgGrantAllowance({
                 granter: address,
                 grantee: granteeAddress,
                 grant: {
                     authorization: authorization,
-                    expiration: timestamp
+                    expiration: expirationDate
                 }
             });
 
@@ -179,7 +165,7 @@ export class FirmaAuthzService {
 
     async getGasEstimationGrantSendAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
-        expirationDate: Date,
+        expirationDate: Timestamp,
         maxTokens: number,
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
         try {
@@ -194,7 +180,7 @@ export class FirmaAuthzService {
 
     async grantSendAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
-        expirationDate: Date,
+        expirationDate: Timestamp,
         maxTokens: number,
         txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
@@ -213,7 +199,7 @@ export class FirmaAuthzService {
         granteeAddress: string,
         validatorAddressList: string[],
         type: AuthorizationType,
-        expirationDate: Date,
+        expirationDate: Timestamp,
         maxTokens: number = 0,
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
         try {
@@ -230,7 +216,7 @@ export class FirmaAuthzService {
         granteeAddress: string,
         validatorAddressList: string[],
         type: AuthorizationType,
-        expirationDate: Date,
+        expirationDate: Timestamp,
         maxTokens: number = 0,
         txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
@@ -248,7 +234,7 @@ export class FirmaAuthzService {
     async getGasEstimationGrantGenericAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
         msg: string,
-        expirationDate: Date,
+        expirationDate: Timestamp,
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
         try {
             const txRaw = await this.getSignedTxGrantGenericAuthorization(wallet, granteeAddress, msg, expirationDate, txMisc);
@@ -263,7 +249,7 @@ export class FirmaAuthzService {
     async grantGenericAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
         msg: string,
-        expirationDate: Date,
+        expirationDate: Timestamp,
         txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
         try {
             const txRaw = await this.getSignedTxGrantGenericAuthorization(wallet, granteeAddress, msg, expirationDate, txMisc);

@@ -28,17 +28,27 @@ describe('[07. Feegrant Query Test]', () => {
 
 	it('feegrant getGranteeAllowance', async () => {
 
-		try {
-			const expirationDate = new Date();
-			expirationDate.setMonth(12);
-			const grantResult = await firma.FeeGrant.grantBasicAllowance(aliceWallet, bobAddress, { expiration : expirationDate});
-			expect(grantResult.code).to.equal(0);
+		const expirationDate = new Date();
+		expirationDate.setDate(expirationDate.getDate() + 1);
 
-			const allowance = await firma.FeeGrant.getGranteeAllowance(aliceAddress, bobAddress);
-			expect(allowance).to.not.equal(null);
-		} catch (error) {
-			expect(false).to.be.equal(true);
-		}
+		const grantResult = await firma.FeeGrant.grantBasicAllowance(
+			aliceWallet,
+			bobAddress,
+			{
+				spendLimit: [{
+					amount: "10000",
+					denom: firma.Config.denom
+				}],
+				expiration: {
+					seconds: BigInt(Math.floor(expirationDate.getTime() / 1000)),
+					nanos: (expirationDate.getTime() % 1000) * 1000000
+				}
+			}
+		);
+		expect(grantResult.code).to.equal(0);
+
+		const allowance = await firma.FeeGrant.getGranteeAllowance(aliceAddress, bobAddress);
+		expect(allowance).to.not.equal(null);
 	});
 
 	it('feegrant getGranteeAllowanceAll', async () => {

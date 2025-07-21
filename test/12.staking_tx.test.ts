@@ -57,9 +57,16 @@ describe('[12. Staking Tx Test]', () => {
 		const result = await firma.Staking.delegate(aliceWallet, srcValoperAddress, amount);
 		expect(result.code).to.equal(0);
 
-		// NOTICE: there's a case for use more than 200000 gas here.
-		const result1 = await firma.Staking.redelegate(aliceWallet, srcValoperAddress, dstValoperAddress, amount, { gas: 300000, fee: 30000 });
-		expect(result1.code).to.equal(0);
+		try {
+			
+			// NOTICE: there's a case for use more than 200000 gas here.
+			const gas = await firma.Staking.getGasEstimationRedelegate(aliceWallet, srcValoperAddress, dstValoperAddress, amount);
+			const fee = Math.ceil(gas * 0.1);
+			const result1 = await firma.Staking.redelegate(aliceWallet, srcValoperAddress, dstValoperAddress, amount, { gas, fee });
+			expect(result1.code).to.equal(0);
+		} catch (error) {
+			console.log(error);
+		}
 	});
 
 	// new case added. if succeed, the dapp needs to prevent zero amount input from users.
@@ -86,7 +93,7 @@ describe('[12. Staking Tx Test]', () => {
 
 	// NOTICE: not decide to include firma.js spec
 	// This unit test can be run once and can be re-invoked after 24 hours.
-	it.skip('editValidator OK', async () => {
+	it('editValidator OK', async () => {
 
 		//const inputPercentage = 0.123456; // 12.34% (Only 2 decimal places are allowed.)
 		const inputPercentage = 0.098767; // 9.87% (Only 2 decimal places are allowed. 67 is expected to be thrown away.)

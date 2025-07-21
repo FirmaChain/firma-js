@@ -6,7 +6,7 @@ import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil
 import { TxMisc } from "./firmachain/common";
 import { CosmWasmTxClient } from "./firmachain/cosmwasm/CosmWasmTxClient";
 import { EncodeObject } from "@cosmjs/proto-signing";
-import { DeliverTxResponse } from "./firmachain/common/stargateclient";
+import { DeliverTxResponse } from "@cosmjs/stargate";
 
 export interface Cw721ExpiresAtHeight {
     at_height: number;

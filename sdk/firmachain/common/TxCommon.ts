@@ -1,25 +1,5 @@
-import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { Any } from "../google/protobuf/any";
-
-export interface StdFee {
-    amount: Coin[];
-    gas: string;
-    granter: string;
-}
-
-export interface BasicFeeGrantOption {
-    spendLimit?: number,
-    expiration?: Date,
-}
-
-export interface PeriodicFeeGrantOption {
-    basicSpendLimit?: number,
-    basicExpiration?: Date,
-    periodSeconds: number,
-    periodSpendLimit: number,
-    periodCanSpend: number,
-    periodReset: Date;
-}
+import { StdFee } from "@cosmjs/stargate";
 
 export const DefaultBasicFeeGrantOption = { spendLimit: undefined, expiration: undefined };
 
@@ -80,16 +60,19 @@ export enum VotingOption {
     UNRECOGNIZED = -1
 }
 
-export interface ParamChangeOption {
-    subspace: string;
-    key: string;
-    value: string;
+export interface ArbitraryVerifyData {
+    chainId: string;
+    accountNumber: string;
+    sequence: string;
+    bodyBytes: string;
+    authInfoBytes: string;
+    signerAddress: string;
+    pubkey: string;
+    signature: string;
 }
 
-export interface SoftwareUpgradePlan {
-    name: string;
-    time?: Date;
-    height?: bigint;
-    info?: string,
-    upgradedClientState?: Any;
+// Protobuf message for arbitrary data
+export interface MsgSignArbitraryData {
+    signer: string;
+    data: Uint8Array;
 }
