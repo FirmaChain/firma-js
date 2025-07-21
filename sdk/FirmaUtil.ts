@@ -1,13 +1,12 @@
 import { promises as fs } from "fs";
-import { SignDoc, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { SignDoc, TxRaw, AuthInfo, TxBody } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import axios from "axios";
 
 import { Duration } from "cosmjs-types/google/protobuf/duration";
-import { fromBech32, toBech32 } from "@cosmjs/encoding";
-import { fromHex, toBase64, toHex, fromBase64 } from '@cosmjs/encoding';
-import { EncodeObject, makeSignBytes, Registry } from "@cosmjs/proto-signing";
+import { fromBech32, toBech32, fromHex, toBase64, toHex, fromBase64 } from '@cosmjs/encoding';
+import { EncodeObject, makeSignBytes, makeSignDoc, Registry } from "@cosmjs/proto-signing";
 
-import { SignAndBroadcastOptions, TxMisc } from "./firmachain/common";
+import { SignAndBroadcastOptions, TxMisc, ArbitraryVerifyData } from "./firmachain/common";
 
 import {
     ExtendedSecp256k1Signature,
@@ -25,6 +24,8 @@ import { Any } from "./firmachain/google/protobuf/any";
 import { CommonTxClient } from "./firmachain/common/CommonTxClient";
 import { TendermintQueryClient } from "./firmachain/common/TendermintQueryClient";
 import { BigNumber } from "bignumber.js";
+import { rawSecp256k1PubkeyToRawAddress } from "@cosmjs/tendermint-rpc";
+import { arrayContentEquals } from "@cosmjs/utils";
 
 const CryptoJS = require("crypto-js");
 const sha1 = require("crypto-js/sha1");
@@ -481,6 +482,141 @@ export class FirmaUtil {
 
         // Returns integer string
         return atomics.integerValue(BigNumber.ROUND_DOWN).toString();
+    }
+
+    /**
+     * ADR-036 protobuf arbitrary signing
+     * 
+     * @param wallet - FirmaWalletService instance
+     * @param signerAddress - Address of the signer
+     * @param data - Arbitrary data to sign
+     * @returns ArbitraryVerifyData for verification
+     */
+    static async protobufArbitrarySign(wallet: FirmaWalletService, signerAddress: string, data: Uint8Array): Promise<ArbitraryVerifyData> {
+        try {
+            const rawWallet = wallet.getRawWallet();
+            const accounts = await rawWallet.getAccounts();
+            const account = accounts.find(acc => acc.address === signerAddress);
+            if (!account) {
+                throw new Error("Account not found in rawWallet");
+            }
+
+            // ADR-036 compatible: Create empty transaction with arbitrary data as memo
+            // This is more compatible with standard ADR-036 approach
+            const txBody = TxBody.fromPartial({
+                messages: [], // Empty messages for arbitrary signing
+                memo: new TextDecoder().decode(data), // Store arbitrary data in memo field
+                timeoutHeight: BigInt(0),
+            });
+
+            // Create minimal AuthInfo for ADR-036
+            const authInfo = AuthInfo.fromPartial({
+                signerInfos: [],
+                fee: {
+                    amount: [],
+                    gasLimit: BigInt(0),
+                    payer: "",
+                    granter: ""
+                }
+            });
+
+            // Create SignDoc following ADR-036 pattern
+            const signDoc = makeSignDoc(
+                TxBody.encode(txBody).finish(),
+                AuthInfo.encode(authInfo).finish(),
+                "", // Empty chainId for arbitrary signing
+                0   // 0 account number for arbitrary signing
+            );
+
+            // Sign the document
+            const signBytes = makeSignBytes(signDoc);
+            const hash = sha256crypto(signBytes);
+
+            const privKey = (rawWallet as any)["privkey"];
+            if (!privKey) {
+                throw new Error("Private key not accessible from wallet");
+            }
+
+            const signature = await Secp256k1.createSignature(hash, privKey);
+            const sigBytes = new Uint8Array([...signature.r(32), ...signature.s(32)]);
+
+            return {
+                chainId: signDoc.chainId,
+                accountNumber: signDoc.accountNumber.toString(),
+                sequence: "0",
+                bodyBytes: toBase64(signDoc.bodyBytes),
+                authInfoBytes: toBase64(signDoc.authInfoBytes),
+                signerAddress: signerAddress,
+                pubkey: toBase64(account.pubkey),
+                signature: toBase64(sigBytes),
+            };
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    /**
+     * ADR-036 protobuf arbitrary signature verification
+     * 
+     * @param data - ArbitraryVerifyData to verify
+     * @param originalMessage - Original message that was signed
+     * @returns boolean indicating if the signature is valid
+     */
+    static async protobufArbitraryVerify(data: ArbitraryVerifyData, originalMessage: Uint8Array): Promise<boolean> {
+        try {
+            // Reconstruct SignDoc
+            const signDoc = makeSignDoc(
+                fromBase64(data.bodyBytes),
+                fromBase64(data.authInfoBytes),
+                data.chainId,
+                Number(data.accountNumber)
+            );
+
+            // Verify the message content - ADR-036 style with memo
+            const txBody = TxBody.decode(signDoc.bodyBytes);
+            
+            // For ADR-036 arbitrary signing, messages should be empty
+            if (txBody.messages.length !== 0) {
+                return false;
+            }
+
+            // Extract data from memo field
+            const memoData = txBody.memo;
+            const originalMessageString = new TextDecoder().decode(originalMessage);
+            
+            if (memoData !== originalMessageString) {
+                return false;
+            }
+
+            // Verify signature
+            const signBytes = makeSignBytes(signDoc);
+            const hash = sha256crypto(signBytes);
+
+            try {
+                const pubkeyBytes = fromBase64(data.pubkey);
+                const signatureBytes = fromBase64(data.signature);
+                
+                const secpSig = Secp256k1Signature.fromFixedLength(signatureBytes);
+
+                // Verify address matches pubkey
+                const rawSignerAddr = rawSecp256k1PubkeyToRawAddress(pubkeyBytes);
+                const bech32SignerAddr = fromBech32(data.signerAddress).data;
+                
+                if (!rawSignerAddr || !bech32SignerAddr || !arrayContentEquals(rawSignerAddr, bech32SignerAddr)) {
+                    return false;
+                }
+
+                const isValid = await Secp256k1.verifySignature(secpSig, hash, pubkeyBytes);
+                
+                return isValid;
+            } catch (error: any) {
+                return false;
+            }
+
+        } catch (error) {
+            return false;
+        }
     }
 }
 
