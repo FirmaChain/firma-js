@@ -3,7 +3,7 @@ import { FirmaSDK } from '../sdk/FirmaSDK';
 import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { FirmaUtil } from '../sdk/FirmaUtil';
 
-import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test.sample';
+import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 import { toUtf8 } from "@cosmjs/encoding";
 import { ArbitraryVerifyData } from '..';
 
