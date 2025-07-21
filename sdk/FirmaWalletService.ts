@@ -46,21 +46,31 @@ export class FirmaWalletService {
     }
 
     async getPubKey(): Promise<string> {
-        if (this.ledger != null) {
-            return FirmaUtil.arrayBufferToBase64(await this.ledger.getPublicKey());
-        }
+        try {
+            if (this.ledger != null) {
+                return FirmaUtil.arrayBufferToBase64(await this.ledger.getPublicKey());
+            }
 
-        const accounts = await this.wallet.getAccounts();
-        return FirmaUtil.arrayBufferToBase64(accounts[0].pubkey);
+            const accounts = await this.wallet.getAccounts();
+            return FirmaUtil.arrayBufferToBase64(accounts[0].pubkey);
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
     }
 
     async getAddress(): Promise<string> {
-        if (this.ledger != null) {
-            return await this.ledger.getAddress();
+        try {
+            if (this.ledger != null) {
+                return await this.ledger.getAddress();
+            }
+            
+            const accounts = await this.wallet.getAccounts();
+            return accounts[0].address;
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
         }
-        
-        const accounts = await this.wallet.getAccounts();
-        return accounts[0].address;
     }
 
     constructor(private readonly config: FirmaConfig) {
@@ -70,69 +80,119 @@ export class FirmaWalletService {
     }
 
     private static getHdPath(hdPath: string, accountIndex: number): HdPath[] {
-        return [stringToPath(hdPath + accountIndex + "'/0/0")];
+        try {
+            return [stringToPath(hdPath + accountIndex + "'/0/0")];
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
     }
 
     async initFromMnemonic(mnemonic: string, accountIndex: number = 0) {
-        this.mnemonic = mnemonic;
-        this.accountIndex = accountIndex;
-
-        const privateKey = await this.getPrivateKeyInternal(this.mnemonic, this.accountIndex);
-        await this.initFromPrivateKey(privateKey);
-
-        return { success: true };
+        try {
+            this.mnemonic = mnemonic;
+            this.accountIndex = accountIndex;
+    
+            const privateKey = await this.getPrivateKeyInternal(this.mnemonic, this.accountIndex);
+            await this.initFromPrivateKey(privateKey);
+    
+            return { success: true };
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
     }
 
     private async getPrivateKeyInternal(mnemonic: string, accountIndex: number): Promise<string> {
-        const mnemonicChecked = new EnglishMnemonic(mnemonic);
-        const seed = await Bip39.mnemonicToSeed(mnemonicChecked);
-
-        const hdpath = FirmaWalletService.getHdPath(this.getHdPath(), accountIndex);
-
-        const { privkey } = Slip10.derivePath(Slip10Curve.Secp256k1, seed, hdpath[0]);
-
-        const privateKey = `0x${Buffer.from(privkey).toString("hex")}`;
-        return privateKey;
+        try {
+            const mnemonicChecked = new EnglishMnemonic(mnemonic);
+            const seed = await Bip39.mnemonicToSeed(mnemonicChecked);
+    
+            const hdpath = FirmaWalletService.getHdPath(this.getHdPath(), accountIndex);
+    
+            const { privkey } = Slip10.derivePath(Slip10Curve.Secp256k1, seed, hdpath[0]);
+    
+            const privateKey = `0x${Buffer.from(privkey).toString("hex")}`;
+            return privateKey;
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
     }
 
     async initFromPrivateKey(privateKey: string) {
-        const tempPrivateKey = Buffer.from(privateKey.replace("0x", ""), "hex");
-        this.wallet = await DirectSecp256k1Wallet.fromKey(tempPrivateKey, this.getPrefix());
-        this.aminoWallet = await Secp256k1Wallet.fromKey(tempPrivateKey, this.getPrefix());
-        
-        this.privateKey = privateKey;
+        try {
+            const tempPrivateKey = Buffer.from(privateKey.replace("0x", ""), "hex");
+            this.wallet = await DirectSecp256k1Wallet.fromKey(tempPrivateKey, this.getPrefix());
+            this.aminoWallet = await Secp256k1Wallet.fromKey(tempPrivateKey, this.getPrefix());
+            
+            this.privateKey = privateKey;
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
     }
 
     decryptData(data: string): string {
-        const bytes = CryptoJS.AES.decrypt(data, this.getPrivateKey());
-        return bytes.toString(CryptoJS.enc.Utf8);
+        try {
+            const bytes = CryptoJS.AES.decrypt(data, this.getPrivateKey());
+            return bytes.toString(CryptoJS.enc.Utf8);
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
     }
 
     encryptData(data: string): string {
-        return CryptoJS.AES.encrypt(data, this.getPrivateKey()).toString();
+        try {
+            return CryptoJS.AES.encrypt(data, this.getPrivateKey()).toString();
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
     }
 
     async newWallet(): Promise<FirmaWalletService> {
-        const mnemonic = await this.generateMnemonic();
-        const wallet = await this.fromMnemonic(mnemonic);
-        return wallet;
+        try {
+            const mnemonic = await this.generateMnemonic();
+            const wallet = await this.fromMnemonic(mnemonic);
+            return wallet;
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
     }
 
     async fromMnemonic(mnemonic: string, accountIndex: number = 0): Promise<FirmaWalletService> {
-        const wallet = new FirmaWalletService(this.config);
-        await wallet.initFromMnemonic(mnemonic, accountIndex);
-        return wallet;
+        try {
+            const wallet = new FirmaWalletService(this.config);
+            await wallet.initFromMnemonic(mnemonic, accountIndex);
+            return wallet;
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
     }
 
     async fromPrivateKey(privateKey: string): Promise<FirmaWalletService> {
-        const wallet = new FirmaWalletService(this.config);
-        await wallet.initFromPrivateKey(privateKey);
-        return wallet;
+        try {
+            const wallet = new FirmaWalletService(this.config);
+            await wallet.initFromPrivateKey(privateKey);
+            return wallet;
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
     }
 
     async generateMnemonic(): Promise<string> {
-        const wallet = await DirectSecp256k1HdWallet.generate(24);
-        return wallet.mnemonic;
+        try {
+            const wallet = await DirectSecp256k1HdWallet.generate(24);
+            return wallet.mnemonic;
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
     }
 
     // Ledger
@@ -142,9 +202,14 @@ export class FirmaWalletService {
     }
 
     async initFromLedger(ledger: LedgerWalletInterface): Promise<FirmaWalletService> {
-        const wallet = new FirmaWalletService(this.config);
-        wallet.ledger = ledger;
-        return wallet;
+        try {
+            const wallet = new FirmaWalletService(this.config);
+            wallet.ledger = ledger;
+            return wallet;
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
     }
 
     async signLedger(
