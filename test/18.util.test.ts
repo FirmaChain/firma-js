@@ -1,9 +1,20 @@
 import { expect } from 'chai';
 import { FirmaUtil } from '../sdk/FirmaUtil';
+import { FirmaSDK } from '../sdk/FirmaSDK';
+import { aliceMnemonic, TestChainConfig } from './config_test';
+import { FirmaConfig } from '../sdk/FirmaConfig';
+import { FirmaWalletService } from '../sdk/FirmaWalletService';
 
 describe('[18. util Test]', () => {
 
-	beforeEach(function() {
+	let firma: FirmaSDK;
+	let aliceWallet: FirmaWalletService;
+	let aliceAddress: string;
+
+	beforeEach(async function() {
+		firma = new FirmaSDK(TestChainConfig);
+		aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		aliceAddress = await aliceWallet.getAddress();
 	})
 
 	// getHashFromString
@@ -301,4 +312,18 @@ describe('[18. util Test]', () => {
 		
 		expect(() => FirmaUtil.processCommissionRateAsDecimal(" 0.5 extra")).to.throw("Invalid commission rate format:  0.5 extra");
 	})
+
+	it('getAccountInfo test', async () => {
+		
+		let result = await FirmaUtil.getAccountInfo(aliceAddress);
+		expect(result).to.have.property('account_number');
+		expect(result).to.have.property('sequence');
+	})
+
+	it('getChainId test', async () => {
+		
+		let result = await FirmaUtil.getChainId();
+
+		expect(result).to.be.equal(FirmaConfig.DevNetConfig.chainID);
+	});
 });

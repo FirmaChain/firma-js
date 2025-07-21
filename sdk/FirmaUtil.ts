@@ -1,5 +1,6 @@
 import { promises as fs } from "fs";
 import { SignDoc, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import axios from "axios";
 
 import { Duration } from "cosmjs-types/google/protobuf/duration";
 import { fromBech32, toBech32 } from "@cosmjs/encoding";
@@ -166,9 +167,7 @@ export class FirmaUtil {
         return sha256(data).toString(encHex);
     }
 
-
     static isValidAddress(address: string): boolean {
-
         try {
             // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             fromBech32(address).data;
@@ -248,13 +247,12 @@ export class FirmaUtil {
 
     static async getAccountInfo(address: string): Promise<{ account_number: string; sequence: string }> {
         try {
-            const url = `${FirmaUtil.config.restApiAddress}/cosmos/auth/v1beta1/accounts/${address}`;
-            const res = await fetch(url);
-            if (!res.ok) {
+            const res = await axios.get(`${FirmaUtil.config.restApiAddress}/cosmos/auth/v1beta1/accounts/${address}`);
+            if (res.status !== 200) {
                 throw new Error(`HTTP ${res.status}: ${res.statusText}`);
             }
             
-            const json = await res.json();
+            const json = res.data;
             const baseAccount = json.account.base_account || json.account;
             const result = {
                 account_number: baseAccount.account_number,
@@ -269,8 +267,8 @@ export class FirmaUtil {
     }
 
     static async getChainId(): Promise<string> {
-        const res = await fetch(`${FirmaUtil.config.restApiAddress}/cosmos/base/tendermint/v1beta1/node_info`);
-        const json = await res.json();
+        const res = await axios.get(`${FirmaUtil.config.restApiAddress}/cosmos/base/tendermint/v1beta1/node_info`);
+        const json = res.data;
         return json.default_node_info.network;
     }
 
