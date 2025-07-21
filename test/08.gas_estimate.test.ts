@@ -350,18 +350,28 @@ describe('[08. Gas Estimation Test]', () => {
 		expect(gas).to.not.equal(0);
 	});
 
-	it.skip("7-6. Gov deposit gas estimation", async () => {
+	it("7-6. Gov deposit gas estimation", async () => {
 
-		const proposalId = 1;
+		const initialDepositFCT = 2500;
+		const title = "test submit textProposal(deposit gas)";
+		const description = "test description";
+		const result = await firma.Gov.submitTextProposal(aliceWallet, title, description, initialDepositFCT);
+		
+		const proposalId = extractValue(result.events, "submit_proposal", "proposal_id");
 		const amount = 1000;
 
 		const gas = await firma.Gov.getGasEstimationDeposit(aliceWallet, proposalId, amount);
 		expect(gas).to.not.equal(0);
 	});
 
-	it.skip("7-7. Gov vote gas estimation", async () => {
+	it("7-7. Gov vote gas estimation", async () => {
 
-		const proposalId = 1;
+		const initialDepositFCT = 5000;
+		const title = "test submit textProposal(vote gas)";
+		const description = "test description";
+		const result = await firma.Gov.submitTextProposal(aliceWallet, title, description, initialDepositFCT);
+		
+		const proposalId = extractValue(result.events, "submit_proposal", "proposal_id");
 
 		const gas = await firma.Gov.getGasEstimationVote(aliceWallet, proposalId, VotingOption.VOTE_OPTION_YES);
 		expect(gas).to.not.equal(0);
