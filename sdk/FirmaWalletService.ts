@@ -47,7 +47,7 @@ export class FirmaWalletService {
 
     async getPubKey(): Promise<string> {
         try {
-            if (this.ledger != null) {
+            if (this.isLedger()) {
                 return FirmaUtil.arrayBufferToBase64(await this.ledger.getPublicKey());
             }
 
@@ -61,7 +61,7 @@ export class FirmaWalletService {
 
     async getAddress(): Promise<string> {
         try {
-            if (this.ledger != null) {
+            if (this.isLedger()) {
                 return await this.ledger.getAddress();
             }
             
