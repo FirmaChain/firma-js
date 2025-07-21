@@ -1,7 +1,5 @@
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 
-import _m0 from "protobufjs/minimal";
-
 import { Any } from "../google/protobuf/any";
 import { BinaryWriter } from "cosmjs-types/binary";
 import { Timestamp } from "cosmjs-types/google/protobuf/timestamp";
