@@ -6,7 +6,7 @@ import { FirmaUtil } from '../sdk/FirmaUtil';
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 import { BankTxClient } from '../sdk/firmachain/bank';
 
-describe.only('[27. protobuf arbitrary sign]', () => {
+describe('[27. protobuf arbitrary sign]', () => {
 
 	let firma: FirmaSDK;
 	let aliceWallet: FirmaWalletService;
@@ -58,38 +58,29 @@ describe.only('[27. protobuf arbitrary sign]', () => {
 
 	it('direct sign & verify & send basic test', async () => {
 
-		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
-		let bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
-
 		const amountFCT = 9;
-		const aliceAddress = await aliceWallet.getAddress();
 		const alicePubkey = await aliceWallet.getPubKey();
 
-		const bobAddress = await bobWallet.getAddress();
 		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
 
-		let msgSend = BankTxClient.msgSend({
+		const msgSend = BankTxClient.msgSend({
 			fromAddress: aliceAddress,
 			toAddress: bobAddress,
 			amount: [sendAmount]
 		});
 		
-		let signDoc = await FirmaUtil.makeSignDoc(aliceAddress, alicePubkey, [msgSend]);
-		let stringSignDoc:string = FirmaUtil.stringifySignDocValues(signDoc);
+		const signDoc = await FirmaUtil.makeSignDoc(aliceAddress, alicePubkey, [msgSend]);
+		const stringSignDoc:string = FirmaUtil.stringifySignDocValues(signDoc);
 
-		//console.log("--------------------------------");
-
-		let newSignDoc = FirmaUtil.parseSignDocValues(stringSignDoc);
+		const newSignDoc = FirmaUtil.parseSignDocValues(stringSignDoc);
 
 		const commonTxClient = FirmaUtil.getCommonTxClient(aliceWallet);
-		let extTxRaw = await commonTxClient.signDirectForSignDoc(aliceAddress, newSignDoc);
+		const extTxRaw = await commonTxClient.signDirectForSignDoc(aliceAddress, newSignDoc);
 
 		const valid = await FirmaUtil.verifyDirectSignature(aliceAddress, extTxRaw.signature, newSignDoc);
 
 		if (valid) {
-			let result = await commonTxClient.broadcast(extTxRaw.txRaw);
-			//console.log(result);
-
+			const result = await commonTxClient.broadcast(extTxRaw.txRaw);
 			expect(result.code).to.be.equal(0);
 		}
 
