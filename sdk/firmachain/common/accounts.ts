@@ -49,14 +49,13 @@ export function accountFromAny(input: Any): Account {
   const { typeUrl, value } = input;
 
   switch (typeUrl) {
-
     // auth
     case "/cosmos.auth.v1beta1.BaseAccount":
       return accountFromBaseAccount(BaseAccount.decode(value));
     case "/cosmos.auth.v1beta1.ModuleAccount": {
       const baseAccount = ModuleAccount.decode(value).baseAccount;
       assert(baseAccount);
-      return accountFromBaseAccount(baseAccount!);
+      return accountFromBaseAccount(baseAccount);
     }
 
     // vesting

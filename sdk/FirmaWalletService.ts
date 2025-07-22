@@ -4,7 +4,6 @@ import { stringToPath, Slip10, HdPath, Slip10Curve, Bip39, EnglishMnemonic } fro
 
 import { FirmaConfig } from "./FirmaConfig";
 import { FirmaUtil } from "./FirmaUtil";
-import { Secp256k1Wallet } from "@cosmjs/amino";
 import { LedgerWalletInterface, signWithSignerProtobuf } from "./firmachain/common/LedgerWallet";
 import { SignAndBroadcastOptions } from "./firmachain/common";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
@@ -17,7 +16,6 @@ export class FirmaWalletService {
     private privateKey: string;
     private accountIndex: number;
 
-    private aminoWallet!: Secp256k1Wallet;
     private wallet!: DirectSecp256k1Wallet;
     private ledger!: LedgerWalletInterface;
 
@@ -31,10 +29,6 @@ export class FirmaWalletService {
 
     getRawWallet(): DirectSecp256k1Wallet {
         return this.wallet;
-    }
-
-    getRawAminoWallet(): Secp256k1Wallet {
-        return this.aminoWallet;
     }
 
     getPrivateKey(): string {
@@ -124,7 +118,6 @@ export class FirmaWalletService {
         try {
             const tempPrivateKey = Buffer.from(privateKey.replace("0x", ""), "hex");
             this.wallet = await DirectSecp256k1Wallet.fromKey(tempPrivateKey, this.getPrefix());
-            this.aminoWallet = await Secp256k1Wallet.fromKey(tempPrivateKey, this.getPrefix());
             
             this.privateKey = privateKey;
         } catch (error) {
@@ -242,13 +235,13 @@ export class FirmaWalletService {
             throw new Error(`Failed to connect to Ledger: ${errorMessage}. Please make sure your Ledger is connected and the FirmaChain app is open.`);
         }
         
-        // Retrieve signer data for protobuf signing
+        // Retrieve signer data for protobuf signing with proper type safety
         const accountInfo = await FirmaUtil.getAccountInfo(address);
         const chainId = await FirmaUtil.getChainId();
         
         const signerData = {
-            account_number: Number(accountInfo.account_number),
-            sequence: Number(accountInfo.sequence),
+            account_number: parseInt(accountInfo.account_number, 10),
+            sequence: parseInt(accountInfo.sequence, 10),
             chain_id: chainId,
         };
 
