@@ -1,15 +1,13 @@
 import { fromBase64, fromBech32 } from "@cosmjs/encoding";
 import { 
   EncodeObject,
-  makeSignDoc,
   OfflineDirectSigner,
   Registry,
   GeneratedType
 } from "@cosmjs/proto-signing";
 import { CometClient, connectComet, HttpEndpoint } from "@cosmjs/tendermint-rpc";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
-import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
-import { AuthInfo, SignDoc, SignerInfo, TxRaw, TxBody, Fee } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { SignDoc, TxRaw, TxBody, Fee } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
 import axios from "axios";
 
@@ -27,6 +25,7 @@ import {
   stakingTypes,
   vestingTypes,
 } from "@cosmjs/stargate/build/modules";
+import { makeAuthInfoBytesProtobuf, makeSignDocProtobuf } from "./signing";
 
 export const defaultRegistryTypes: ReadonlyArray<[string, GeneratedType]> = [
   ["/cosmos.base.v1beta1.Coin", Coin],
@@ -141,28 +140,16 @@ export class SigningStargateClient extends StargateClient {
         });
 
         const bodyBytes = TxBody.encode(txBody).finish();
-        
-        const signerInfo = SignerInfo.fromPartial({
-            publicKey: pubkeyAny,
-            modeInfo: {
-                single: { mode: SignMode.SIGN_MODE_DIRECT },
-            },
-            sequence: BigInt(sequence),
-        });
 
-        const authInfo = AuthInfo.fromPartial({
-            signerInfos: [signerInfo],
-            fee: {
-                amount: fee.amount,
-                gasLimit: fee.gasLimit,
-                granter: fee.granter || "",
-                payer: fee.payer || "",
-            },
-        });
+        const authInfoBytes = makeAuthInfoBytesProtobuf(
+            [{ pubkey: pubkeyAny, sequence }],
+            fee.amount,
+            fee.gasLimit,
+            fee.granter,
+            fee.payer
+        );
 
-        const authInfoBytes = AuthInfo.encode(authInfo).finish();
-
-        return makeSignDoc(bodyBytes, authInfoBytes, chainId, accountNumber);
+        return makeSignDocProtobuf(bodyBytes, authInfoBytes, chainId, accountNumber);
     }
 
     async sign(
@@ -221,26 +208,16 @@ export class SigningStargateClient extends StargateClient {
 
         const bodyBytes = TxBody.encode(txBody).finish();
 
-        const signerInfo = SignerInfo.fromPartial({
-            publicKey: pubkeyAny,
-            modeInfo: {
-                single: { mode: SignMode.SIGN_MODE_DIRECT },
-            },
-            sequence: BigInt(sequence),
-        });
+        const authInfoBytes = makeAuthInfoBytesProtobuf(
+            [{ pubkey: pubkeyAny, sequence }],
+            fee.amount,
+            fee.gasLimit,
+            fee.granter,
+            fee.payer
+        );
 
-        const authInfo = AuthInfo.fromPartial({
-            signerInfos: [signerInfo],
-            fee: {
-                amount: fee.amount,
-                gasLimit: fee.gasLimit,
-                granter: fee.granter || "",
-                payer: fee.payer || "",
-            },
-        });
+        const signDoc = makeSignDocProtobuf(bodyBytes, authInfoBytes, chainId, accountNumber);
 
-        const authInfoBytes = AuthInfo.encode(authInfo).finish();
-        const signDoc = makeSignDoc(bodyBytes, authInfoBytes, chainId, accountNumber);
         const { signature, signed } = await this.signer.signDirect(signerAddress, signDoc);
         
         return TxRaw.fromPartial({
