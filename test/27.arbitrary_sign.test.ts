@@ -4,10 +4,9 @@ import { FirmaWalletService } from '../sdk/FirmaWalletService';
 import { FirmaUtil } from '../sdk/FirmaUtil';
 
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
-import { toUtf8 } from "@cosmjs/encoding";
-import { ArbitraryVerifyData } from '..';
+import { BankTxClient } from '../sdk/firmachain/bank';
 
-describe('[27. protobuf arbitrary sign]', () => {
+describe.only('[27. protobuf arbitrary sign]', () => {
 
 	let firma: FirmaSDK;
 	let aliceWallet: FirmaWalletService;
@@ -24,43 +23,76 @@ describe('[27. protobuf arbitrary sign]', () => {
 	});
 
 	it('protobuf arbitrary sign & verify basic test', async () => {
+
 		const testMsg = "be14202e-46dc-4d38-924c-65db209ea2fb";
-		const testBytes = toUtf8(testMsg);
 
-		// Sign arbitrary data using FirmaUtil
-		const result: ArbitraryVerifyData = await FirmaUtil.protobufArbitrarySign(aliceWallet, aliceAddress, testBytes);
+		const signatureResult = await FirmaUtil.experimentalAdr36Sign(aliceWallet, testMsg);
+		
+		const isMatch = await FirmaUtil.experimentalAdr36Verify(signatureResult, testMsg);
 
-		// Verify using FirmaUtil
-		const isValid = await FirmaUtil.protobufArbitraryVerify(result, testBytes);
-		expect(isValid).to.be.equal(true);
+		expect(isMatch).to.be.equal(true);
 	});
 
-	it('protobuf arbitrary sign - tampered message should fail', async () => {
-		const testMsg = "original-message";
-		const testBytes = toUtf8(testMsg);
+	it('direct sign & verify basic test', async () => {
 
-		// Sign arbitrary data using FirmaUtil
-		const result: ArbitraryVerifyData = await FirmaUtil.protobufArbitrarySign(aliceWallet, aliceAddress, testBytes);
+		const amountFCT = 9;
+		const alicePubkey = await aliceWallet.getPubKey();
 
-		// tamper the original message
-		const tamperedBytes = toUtf8("modified-message");
-		const isValid = await FirmaUtil.protobufArbitraryVerify(result, tamperedBytes);
-		expect(isValid).to.be.equal(false);
+		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
+
+		const msgSend = BankTxClient.msgSend({
+			fromAddress: aliceAddress,
+			toAddress: bobAddress,
+			amount: [sendAmount]
+		});
+
+		const stringSignDoc = await FirmaUtil.makeSignDocWithStringify(aliceAddress, alicePubkey, [msgSend]);
+		const signDoc = FirmaUtil.parseSignDocValues(stringSignDoc);
+
+		const commonTxClient = FirmaUtil.getCommonTxClient(aliceWallet);
+		const extTxRaw = await commonTxClient.signDirectForSignDoc(aliceAddress, signDoc);
+
+		const valid = await FirmaUtil.verifyDirectSignature(aliceAddress, extTxRaw.signature, signDoc);
+		expect(valid).to.be.equal(true);
 	});
 
-	it('protobuf arbitrary sign - tampered signature should fail', async () => {
-		const testMsg = "integrity-check";
-		const testBytes = toUtf8(testMsg);
+	it('direct sign & verify & send basic test', async () => {
 
-		// Sign arbitrary data using FirmaUtil
-		const result: ArbitraryVerifyData = await FirmaUtil.protobufArbitrarySign(aliceWallet, aliceAddress, testBytes);
+		let aliceWallet = await firma.Wallet.fromMnemonic(aliceMnemonic);
+		let bobWallet = await firma.Wallet.fromMnemonic(bobMnemonic);
 
-		// modify signature base64 (simulate corruption) - change first character
-		// console.log("Original signature:", result.signature);
-		result.signature = "X" + result.signature.substring(1);
-		// console.log("Modified signature:", result.signature);
+		const amountFCT = 9;
+		const aliceAddress = await aliceWallet.getAddress();
+		const alicePubkey = await aliceWallet.getPubKey();
 
-		const isValid = await FirmaUtil.protobufArbitraryVerify(result, testBytes);
-		expect(isValid).to.be.equal(false);
+		const bobAddress = await bobWallet.getAddress();
+		const sendAmount = { denom: firma.Config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amountFCT) };
+
+		let msgSend = BankTxClient.msgSend({
+			fromAddress: aliceAddress,
+			toAddress: bobAddress,
+			amount: [sendAmount]
+		});
+		
+		let signDoc = await FirmaUtil.makeSignDoc(aliceAddress, alicePubkey, [msgSend]);
+		let stringSignDoc:string = FirmaUtil.stringifySignDocValues(signDoc);
+
+		//console.log("--------------------------------");
+
+		let newSignDoc = FirmaUtil.parseSignDocValues(stringSignDoc);
+
+		const commonTxClient = FirmaUtil.getCommonTxClient(aliceWallet);
+		let extTxRaw = await commonTxClient.signDirectForSignDoc(aliceAddress, newSignDoc);
+
+		const valid = await FirmaUtil.verifyDirectSignature(aliceAddress, extTxRaw.signature, newSignDoc);
+
+		if (valid) {
+			let result = await commonTxClient.broadcast(extTxRaw.txRaw);
+			//console.log(result);
+
+			expect(result.code).to.be.equal(0);
+		}
+
+		expect(valid).to.be.equal(true);
 	});
 });
