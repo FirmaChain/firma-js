@@ -1,5 +1,5 @@
 import { promises as fs } from "fs";
-import { SignDoc, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { Fee, SignDoc, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import axios from "axios";
 
 import { Duration } from "cosmjs-types/google/protobuf/duration";
@@ -23,6 +23,8 @@ import { TendermintQueryClient } from "./firmachain/common/TendermintQueryClient
 import { BigNumber } from "bignumber.js";
 import { rawSecp256k1PubkeyToRawAddress } from "@cosmjs/tendermint-rpc";
 import { ArbitraryVerifyData, SigningProtobufStargateClient } from "./firmachain/common/signingprotobufstargateclient";
+
+import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 
 const CryptoJS = require("crypto-js");
 const sha1 = require("crypto-js/sha1");
@@ -52,10 +54,19 @@ export class FirmaUtil {
         if (txMisc.feeGranter == null)
             txMisc.feeGranter = "";
 
-        const gasFeeAmount = { denom: denom, amount: txMisc.fee!.toString() };
-        const defaultFee = { amount: [gasFeeAmount], gas: txMisc.gas!.toString(), granter: txMisc.feeGranter! };
+        const gasFeeAmount: Coin = Coin.fromPartial({
+            denom: denom,
+            amount: txMisc.fee!.toString(),
+        });
 
-        return { fee: defaultFee, memo: txMisc.memo! };
+        const fee: Fee = Fee.fromPartial({
+            amount: [gasFeeAmount],
+            gasLimit: BigInt(txMisc.gas!),
+            granter: txMisc.feeGranter!,
+            payer: "",
+        });
+
+        return { fee: fee, memo: txMisc.memo! };
     }
 
     static getUTokenStringFromTokenStr(tokenAmount: string, decimal: number): string {

@@ -1,6 +1,6 @@
-import { StdFee } from "@cosmjs/amino";
 import { Decimal, Uint53 } from "@cosmjs/math";
 import { coins } from "@cosmjs/proto-signing";
+import { Fee } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 /**
  * Denom checker for the Cosmos SDK 0.42 denom pattern
@@ -57,14 +57,16 @@ export class GasPrice {
   }
 }
 
-export function calculateFee(gasLimit: number, gasPrice: GasPrice | string): StdFee {
+export function calculateFee(gasLimit: number, gasPrice: GasPrice | string): Fee {
   const processedGasPrice = typeof gasPrice === "string" ? GasPrice.fromString(gasPrice) : gasPrice;
   const { denom, amount: gasPriceAmount } = processedGasPrice;
   // Note: Amount can exceed the safe integer range (https://github.com/cosmos/cosmjs/issues/1134),
   // which we handle by converting from Decimal to string without going through number.
   const amount = gasPriceAmount.multiply(new Uint53(gasLimit)).ceil().toString();
   return {
+    gasLimit: BigInt(gasLimit),
     amount: coins(amount, denom),
-    gas: gasLimit.toString(),
-  };
+    payer: "",
+    granter: ""
+};
 }

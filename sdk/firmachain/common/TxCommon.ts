@@ -1,5 +1,4 @@
-import { Any } from "../google/protobuf/any";
-import { StdFee } from "@cosmjs/stargate";
+import { Fee } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 export const DefaultBasicFeeGrantOption = { spendLimit: undefined, expiration: undefined };
 
@@ -11,7 +10,7 @@ export interface TxMisc {
 }
 
 export interface SignAndBroadcastOptions {
-    fee: StdFee,
+    fee: Fee,
     memo: string;
 }
 
