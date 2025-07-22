@@ -25,7 +25,7 @@ export interface SignerData {
 function makeAuthInfoBytesDirect(
   pubkey: Any,
   feeAmount: readonly Coin[],
-  gasLimit: number,
+  gasLimit: bigint,
   sequence: number
 ): Uint8Array {
   const signerInfo: SignerInfo = {
@@ -92,7 +92,7 @@ export async function signWithSignerProtobuf(
   const authInfoBytes = makeAuthInfoBytesDirect(
     pubkeyProto,
     feeAmount,
-    parseInt(option.fee.gas),
+    option.fee.gasLimit,
     signerData.sequence
   );
 
