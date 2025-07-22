@@ -23,7 +23,7 @@ import { TendermintQueryClient } from "./firmachain/common/TendermintQueryClient
 import { BigNumber } from "bignumber.js";
 import { rawSecp256k1PubkeyToRawAddress } from "@cosmjs/tendermint-rpc";
 import { ArbitraryVerifyData, SigningProtobufStargateClient } from "./firmachain/common/signingprotobufstargateclient";
-
+import { SigningStargateClient } from "./firmachain/common/signingstargateclient";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 
 const CryptoJS = require("crypto-js");
@@ -308,6 +308,41 @@ export class FirmaUtil {
         }
     }
 
+
+    public static async makeSignDoc(
+        signerAddress: string,
+        pubkey: string,
+        messages: readonly EncodeObject[],
+        txMisc: TxMisc = DefaultTxMisc
+    ): Promise<SignDoc> {
+
+        let result = FirmaUtil.getSignAndBroadcastOption(FirmaUtil.config.denom, txMisc);
+        let chainID = FirmaUtil.config.chainID;
+        let serverUrl = FirmaUtil.config.rpcAddress;
+        let registry = CommonTxClient.getRegistry();
+
+        const fee = {
+            amount: [...result.fee.amount],
+            gasLimit: result.fee.gasLimit,
+            granter: result.fee.granter || "",
+            payer: ""
+        };
+
+        return await SigningStargateClient.makeSignDocForSend(signerAddress, pubkey, messages, fee, result.memo, serverUrl, chainID, registry);
+    }
+
+    public static async makeSignDocWithStringify(signerAddress: string,
+        pubkey: string,
+        messages: readonly EncodeObject[],
+        txMisc: TxMisc = DefaultTxMisc
+    ): Promise<string> {
+
+        let signDoc = await this.makeSignDoc(signerAddress, pubkey, messages, txMisc);
+        let stringSignDoc = this.stringifySignDocValues(signDoc);
+
+        return stringSignDoc;
+    }
+
     private static async recoverSigningAddress(
         signature: string,
         hash: Uint8Array,
@@ -359,7 +394,7 @@ export class FirmaUtil {
         return this.verifySignature(address, signature, messageHash);
     };
 
-    public static parseSignDocValues(signDocString: string) : any{
+    public static parseSignDocValues(signDocString: string): any {
 
         const signDoc = JSON.parse(signDocString);
 
@@ -368,7 +403,7 @@ export class FirmaUtil {
             bodyBytes: fromHex(signDoc.bodyBytes),
             authInfoBytes: fromHex(signDoc.authInfoBytes),
             accountNumber: BigInt(signDoc.accountNumber),
-          };
+        };
     }
 
     public static stringifySignDocValues(signDoc: any): string {
@@ -378,7 +413,7 @@ export class FirmaUtil {
             bodyBytes: toHex(signDoc.bodyBytes),
             authInfoBytes: toHex(signDoc.authInfoBytes),
             accountNumber: signDoc.accountNumber.toString(),
-          });
+        });
     }
 
     public static getAnyData(registry: Registry, message: EncodeObject): Any {
@@ -392,21 +427,21 @@ export class FirmaUtil {
 
     static getCommonTxClient(aliceWallet: FirmaWalletService) {
         return new CommonTxClient(aliceWallet, FirmaUtil.config.rpcAddress);
-	}
+    }
 
     static parseDurationString(durationStr: string): { seconds: bigint; nanos: number } {
         if (!durationStr || durationStr.trim() === "") {
             return { seconds: BigInt(0), nanos: 0 };
         }
-    
+
         const input = durationStr.trim();
         let totalSeconds = 0;
         let totalNanos = 0;
-    
+
         // Handle negative durations
         const isNegative = input.startsWith('-');
         const cleanInput = isNegative ? input.substring(1) : input;
-    
+
         // Regular expression to match duration components
         const regex = /(\d+(?:\.\d+)?)(d|h|m|s|ms|µs|us|ns)/g;
         let match;
@@ -455,7 +490,7 @@ export class FirmaUtil {
         // Apply negative sign
         const finalSeconds = isNegative ? -totalSeconds : totalSeconds;
         const finalNanos = isNegative ? -totalNanos : totalNanos;
-    
+
         return {
             seconds: BigInt(Math.floor(finalSeconds)),
             nanos: Math.floor(finalNanos)
@@ -464,9 +499,9 @@ export class FirmaUtil {
 
     static createDurationFromString(durationStr: string): Duration {
         const { seconds, nanos } = FirmaUtil.parseDurationString(durationStr);
-        
 
-        
+
+
         return Duration.fromPartial({
             seconds: seconds,
             nanos: nanos
@@ -486,11 +521,11 @@ export class FirmaUtil {
         if (!commissionRate || trimmed === "") {
             throw new Error(`Invalid commission rate format: ${commissionRate}`);
         }
-        
+
         if (!/^-?\d+\.?\d*$/.test(trimmed)) {
             throw new Error(`Invalid commission rate format: ${commissionRate}`);
         }
-        
+
         // Validates input and creates BigNumber instance
         const commissionRateBN = new BigNumber(trimmed);
 

@@ -2,9 +2,10 @@ import { Registry, EncodeObject } from "@cosmjs/proto-signing";
 import { DirectSecp256k1Wallet } from "@cosmjs/proto-signing";
 
 import { SignAndBroadcastOptions } from ".";
-import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { SignDoc, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { FirmaWalletService } from "../../FirmaWalletService";
-import { DeliverTxResponse, SigningStargateClient } from "@cosmjs/stargate";
+import { DeliverTxResponse } from "@cosmjs/stargate";
+import { SigningStargateClient, TxRawExt } from "./signingstargateclient";
 
 export class ITxClient {
 
@@ -45,6 +46,12 @@ export class ITxClient {
 
     async signAndBroadcast(msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions): Promise<DeliverTxResponse> {
         return await this.broadcast(await this.sign(msgs, { fee, memo }));
+    }
+
+    public async signDirectForSignDoc(signerAddress: string, signDoc: SignDoc) : Promise<TxRawExt>{
+
+        const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, { registry: this.registry });
+        return await client.signDirectForSignDoc(signerAddress, signDoc);
     }
 
 }
