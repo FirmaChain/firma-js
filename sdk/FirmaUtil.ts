@@ -22,8 +22,8 @@ import { CommonTxClient } from "./firmachain/common/CommonTxClient";
 import { TendermintQueryClient } from "./firmachain/common/TendermintQueryClient";
 import { BigNumber } from "bignumber.js";
 import { rawSecp256k1PubkeyToRawAddress } from "@cosmjs/tendermint-rpc";
-import { ArbitraryVerifyData, SigningProtobufStargateClient } from "./firmachain/common/signingprotobufstargateclient";
-import { SigningStargateClient } from "./firmachain/common/signingstargateclient";
+import { ArbitraryVerifyData, SigningProtobufStargateClient } from "./firmachain/common/SigningProtobufStargateClient";
+import { SigningStargateClient } from "./firmachain/common/SigningStargateClient";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 
 const CryptoJS = require("crypto-js");

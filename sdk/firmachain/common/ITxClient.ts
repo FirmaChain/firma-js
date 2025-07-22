@@ -5,7 +5,7 @@ import { SignAndBroadcastOptions } from ".";
 import { SignDoc, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { FirmaWalletService } from "../../FirmaWalletService";
 import { DeliverTxResponse } from "@cosmjs/stargate";
-import { SigningStargateClient, TxRawExt } from "./signingstargateclient";
+import { SigningStargateClient, TxRawExt } from "./SigningStargateClient";
 
 export class ITxClient {
 
