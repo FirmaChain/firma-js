@@ -12,7 +12,7 @@ import { PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
 import axios from "axios";
 
 import { Account, accountFromAny } from "./accounts";
-import { DeliverTxResponse, StargateClient, StargateClientOptions } from "./stargateClient";
+import { DeliverTxResponse, StargateClient, StargateClientOptions } from "./StargateClient";
 import { Any } from "cosmjs-types/google/protobuf/any";
 import {
   authzTypes,

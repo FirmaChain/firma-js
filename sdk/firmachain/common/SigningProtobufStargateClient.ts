@@ -10,7 +10,7 @@ import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import { PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
 import { Account, accountFromAny } from "./accounts";
 import axios from "axios";
-import { StargateClient, StargateClientOptions } from "./stargateClient";
+import { StargateClient, StargateClientOptions } from "./StargateClient";
 
 export interface SignerData {
     readonly accountNumber: number;
