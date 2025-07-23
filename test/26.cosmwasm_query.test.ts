@@ -137,9 +137,7 @@ describe('[26. cosmwasm query Test]', () => {
 	it('CosmWasm getContractSmartQueryData', async () => {
 
 		const queries = [
-			'{"token_info":{}}',
-			'{"minter":{}}',
-			'{"marketing_info":{}}'
+			'{"config":{}}',
 		];
 		
 		let successfulQuery: string | null = null;
