@@ -8,7 +8,7 @@ import {
     MsgVoteWeighted as V1MsgVoteWeighted,
   } from "cosmjs-types/cosmos/gov/v1/tx";
 // temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
-import { MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
+import { MsgCancelProposal as V1MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 
 import { FirmaWalletService } from "../../FirmaWalletService";
 import { ITxClient } from "../common/ITxClient";
@@ -20,7 +20,7 @@ const types = [
     ["/cosmos.gov.v1.MsgUpdateParams", V1MsgUpdateParams],
     ["/cosmos.gov.v1.MsgVote", V1MsgVote],
     ["/cosmos.gov.v1.MsgVoteWeighted", V1MsgVoteWeighted],
-    ["/cosmos.gov.v1.MsgCancelProposal", MsgCancelProposal],
+    ["/cosmos.gov.v1.MsgCancelProposal", V1MsgCancelProposal],
 
     ["/cosmos.gov.v1beta1.MsgDeposit", MsgDeposit],
     ["/cosmos.gov.v1beta1.MsgSubmitProposal", MsgSubmitProposal],
@@ -55,6 +55,11 @@ export interface V1MsgUpdateParamsEncodeObject extends EncodeObject {
     readonly value: Partial<V1MsgUpdateParams>;
 }
 
+export interface V1MsgCancelProposalEncodeObject extends EncodeObject {
+    readonly typeUrl: "/cosmos.gov.v1.MsgCancelProposal";
+    readonly value: Partial<V1MsgCancelProposal>;
+}
+
 export interface MsgDepositEncodeObject extends EncodeObject {
     readonly typeUrl: "/cosmos.gov.v1beta1.MsgDeposit";
     readonly value: Partial<MsgDeposit>;
@@ -73,11 +78,6 @@ export interface MsgVoteEncodeObject extends EncodeObject {
 export interface MsgVoteWeightedEncodeObject extends EncodeObject {
     readonly typeUrl: "/cosmos.gov.v1beta1.MsgVoteWeighted";
     readonly value: Partial<MsgVoteWeighted>;
-}
-
-export interface MsgCancelProposalEncodeObject extends EncodeObject {
-    readonly typeUrl: "/cosmos.gov.v1.MsgCancelProposal";
-    readonly value: Partial<MsgCancelProposal>;
 }
 
 export class GovTxClient extends ITxClient {
@@ -106,10 +106,6 @@ export class GovTxClient extends ITxClient {
         return { typeUrl: "/cosmos.gov.v1beta1.MsgVoteWeighted", value: data };
     }
 
-    static msgCancelProposal(data: MsgCancelProposal): MsgCancelProposalEncodeObject {
-        return { typeUrl: "/cosmos.gov.v1.MsgCancelProposal", value: data };
-    }
-
     // v1 메시지 메서드 추가
     static v1MsgDeposit(data: V1MsgDeposit): V1MsgDepositEncodeObject {
         return { typeUrl: "/cosmos.gov.v1.MsgDeposit", value: data };
@@ -129,5 +125,9 @@ export class GovTxClient extends ITxClient {
 
     static v1MsgUpdateParams(data: V1MsgUpdateParams): V1MsgUpdateParamsEncodeObject {
         return { typeUrl: "/cosmos.gov.v1.MsgUpdateParams", value: data };
+    }
+
+    static v1MsgCancelProposal(data: V1MsgCancelProposal): V1MsgCancelProposalEncodeObject {
+        return { typeUrl: "/cosmos.gov.v1.MsgCancelProposal", value: data };
     }
 }
