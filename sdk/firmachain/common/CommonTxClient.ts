@@ -7,12 +7,12 @@ import {
     MsgVote as V1MsgVote,
     MsgVoteWeighted as V1MsgVoteWeighted,
 } from "cosmjs-types/cosmos/gov/v1/tx";
-import { MsgCommunityPoolSpend, MsgFundCommunityPool, MsgSetWithdrawAddress, MsgWithdrawDelegatorReward, MsgWithdrawValidatorCommission } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
+import { MsgFundCommunityPool, MsgSetWithdrawAddress, MsgWithdrawDelegatorReward, MsgWithdrawValidatorCommission } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
 import { MsgDeposit, MsgSubmitProposal, MsgVote, MsgVoteWeighted } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { MsgBeginRedelegate, MsgCreateValidator, MsgDelegate, MsgEditValidator, MsgUndelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 import { MsgStoreCode, MsgInstantiateContract, MsgExecuteContract, MsgUpdateAdmin, MsgClearAdmin, MsgMigrateContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 // temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
-import { MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
+import { MsgCancelProposal as V1MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 
 import { FirmaWalletService } from "../../FirmaWalletService";
 import { MsgExec, MsgGrant, MsgRevoke } from "../authz/AuthzTxTypes";
@@ -53,7 +53,7 @@ const types = [
     ["/cosmos.gov.v1.MsgUpdateParams", V1MsgUpdateParams],
     ["/cosmos.gov.v1.MsgVote", V1MsgVote],
     ["/cosmos.gov.v1.MsgVoteWeighted", V1MsgVoteWeighted],
-    ["/cosmos.gov.v1.MsgCancelProposal", MsgCancelProposal],
+    ["/cosmos.gov.v1.MsgCancelProposal", V1MsgCancelProposal],
 
     ["/cosmos.gov.v1beta1.MsgDeposit", MsgDeposit],
     ["/cosmos.gov.v1beta1.MsgSubmitProposal", MsgSubmitProposal],
