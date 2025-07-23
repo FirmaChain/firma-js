@@ -1,5 +1,4 @@
-import { Any } from "../google/protobuf/any";
-import { StdFee } from "@cosmjs/stargate";
+import { Fee } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 export const DefaultBasicFeeGrantOption = { spendLimit: undefined, expiration: undefined };
 
@@ -11,7 +10,7 @@ export interface TxMisc {
 }
 
 export interface SignAndBroadcastOptions {
-    fee: StdFee,
+    fee: Fee,
     memo: string;
 }
 
@@ -58,21 +57,4 @@ export enum VotingOption {
     /** VOTE_OPTION_NO_WITH_VETO - VOTE_OPTION_NO_WITH_VETO defines a no with veto vote option. */
     VOTE_OPTION_NO_WITH_VETO = 4,
     UNRECOGNIZED = -1
-}
-
-export interface ArbitraryVerifyData {
-    chainId: string;
-    accountNumber: string;
-    sequence: string;
-    bodyBytes: string;
-    authInfoBytes: string;
-    signerAddress: string;
-    pubkey: string;
-    signature: string;
-}
-
-// Protobuf message for arbitrary data
-export interface MsgSignArbitraryData {
-    signer: string;
-    data: Uint8Array;
 }

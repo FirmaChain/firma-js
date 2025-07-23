@@ -11,6 +11,13 @@ import {
 } from "cosmjs-types/cosmos/vesting/v1beta1/vesting";
 import { Any } from "cosmjs-types/google/protobuf/any";
 
+
+/**
+ * This file is copied from @cosmjs/stargate.
+ * https://github.com/cosmos/cosmjs/blob/v0.34.0/packages/stargate/src/accounts.ts
+ */
+
+
 export interface Account {
   /** Bech32 account address */
   readonly address: string;
@@ -49,14 +56,13 @@ export function accountFromAny(input: Any): Account {
   const { typeUrl, value } = input;
 
   switch (typeUrl) {
-
     // auth
     case "/cosmos.auth.v1beta1.BaseAccount":
       return accountFromBaseAccount(BaseAccount.decode(value));
     case "/cosmos.auth.v1beta1.ModuleAccount": {
       const baseAccount = ModuleAccount.decode(value).baseAccount;
       assert(baseAccount);
-      return accountFromBaseAccount(baseAccount!);
+      return accountFromBaseAccount(baseAccount);
     }
 
     // vesting
