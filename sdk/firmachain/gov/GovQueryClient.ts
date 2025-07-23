@@ -52,7 +52,7 @@ export class GovQueryClient {
     }
 
     async queryGetCurrentVoteInfo(id: string): Promise<CurrentVoteInfo> {
-        const path = `/cosmos/gov/v1beta1/proposals/${id}/tally`;
+        const path = `/cosmos/gov/v1/proposals/${id}/tally`;
 
         const result = await this.axios.get(path);
         return result.data.tally;
