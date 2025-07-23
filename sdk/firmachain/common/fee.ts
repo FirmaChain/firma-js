@@ -3,6 +3,12 @@ import { coins } from "@cosmjs/proto-signing";
 import { Fee } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 /**
+ * This file is copied from @cosmjs/stargate.
+ * https://github.com/cosmos/cosmjs/blob/v0.34.0/packages/stargate/src/fee.ts
+ * For future support of next version of cosmos and cosmjs. Not used in this project and firmachain ecosystem for now.
+ */
+
+/**
  * Denom checker for the Cosmos SDK 0.42 denom pattern
  * (https://github.com/cosmos/cosmos-sdk/blob/v0.42.4/types/coin.go#L599-L601).
  *
