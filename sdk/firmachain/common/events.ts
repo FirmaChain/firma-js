@@ -2,6 +2,11 @@ import { fromUtf8 } from "@cosmjs/encoding";
 import { tendermint34, tendermint37 } from "@cosmjs/tendermint-rpc";
 
 /**
+ * This file is copied from @cosmjs/stargate.
+ * https://github.com/cosmos/cosmjs/blob/v0.34.0/packages/stargate/src/events.ts
+ */
+
+/**
  * An event attribute.
  *
  * This is the same attribute type as tendermint34.Attribute and tendermint35.EventAttribute
