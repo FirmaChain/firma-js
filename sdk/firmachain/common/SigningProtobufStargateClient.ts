@@ -4,7 +4,7 @@ import { Comet38Client } from "@cosmjs/tendermint-rpc";
 import { arrayContentEquals } from "@cosmjs/utils";
 import { sha256, Secp256k1, Secp256k1Signature } from "@cosmjs/crypto";
 import { rawSecp256k1PubkeyToRawAddress } from "@cosmjs/tendermint-rpc";
-import { TxRaw, TxBody, AuthInfo, SignDoc, Fee, SignerInfo } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { TxBody, AuthInfo, SignDoc, Fee, SignerInfo } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { Any } from "cosmjs-types/google/protobuf/any";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import { PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
