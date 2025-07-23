@@ -5,6 +5,7 @@ import { FirmaUtil } from '../sdk/FirmaUtil';
 
 import { aliceMnemonic, bobMnemonic, TestChainConfig } from './config_test';
 import { BankTxClient } from '../sdk/firmachain/bank';
+import { ArbitraryVerifyData } from '../sdk/firmachain/common/SigningProtobufStargateClient';
 
 describe('[27. protobuf arbitrary sign]', () => {
 
@@ -27,8 +28,11 @@ describe('[27. protobuf arbitrary sign]', () => {
 		const testMsg = "be14202e-46dc-4d38-924c-65db209ea2fb";
 
 		const signatureResult = await FirmaUtil.experimentalAdr36Sign(aliceWallet, testMsg);
+
+		const jsonString = JSON.stringify(signatureResult);
+		const finalData: ArbitraryVerifyData = JSON.parse(jsonString);
 		
-		const isMatch = await FirmaUtil.experimentalAdr36Verify(signatureResult, testMsg);
+		const isMatch = await FirmaUtil.experimentalAdr36Verify(finalData, testMsg);
 
 		expect(isMatch).to.be.equal(true);
 	});
