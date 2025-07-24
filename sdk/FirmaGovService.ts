@@ -22,7 +22,6 @@ import equal from 'fast-deep-equal';
 
 // temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
 import {
-    MsgCancelProposal,
     MsgSubmitProposal,
     MsgUpdateParams as GovMsgUpdateParmas
 } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";

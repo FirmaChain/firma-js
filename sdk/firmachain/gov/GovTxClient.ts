@@ -7,7 +7,6 @@ import {
     MsgVoteWeighted as V1MsgVoteWeighted,
 } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 import { MsgDeposit, MsgSubmitProposal, MsgVote, MsgVoteWeighted } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1beta1/tx";
-import { MsgSubmitProposal as MsgSubmitGenericProposal } from "cosmjs-types/cosmos/gov/v1/tx";
 // temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
 import { MsgCancelProposal as V1MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 
