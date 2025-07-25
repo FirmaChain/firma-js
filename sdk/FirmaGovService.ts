@@ -22,7 +22,6 @@ import equal from 'fast-deep-equal';
 
 // temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
 import {
-    MsgCancelProposal,
     MsgSubmitProposal,
     MsgUpdateParams as GovMsgUpdateParmas
 } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
@@ -265,29 +264,25 @@ export class FirmaGovService {
         title: string,
         summary: string,
         initialDepositFCT: number,
-        messages: {
-            typeUrl?: string | undefined;
-            value?: Uint8Array | undefined;
-        }[] | undefined,
+        messages: Any[],
         metadata: string = "",
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
             const proposer = await wallet.getAddress();
             const initialDeposit = [{ amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT), denom: this.config.denom }];
-            const message = {
-                typeUrl: "/cosmos.gov.v1.MsgSubmitProposal",
-                value: MsgSubmitProposal.fromPartial({
-                    title: title,
-                    summary: summary,
-                    metadata: metadata,
-                    messages: messages,
-                    proposer: proposer,
-                    initialDeposit: initialDeposit
-                })
-            };
-
+            
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
+            const message = GovTxClient.v1MsgSubmitProposal({
+                title: title,
+                summary: summary,
+                metadata: metadata,
+                messages: messages,
+                proposer: proposer,
+                initialDeposit: initialDeposit, 
+                expedited: false
+            });
+            
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -299,29 +294,24 @@ export class FirmaGovService {
         title: string,
         summary: string,
         initialDepositFCT: number,
-        messages: {
-            typeUrl?: string | undefined;
-            value?: Uint8Array | undefined;
-        }[] | undefined,
+        messages: Any[],
         metadata: string = "",
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
             const proposer = await wallet.getAddress();
             const initialDeposit = [{ amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT), denom: this.config.denom }];
-            const message = {
-                typeUrl: "/cosmos.gov.v1.MsgSubmitProposal",
-                value: MsgSubmitProposal.fromPartial({
-                    title: title,
-                    summary: summary,
-                    metadata: metadata,
-                    messages: messages,
-                    proposer: proposer,
-                    initialDeposit: initialDeposit
-                })
-            };
-
+            
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
+            const message = GovTxClient.v1MsgSubmitProposal({
+                title: title,
+                summary: summary,
+                metadata: metadata,
+                messages: messages,
+                proposer: proposer,
+                initialDeposit: initialDeposit, 
+                expedited: false
+            });
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -333,29 +323,24 @@ export class FirmaGovService {
         title: string,
         summary: string,
         initialDepositFCT: number,
-        messages: {
-            typeUrl?: string | undefined;
-            value?: Uint8Array | undefined;
-        }[] | undefined,
+        messages: Any[],
         metadata: string = "",
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
             const proposer = await wallet.getAddress();
             const initialDeposit = [{ amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT), denom: this.config.denom }];
-            const message = {
-                typeUrl: "/cosmos.gov.v1.MsgSubmitProposal",
-                value: MsgSubmitProposal.fromPartial({
-                    title: title,
-                    summary: summary,
-                    metadata: metadata,
-                    messages: messages,
-                    proposer: proposer,
-                    initialDeposit: initialDeposit
-                })
-            };
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
+            const message = GovTxClient.v1MsgSubmitProposal({
+                title: title,
+                summary: summary,
+                metadata: metadata,
+                messages: messages,
+                proposer: proposer,
+                initialDeposit: initialDeposit, 
+                expedited: false
+            });
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -367,29 +352,24 @@ export class FirmaGovService {
         title: string,
         summary: string,
         initialDepositFCT: number,
-        messages: {
-            typeUrl?: string | undefined;
-            value?: Uint8Array | undefined;
-        }[] | undefined,
+        messages: Any[],
         metadata: string = "",
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
             const proposer = await wallet.getAddress();
             const initialDeposit = [{ amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT), denom: this.config.denom }];
-            const message = {
-                typeUrl: "/cosmos.gov.v1.MsgSubmitProposal",
-                value: MsgSubmitProposal.fromPartial({
-                    title: title,
-                    summary: summary,
-                    metadata: metadata,
-                    messages: messages,
-                    proposer: proposer,
-                    initialDeposit: initialDeposit,
-                })
-            };
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
+            const message = GovTxClient.v1MsgSubmitProposal({
+                title: title,
+                summary: summary,
+                metadata: metadata,
+                messages: messages,
+                proposer: proposer,
+                initialDeposit: initialDeposit,
+                expedited: false
+            });
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -402,15 +382,10 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         const proposer = await wallet.getAddress();
-        const message = {
-            typeUrl: "/cosmos.gov.v1.MsgCancelProposal",
-            value: MsgCancelProposal.fromPartial({
-              proposalId: BigInt(proposalId),
-              proposer: proposer
-            })
-        };
 
         const txClient = new GovTxClient(wallet, this.config.rpcAddress);
+        const message = GovTxClient.v1MsgCancelProposal({ proposalId: BigInt(proposalId), proposer: proposer });
+
         return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
     }
    
@@ -629,7 +604,7 @@ export class FirmaGovService {
             const voter = await wallet.getAddress();
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
 
-            const message = GovTxClient.msgVote({ proposalId: proposalId, voter: voter, option: option as number });
+            const message = GovTxClient.v1MsgVote({ proposalId: proposalId, voter: voter, option: option as number, metadata: "" });
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
         } catch (error) {
@@ -662,7 +637,7 @@ export class FirmaGovService {
         try {
             const depositor = await wallet.getAddress();
             const sendAmount = { denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(amount) };
-            const message = GovTxClient.msgDeposit({ proposalId: proposalId, depositor: depositor, amount: [sendAmount] });
+            const message = GovTxClient.v1MsgDeposit({ proposalId: proposalId, depositor: depositor, amount: [sendAmount] });
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));

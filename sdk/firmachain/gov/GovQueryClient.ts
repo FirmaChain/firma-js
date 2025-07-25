@@ -32,10 +32,10 @@ export interface GovParamType {
 }
 
 export interface CurrentVoteInfo {
-    yes: string;
-    abstain: string;
-    no: string;
-    no_with_veto: string;
+    yes_count: string;
+    abstain_count: string;
+    no_count: string;
+    no_with_veto_count: string;
 }
 
 export class GovQueryClient {
@@ -52,7 +52,7 @@ export class GovQueryClient {
     }
 
     async queryGetCurrentVoteInfo(id: string): Promise<CurrentVoteInfo> {
-        const path = `/cosmos/gov/v1beta1/proposals/${id}/tally`;
+        const path = `/cosmos/gov/v1/proposals/${id}/tally`;
 
         const result = await this.axios.get(path);
         return result.data.tally;
