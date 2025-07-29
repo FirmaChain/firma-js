@@ -76,10 +76,10 @@ describe('[17. Gov Query Test]', () => {
 			let param = await firma.Gov.getCurrentVoteInfo(proposalId);
 			
 			expect(param).to.be.an('object');
-			expect(param).to.have.property('yes');
-			expect(param).to.have.property('abstain');
-			expect(param).to.have.property('no');
-			expect(param).to.have.property('no_with_veto');
+			expect(param).to.have.property('yes_count');
+			expect(param).to.have.property('abstain_count');
+			expect(param).to.have.property('no_count');
+			expect(param).to.have.property('no_with_veto_count');
 		} else {
 			expect(proposalList).to.have.lengthOf(0);
 		}

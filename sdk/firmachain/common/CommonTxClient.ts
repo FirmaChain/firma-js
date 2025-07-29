@@ -1,11 +1,18 @@
-import { Registry, EncodeObject, GeneratedType } from "@cosmjs/proto-signing";
+import { Registry } from "@cosmjs/proto-signing";
 import { MsgSend, MsgMultiSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
+import {
+    MsgDeposit as V1MsgDeposit,
+    MsgSubmitProposal as V1MsgSubmitProposal,
+    MsgUpdateParams as V1MsgUpdateParams,
+    MsgVote as V1MsgVote,
+    MsgVoteWeighted as V1MsgVoteWeighted,
+} from "cosmjs-types/cosmos/gov/v1/tx";
 import { MsgFundCommunityPool, MsgSetWithdrawAddress, MsgWithdrawDelegatorReward, MsgWithdrawValidatorCommission } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
-import { MsgDeposit, MsgSubmitProposal, MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
+import { MsgDeposit, MsgSubmitProposal, MsgVote, MsgVoteWeighted } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { MsgBeginRedelegate, MsgCreateValidator, MsgDelegate, MsgEditValidator, MsgUndelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 import { MsgStoreCode, MsgInstantiateContract, MsgExecuteContract, MsgUpdateAdmin, MsgClearAdmin, MsgMigrateContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 // temporarly using kintsugi-tech/cosmjs-types - this will be returned to original cosmjs-types after the PR is merged
-import { MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
+import { MsgCancelProposal as V1MsgCancelProposal } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 
 import { FirmaWalletService } from "../../FirmaWalletService";
 import { MsgExec, MsgGrant, MsgRevoke } from "../authz/AuthzTxTypes";
@@ -14,7 +21,6 @@ import { MsgGrantAllowance, MsgRevokeAllowance } from "../feegrant/FeeGrantTxTyp
 import { MsgTransfer, MsgMint, MsgBurn } from "../nft/NftTxTypes";
 import { MsgCreateToken, MsgUpdateTokenURI } from "../token/TokenTxTypes";
 import { ITxClient } from "./ITxClient";
-
 
 const types = [
     ["/cosmos.authz.v1beta1.MsgExec", MsgExec],
@@ -30,7 +36,6 @@ const types = [
     ["/cosmwasm.wasm.v1.MsgStoreCode", MsgStoreCode],
     ["/cosmwasm.wasm.v1.MsgInstantiateContract", MsgInstantiateContract],
     ["/cosmwasm.wasm.v1.MsgExecuteContract", MsgExecuteContract],
-
     ["/cosmwasm.wasm.v1.MsgUpdateAdmin", MsgUpdateAdmin],
     ["/cosmwasm.wasm.v1.MsgClearAdmin", MsgClearAdmin],
     ["/cosmwasm.wasm.v1.MsgMigrateContract", MsgMigrateContract],
@@ -43,10 +48,17 @@ const types = [
     ["/cosmos.feegrant.v1beta1.MsgGrantAllowance", MsgGrantAllowance],
     ["/cosmos.feegrant.v1beta1.MsgRevokeAllowance", MsgRevokeAllowance],
 
+    ["/cosmos.gov.v1.MsgDeposit", V1MsgDeposit],
+    ["/cosmos.gov.v1.MsgSubmitProposal", V1MsgSubmitProposal],
+    ["/cosmos.gov.v1.MsgUpdateParams", V1MsgUpdateParams],
+    ["/cosmos.gov.v1.MsgVote", V1MsgVote],
+    ["/cosmos.gov.v1.MsgVoteWeighted", V1MsgVoteWeighted],
+    ["/cosmos.gov.v1.MsgCancelProposal", V1MsgCancelProposal],
+
     ["/cosmos.gov.v1beta1.MsgDeposit", MsgDeposit],
     ["/cosmos.gov.v1beta1.MsgSubmitProposal", MsgSubmitProposal],
     ["/cosmos.gov.v1beta1.MsgVote", MsgVote],
-    ["/cosmos.gov.v1.MsgCancelProposal", MsgCancelProposal],
+    ["/cosmos.gov.v1beta1.MsgVoteWeighted", MsgVoteWeighted],
 
     ["/ibc.applications.transfer.v1.MsgTransfer", MsgTransfer],
 
