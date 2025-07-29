@@ -80,10 +80,16 @@ export class GovQueryClient {
         return result.data.proposals;
     }
 
-    async queryGetProposalList(pagination?: { limit?: number; key?: string; }): Promise<Proposal[]> {
+    async queryGetProposalList(pagination?: { offset?: number; limit?: number; reverse?: boolean; }): Promise<Proposal[]> {
         const path = "/cosmos/gov/v1/proposals";
 
-        const result = await this.axios.get(path, { params: { ...pagination } });
+        const params = {
+            "pagination.offset": pagination?.offset,
+            "pagination.limit": pagination?.limit,
+            "pagination.reverse": pagination?.reverse,
+        };
+
+        const result = await this.axios.get(path, { params });
         return result.data.proposals;
     }
 }
