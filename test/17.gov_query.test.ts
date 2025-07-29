@@ -14,11 +14,26 @@ describe('[17. Gov Query Test]', () => {
 
 	it('get getProposalList', async () => {
 
-		const proposalList: any = [];
+		const proposalList: any = await firma.Gov.getProposalList({ reverse: true });
+
 		if (proposalList.length > 0) {
 			expect(proposalList[0].id).to.not.equal('');
 		} else {
 			expect(proposalList).to.be.deep.equal([]);
+		}
+	});
+
+	it('get getAllProposalList', async () => {
+		const allProposals = await firma.Gov.getAllProposalList();
+
+		// Check if proposals are properly ordered by ID
+		if (allProposals.length > 0) {
+
+			// Basic checks
+			expect(allProposals[0].id).to.not.equal('');
+			expect(allProposals.length).to.be.greaterThan(0);
+		} else {
+			expect(allProposals).to.be.deep.equal([]);
 		}
 	});
 
