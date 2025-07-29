@@ -101,7 +101,7 @@ export class FirmaGovService {
         params: StakingParams,
         metadata: string = "",
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
-        
+
         try {
             const requestedParams = {
                 authority: FirmaGovService.GOV_AUTHORITY,
@@ -153,7 +153,7 @@ export class FirmaGovService {
             if (!equal(requestedParams.params, fromPartialParams.params)) {
                 throw new Error("All governance parameters must be provided. Use getParamAsGovParams() to get current values and override only the parameters you want to change.");
             }
-            
+
             const message = {
                 typeUrl: "/cosmos.gov.v1.MsgUpdateParams",
                 value: GovMsgUpdateParmas.encode(GovMsgUpdateParmas.fromPartial({
@@ -219,7 +219,7 @@ export class FirmaGovService {
     async getGasEstimationCancelProposal(wallet: FirmaWalletService,
         proposalId: number,
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
-        
+
         try {
             const txRaw = await this.getSignedTxCancelProposal(wallet, proposalId, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
@@ -271,7 +271,7 @@ export class FirmaGovService {
         try {
             const proposer = await wallet.getAddress();
             const initialDeposit = [{ amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT), denom: this.config.denom }];
-            
+
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             const message = GovTxClient.v1MsgSubmitProposal({
                 title: title,
@@ -279,10 +279,10 @@ export class FirmaGovService {
                 metadata: metadata,
                 messages: messages,
                 proposer: proposer,
-                initialDeposit: initialDeposit, 
+                initialDeposit: initialDeposit,
                 expedited: false
             });
-            
+
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -301,7 +301,7 @@ export class FirmaGovService {
         try {
             const proposer = await wallet.getAddress();
             const initialDeposit = [{ amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT), denom: this.config.denom }];
-            
+
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             const message = GovTxClient.v1MsgSubmitProposal({
                 title: title,
@@ -309,7 +309,7 @@ export class FirmaGovService {
                 metadata: metadata,
                 messages: messages,
                 proposer: proposer,
-                initialDeposit: initialDeposit, 
+                initialDeposit: initialDeposit,
                 expedited: false
             });
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
@@ -338,7 +338,7 @@ export class FirmaGovService {
                 metadata: metadata,
                 messages: messages,
                 proposer: proposer,
-                initialDeposit: initialDeposit, 
+                initialDeposit: initialDeposit,
                 expedited: false
             });
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
@@ -388,7 +388,7 @@ export class FirmaGovService {
 
         return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
     }
-   
+
     async submitSoftwareUpgradeProposal(wallet: FirmaWalletService,
         title: string,
         summary: string,
@@ -433,7 +433,7 @@ export class FirmaGovService {
                 authority: FirmaGovService.GOV_AUTHORITY,
                 params: params
             });
-    
+
             if (!equal(requestedParams.params, fromPartialParams.params)) {
                 throw new Error("All staking parameters must be provided. Use Staking.getParamsAsStakingParams() to get current values and override only the parameters you want to change.");
             }
@@ -463,7 +463,7 @@ export class FirmaGovService {
         params: GovParams,
         metadata: string = "",
         txmisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
-        
+
         try {
             const requestedParams = {
                 authority: FirmaGovService.GOV_AUTHORITY,
@@ -556,7 +556,7 @@ export class FirmaGovService {
             value?: Uint8Array | undefined;
         }[] | undefined,
         txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
-            
+
         try {
             const proposer = await wallet.getAddress();
             const message = {
@@ -574,7 +574,7 @@ export class FirmaGovService {
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
             const signed = await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
             return await txClient.broadcast(signed);
-            
+
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -747,12 +747,37 @@ export class FirmaGovService {
         }
     }
 
-    async getProposalList(): Promise<Proposal[]> {
+    async getProposalList(pagination?: { offset?: number; limit?: number; reverse?: boolean; }): Promise<Proposal[]> {
         try {
             const queryClient = new GovQueryClient(this.config.restApiAddress);
-            const result = await queryClient.queryGetProposalList();
-
+            const result = await queryClient.queryGetProposalList(pagination);
             return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getAllProposalList(): Promise<Proposal[]> {
+        try {
+            let allProposals: Proposal[] = [];
+            let currentOffset = 0;
+            const limit = 100;
+
+            while (true) {
+                const proposals = await this.getProposalList({ offset: currentOffset, limit });
+
+                if (proposals.length === 0) break;
+
+                allProposals = [...allProposals, ...proposals];
+
+                if (proposals.length < limit) break;
+
+                currentOffset += limit;
+            }
+
+            return allProposals;
 
         } catch (error) {
             FirmaUtil.printLog(error);
