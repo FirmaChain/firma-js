@@ -217,16 +217,27 @@ export class FirmaDistributionService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-
             const address = await wallet.getAddress();
-
             const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
 
             let messageList: MsgWithdrawDelegatorRewardEncodeObject[] = [];
 
-            for (let i = 0; i < delegationList.length; i++) {
+            const totalRewardInfo = await this.getTotalRewardInfo(address);
 
-                const validatorAddress = delegationList[i].delegation.validator_address;
+            // Filter delegation list to include only validators that have rewards in totalRewardInfo
+            // If rewards are empty, filter delegations
+            const filteredDelegationList = delegationList.filter(delegation => {
+                const hasReward = totalRewardInfo.rewards.some(reward => reward.validator_address === delegation.delegation.validator_address);
+                
+                if (!hasReward) {
+                    FirmaUtil.printLog(`Validator filtered. Will not request to withdraw reward from zero reward validator: ${delegation.delegation.validator_address}, delegation amount=${delegation.balance.amount}`);
+                }
+                
+                return hasReward;
+            });
+
+            for (let i = 0; i < filteredDelegationList.length; i++) {
+                const validatorAddress = filteredDelegationList[i].delegation.validator_address;
                 const message = DistributionTxClient.msgWithdrawDelegatorReward({ delegatorAddress: address, validatorAddress: validatorAddress });
 
                 messageList.push(message);
@@ -239,7 +250,6 @@ export class FirmaDistributionService {
             throw error;
         }
     }
-
 
     async withdrawAllRewardsFromAllValidator(wallet: FirmaWalletService, delegationList: DelegationInfo[], txMisc: TxMisc = DefaultTxMisc):
         Promise<DeliverTxResponse> {
