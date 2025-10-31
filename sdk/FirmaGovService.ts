@@ -79,12 +79,17 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
+            // Create message object and remove deprecated 'time' field before encoding
+            const msgObj = MsgSoftwareUpgrade.fromPartial({
+                authority: FirmaGovService.GOV_AUTHORITY,
+                plan: plan
+            });
+            // Remove time field from the plan to avoid encoding deprecated field
+            delete (msgObj.plan as any).time;
+            
             const message = {
                 typeUrl: "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade",
-                value: MsgSoftwareUpgrade.encode(MsgSoftwareUpgrade.fromPartial({
-                    authority: FirmaGovService.GOV_AUTHORITY,
-                    plan: plan
-                })).finish()
+                value: MsgSoftwareUpgrade.encode(msgObj).finish()
             };
             const txRaw = await this.getSignedTxSubmitSoftwareUpgradeProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
@@ -398,12 +403,17 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<DeliverTxResponse> {
 
         try {
+            // Create message object and remove deprecated 'time' field before encoding
+            const msgObj = MsgSoftwareUpgrade.fromPartial({
+                authority: FirmaGovService.GOV_AUTHORITY,
+                plan: plan
+            });
+            // Remove time field from the plan to avoid encoding deprecated field
+            delete (msgObj.plan as any).time;
+            
             const message = {
                 typeUrl: "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade",
-                value: MsgSoftwareUpgrade.encode(MsgSoftwareUpgrade.fromPartial({
-                    authority: FirmaGovService.GOV_AUTHORITY,
-                    plan: plan
-                })).finish()
+                value: MsgSoftwareUpgrade.encode(msgObj).finish()
             };
 
             const txRaw = await this.getSignedTxSubmitSoftwareUpgradeProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
