@@ -262,7 +262,6 @@ export async function signWithSignerAmino(
     );
     return TxRaw.fromPartial({ bodyBytes, authInfoBytes, signatures: [signature] });
   } catch (e) {
-    console.error("[Amino] signing error:", e);
     throw e;
   }
 }
@@ -388,7 +387,6 @@ export async function signWithSignerTextual(
 
     return TxRaw.fromPartial({ bodyBytes, authInfoBytes, signatures: [signature] });
   } catch (e) {
-    console.error("[Textual] signing error:", e);
     throw e;
   }
 }
