@@ -63,7 +63,6 @@ export interface SigningStargateClientOptions extends StargateClientOptions {
 export class SigningStargateClient extends StargateClient {
     public readonly registry: Registry;
     private readonly signer: OfflineDirectSigner;
-    private static _endpoint = "";
 
     static async connectWithSigner(
         endpoint: string | HttpEndpoint, 
@@ -114,10 +113,8 @@ export class SigningStargateClient extends StargateClient {
         chainId: string,
         registry: Registry
     ): Promise<SignDoc> {
-        SigningStargateClient._endpoint = serverUrl;
-
-        const { accountNumber, sequence } = await SigningStargateClient.getSequence(signerAddress);
-        const account = await SigningStargateClient.getAccount(signerAddress);
+        const { accountNumber, sequence } = await SigningStargateClient.getSequence(signerAddress, serverUrl);
+        const account = await SigningStargateClient.getAccount(signerAddress, serverUrl);
 
         if (account == null)
             throw new Error("Failed to retrieve account from signer");
@@ -246,8 +243,8 @@ export class SigningStargateClient extends StargateClient {
         return { txRaw: txRaw, signature: signature.signature };
     }
 
-    static async getSequence(address: string): Promise<SequenceResponse> {
-        const account = await this.getAccount(address);
+    static async getSequence(address: string, serverUrl: string): Promise<SequenceResponse> {
+        const account = await this.getAccount(address, serverUrl);
         if (!account) {
             throw new Error("Account does not exist on chain. Send some tokens there before trying to query sequence.");
         }
@@ -257,13 +254,13 @@ export class SigningStargateClient extends StargateClient {
         };
     }
 
-    static async getAccount(address: string): Promise<Account | null> {
+    static async getAccount(address: string, serverUrl: string): Promise<Account | null> {
         try {
             const accAddress = fromBech32(address).data;
             const hexAccAddress = `0x01${Buffer.from(accAddress).toString("hex")}`;
 
             const axiosInstance = axios.create({
-                baseURL: SigningStargateClient._endpoint,
+                baseURL: serverUrl,
                 headers: {
                     Accept: "application/json",
                 },
