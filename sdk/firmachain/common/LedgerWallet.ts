@@ -177,21 +177,52 @@ function fieldToDisplayName(name: string): string {
   return snake.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 }
 
+const VOTE_OPTION_NAMES: Record<number, string> = {
+  0: "VOTE_OPTION_UNSPECIFIED",
+  1: "VOTE_OPTION_YES",
+  2: "VOTE_OPTION_ABSTAIN",
+  3: "VOTE_OPTION_NO",
+  4: "VOTE_OPTION_NO_WITH_VETO",
+};
+
+function isLongObject(v: unknown): v is { low: number; high: number; unsigned: boolean; toString(): string } {
+  return typeof v === "object" && v !== null && "low" in v && "high" in v && typeof (v as any).toString === "function";
+}
+
 async function renderFieldValue(
   value: unknown,
   restUrl: string,
+  fieldName?: string,
+  typeUrl?: string,
 ): Promise<string> {
   if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "bigint") return String(value);
+  if (typeof value === "number" || typeof value === "bigint") {
+    // VoteOption enum → string name
+    if (typeUrl === "/cosmos.gov.v1.MsgVote" && fieldName === "option" && typeof value === "number") {
+      const enumName = VOTE_OPTION_NAMES[value] ?? String(value);
+      console.log('[Textual] VoteOption enum:', value, '->', enumName);
+      return enumName;
+    }
+    console.log('[Textual] renderFieldValue number/bigint field:', fieldName, 'typeUrl:', typeUrl, 'value:', value, 'type:', typeof value);
+    return String(value);
+  }
+  // Long.js object (protobufjs uint64/int64) → decimal string
+  if (isLongObject(value)) return value.toString();
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (value instanceof Uint8Array) return `(${value.length} bytes)`;
   if (Array.isArray(value)) {
+    if (value.length === 0) return "(none)";
     if (
-      value.length > 0 &&
       typeof value[0] === "object" &&
       value[0] !== null &&
       "denom" in value[0] &&
       "amount" in value[0]
     ) {
       return formatCoins(value as Array<{ denom: string; amount: string }>, restUrl);
+    }
+    // Any[] — show typeUrls only to avoid Uint8Array serialization
+    if (typeof value[0] === "object" && value[0] !== null && "typeUrl" in value[0]) {
+      return (value as Array<{ typeUrl: string }>).map((a) => a.typeUrl).join(", ");
     }
     return JSON.stringify(value);
   }
@@ -201,6 +232,8 @@ async function renderFieldValue(
       const meta = await queryCoinMetadata(restUrl, coin.denom);
       return formatOneCoin(coin.amount, coin.denom, meta);
     }
+    // Any object — show typeUrl only
+    if ("typeUrl" in value) return (value as { typeUrl: string }).typeUrl;
     return JSON.stringify(value);
   }
   return String(value ?? "");
@@ -292,23 +325,41 @@ async function buildTextualScreens(
     screens.push({ title: `Message (${i + 1}/${count})`, content: msg.typeUrl, indent: 1 });
 
     let fields: Record<string, unknown> = {};
+    let usedAmino = false;
     try {
       fields = aminoTypes.toAmino(msg).value as Record<string, unknown>;
+      usedAmino = true;
     } catch {
       // Re-encode then decode via registry to get fields in canonical proto field number order
       const MsgType = registry.lookupType(msg.typeUrl);
       if (MsgType) {
-        const encodedBytes = registry.encodeAsAny(msg).value;
-        fields = (MsgType.decode(encodedBytes) as unknown) as Record<string, unknown>;
+        try {
+          const encodedBytes = registry.encodeAsAny(msg).value;
+          fields = (MsgType.decode(encodedBytes) as unknown) as Record<string, unknown>;
+        } catch {
+          if (msg.value && typeof msg.value === "object") {
+            fields = msg.value as Record<string, unknown>;
+          }
+        }
       } else if (msg.value && typeof msg.value === "object") {
         fields = msg.value as Record<string, unknown>;
       }
     }
+    console.log('[Textual] usedAmino:', usedAmino, 'typeUrl:', msg.typeUrl, 'fields keys:', Object.keys(fields));
     for (const [k, v] of Object.entries(fields)) {
       // cosmos SDK textual renderer omits proto3 zero/default values
       if (v === "" || v === false || (Array.isArray(v) && v.length === 0)) continue;
+      if (v === 0 || v === BigInt(0)) continue;
+      if (isLongObject(v) && v.low === 0 && v.high === 0) continue;
+      console.log('[Textual] field:', k, 'type:', typeof v, 'value:', v);
       const title = fieldToDisplayName(k);
-      const content = await renderFieldValue(v, restApiAddress);
+      let content: string;
+      try {
+        content = await renderFieldValue(v, restApiAddress, k, msg.typeUrl);
+      } catch (e) {
+        console.warn('[Textual] renderFieldValue error for field', k, ':', e);
+        content = "(error)";
+      }
       screens.push({ title, content, indent: 2 });
     }
 
@@ -325,6 +376,44 @@ async function buildTextualScreens(
   });
 
   return screens;
+}
+
+// ─── Auto sign mode routing ───────────────────────────────────────────────────
+
+function buildAminoTypesForCheck(): AminoTypes {
+  return new AminoTypes({
+    ...createBankAminoConverters(),
+    ...createStakingAminoConverters(),
+    ...createDistributionAminoConverters(),
+    ...createGovAminoConverters(),
+    ...createIbcAminoConverters(),
+    ...createFeegrantAminoConverters(),
+    ...createAuthzAminoConverters(),
+    ...createVestingAminoConverters(),
+  });
+}
+
+export async function signWithSignerAuto(
+  signer: LedgerWalletInterface,
+  messages: EncodeObject[],
+  signerData: SignerData,
+  option: SignAndBroadcastOptions,
+  registry: Registry,
+  restApiAddress = "",
+): Promise<TxRaw> {
+  const aminoTypes = buildAminoTypesForCheck();
+  const allSupportAmino = messages.every((msg) => {
+    try { aminoTypes.toAmino(msg); return true; }
+    catch { return false; }
+  });
+
+  if (allSupportAmino) {
+    console.log('[Ledger] sign mode: LEGACY_AMINO_JSON (all msgs support amino)');
+    return signWithSignerAmino(signer, messages, signerData, option, registry);
+  } else {
+    console.log('[Ledger] sign mode: TEXTUAL (amino unavailable for some msgs)');
+    return signWithSignerTextual(signer, messages, signerData, option, registry, restApiAddress);
+  }
 }
 
 export async function signWithSignerTextual(

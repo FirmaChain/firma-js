@@ -233,11 +233,26 @@ export class FirmaGovService {
         }
     }
 
+    /**
+     * Submits a text proposal (signaling proposal with no executable messages).
+     *
+     * Cosmos SDK gov v1 MsgSubmitProposal.ValidateBasic() enforces:
+     *   if len(m.Messages) == 0 && len(m.Metadata) == 0 { return ErrNoProposalMsgs }
+     *
+     * Text proposals have messages: [], so metadata MUST be non-empty or the tx
+     * fails with "either metadata or Msgs length must be non-nil: no messages
+     * proposed" (x/gov ErrNoProposalMsgs, code 11). This does NOT apply to
+     * regular proposals with messages — empty metadata is valid there.
+     *
+     * @see https://github.com/cosmos/cosmos-sdk/blob/release/v0.46.x/x/gov/types/v1/msgs.go
+     * @see https://github.com/cosmos/cosmos-sdk/blob/release/v0.46.x/x/gov/types/errors.go
+     */
     private async getSignedTxSubmitTextProposal(wallet: FirmaWalletService,
         title: string,
         description: string,
         initialDepositFCT: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        metadata: string = "ipfs://CID"): Promise<TxRaw> {
 
         try {
             const proposer = await wallet.getAddress();
@@ -247,7 +262,7 @@ export class FirmaGovService {
             const message = GovTxClient.v1MsgSubmitProposal({
                 title: title,
                 summary: description,
-                metadata: "",
+                metadata: metadata,
                 messages: [],
                 proposer: proposer,
                 initialDeposit: initialDeposit,

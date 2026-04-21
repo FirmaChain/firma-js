@@ -4,7 +4,7 @@ import { stringToPath, Slip10, HdPath, Slip10Curve, Bip39, EnglishMnemonic } fro
 
 import { FirmaConfig } from "./FirmaConfig";
 import { FirmaUtil } from "./FirmaUtil";
-import { LedgerWalletInterface, signWithSignerTextual } from "./firmachain/common/LedgerWallet";
+import { LedgerWalletInterface, signWithSignerAuto } from "./firmachain/common/LedgerWallet";
 import { SignAndBroadcastOptions } from "./firmachain/common";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
@@ -235,6 +235,6 @@ export class FirmaWalletService {
             chain_id: chainId,
         };
 
-        return await signWithSignerTextual(this.ledger, messages, signerData, option, registry, this.config.restApiAddress);
+        return await signWithSignerAuto(this.ledger, messages, signerData, option, registry, this.config.restApiAddress);
     }
 }
