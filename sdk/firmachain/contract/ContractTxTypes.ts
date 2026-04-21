@@ -462,7 +462,7 @@ export class MsgClientImpl implements Msg {
         this.rpc = rpc;
     }
 
-    CreateContractFile(
+    async CreateContractFile(
         request: MsgCreateContractFile
     ): Promise<MsgCreateContractFileResponse> {
         const data = MsgCreateContractFile.encode(request).finish();
@@ -476,7 +476,7 @@ export class MsgClientImpl implements Msg {
         );
     }
 
-    AddContractLog(
+    async AddContractLog(
         request: MsgAddContractLog
     ): Promise<MsgAddContractLogResponse> {
         const data = MsgAddContractLog.encode(request).finish();
