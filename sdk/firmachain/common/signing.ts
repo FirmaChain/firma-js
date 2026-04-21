@@ -14,7 +14,7 @@ function makeSignerInfos(
     signMode: SignMode,
 ): SignerInfo[] {
     return signers.map(
-        ({ pubkey, sequence }): SignerInfo => 
+        ({ pubkey, sequence }): SignerInfo =>
             SignerInfo.fromPartial({
                 publicKey: pubkey,
                 modeInfo: {
@@ -28,97 +28,27 @@ function makeSignerInfos(
 export function makeAuthInfoBytes(
     signers: ReadonlyArray<SignerData>,
     feeAmount: readonly Coin[],
-    gasLimit: number,
+    gasLimit: bigint | number,
     granter?: string,
     payer?: string,
     signMode: SignMode = SignMode.SIGN_MODE_DIRECT,
 ): Uint8Array {
     const fee = Fee.fromPartial({
         amount: [...feeAmount],
-        gasLimit: BigInt(gasLimit),
+        gasLimit: typeof gasLimit === "bigint" ? gasLimit : BigInt(gasLimit),
         granter: granter || "",
         payer: payer || "",
     });
 
     const authInfo = AuthInfo.fromPartial({
         signerInfos: makeSignerInfos(signers, signMode),
-        fee: fee,
+        fee,
     });
-    
+
     return AuthInfo.encode(authInfo).finish();
 }
 
 export function makeSignDoc(
-    bodyBytes: Uint8Array,
-    authInfoBytes: Uint8Array,
-    chainId: string,
-    accountNumber: number,
-): SignDoc {
-    return SignDoc.fromPartial({
-        bodyBytes: bodyBytes,
-        authInfoBytes: authInfoBytes,
-        chainId: chainId,
-        accountNumber: BigInt(accountNumber),
-    });
-}
-
-export function makeSignBytes(signDoc: SignDoc): Uint8Array {
-    // Ensure all required fields are present
-    if (!signDoc.bodyBytes || !signDoc.authInfoBytes || !signDoc.chainId || signDoc.accountNumber === undefined) {
-        throw new Error("SignDoc is missing required fields");
-    }
-
-    const doc = SignDoc.fromPartial({
-        accountNumber: signDoc.accountNumber,
-        authInfoBytes: signDoc.authInfoBytes,
-        bodyBytes: signDoc.bodyBytes,
-        chainId: signDoc.chainId,
-    });
-    
-    return SignDoc.encode(doc).finish();
-}
-
-/**
- * Creates AuthInfo bytes for protobuf signing with enhanced type safety
- */
-export function makeAuthInfoBytesProtobuf(
-    signers: ReadonlyArray<SignerData>,
-    feeAmount: readonly Coin[],
-    gasLimit: bigint | number,
-    granter?: string,
-    payer?: string,
-): Uint8Array {
-    const normalizedGasLimit = typeof gasLimit === 'bigint' ? gasLimit : BigInt(gasLimit);
-    
-    const fee = Fee.fromPartial({
-        amount: feeAmount.map(coin => Coin.fromPartial(coin)),
-        gasLimit: normalizedGasLimit,
-        granter: granter || "",
-        payer: payer || "",
-    });
-
-    const signerInfos = signers.map(({ pubkey, sequence }) =>
-        SignerInfo.fromPartial({
-            publicKey: pubkey,
-            modeInfo: {
-                single: { mode: SignMode.SIGN_MODE_DIRECT },
-            },
-            sequence: BigInt(sequence),
-        })
-    );
-
-    const authInfo = AuthInfo.fromPartial({
-        signerInfos: signerInfos,
-        fee: fee,
-    });
-    
-    return AuthInfo.encode(authInfo).finish();
-}
-
-/**
- * Creates a protobuf SignDoc with validation
- */
-export function makeSignDocProtobuf(
     bodyBytes: Uint8Array,
     authInfoBytes: Uint8Array,
     chainId: string,
@@ -134,12 +64,21 @@ export function makeSignDocProtobuf(
         throw new Error("chainId cannot be empty");
     }
 
-    const normalizedAccountNumber = typeof accountNumber === 'bigint' ? accountNumber : BigInt(accountNumber);
-
     return SignDoc.fromPartial({
-        bodyBytes: bodyBytes,
-        authInfoBytes: authInfoBytes,
-        chainId: chainId,
-        accountNumber: normalizedAccountNumber,
+        bodyBytes,
+        authInfoBytes,
+        chainId,
+        accountNumber: typeof accountNumber === "bigint" ? accountNumber : BigInt(accountNumber),
     });
 }
+
+export function makeSignBytes(signDoc: SignDoc): Uint8Array {
+    if (!signDoc.bodyBytes || !signDoc.authInfoBytes || !signDoc.chainId || signDoc.accountNumber === undefined) {
+        throw new Error("SignDoc is missing required fields");
+    }
+    return SignDoc.encode(signDoc).finish();
+}
+
+// Backward-compatible aliases for existing callers
+export const makeAuthInfoBytesProtobuf = makeAuthInfoBytes;
+export const makeSignDocProtobuf = makeSignDoc;
