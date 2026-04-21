@@ -22,7 +22,7 @@ import { makeAuthInfoBytes } from "./signing";
 
 export interface LedgerWalletInterface {
   getAddress(): Promise<string>;
-  sign(message: string | Buffer, txtype?: number): Promise<Uint8Array>;
+  sign(message: string | Uint8Array, txtype?: number): Promise<Uint8Array>;
   getPublicKey(): Promise<Uint8Array>;
   getAddressAndPublicKey(): Promise<{ address: string; publicKey: Uint8Array }>;
   showAddressOnDevice?(): Promise<void>;
@@ -36,22 +36,30 @@ export interface SignerData {
 
 // ─── Minimal CBOR encoder ────────────────────────────────────────────────────
 
-function cborMajorN(major: number, n: number): Buffer {
+function concatBytes(...arrays: Uint8Array[]): Uint8Array {
+  const total = arrays.reduce((acc, a) => acc + a.length, 0);
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const a of arrays) { out.set(a, off); off += a.length; }
+  return out;
+}
+
+function cborMajorN(major: number, n: number): Uint8Array {
   const type = major << 5;
-  if (n <= 23) return Buffer.from([type | n]);
-  if (n <= 0xff) return Buffer.from([type | 24, n]);
-  if (n <= 0xffff) return Buffer.from([type | 25, (n >> 8) & 0xff, n & 0xff]);
-  const b = Buffer.alloc(5);
+  if (n <= 23) return new Uint8Array([type | n]);
+  if (n <= 0xff) return new Uint8Array([type | 24, n]);
+  if (n <= 0xffff) return new Uint8Array([type | 25, (n >> 8) & 0xff, n & 0xff]);
+  const b = new Uint8Array(5);
   b[0] = type | 26;
-  b.writeUInt32BE(n, 1);
+  new DataView(b.buffer).setUint32(1, n, false);
   return b;
 }
 
-function cborUint(n: number): Buffer { return cborMajorN(0, n); }
+function cborUint(n: number): Uint8Array { return cborMajorN(0, n); }
 
-function cborText(s: string): Buffer {
-  const utf8 = Buffer.from(s, "utf8");
-  return Buffer.concat([cborMajorN(3, utf8.length), utf8]);
+function cborText(s: string): Uint8Array {
+  const utf8 = new TextEncoder().encode(s);
+  return concatBytes(cborMajorN(3, utf8.length), utf8);
 }
 
 interface TextualScreen {
@@ -61,20 +69,21 @@ interface TextualScreen {
   expert?: boolean;
 }
 
-function encodeSingleScreen(s: TextualScreen): Buffer {
-  const parts: Buffer[] = [];
+function encodeSingleScreen(s: TextualScreen): Uint8Array {
+  const parts: Uint8Array[] = [];
   let n = 0;
   if (s.title) { parts.push(cborUint(1), cborText(s.title)); n++; }
-  if (s.content) { parts.push(cborUint(2), cborText(s.content)); n++; }
+  // always include content: Ledger parser requires key 2 after key 1 (title)
+  parts.push(cborUint(2), cborText(s.content)); n++;
   if (s.indent && s.indent > 0) { parts.push(cborUint(3), cborUint(s.indent)); n++; }
-  if (s.expert) { parts.push(cborUint(4), Buffer.from([0xf5])); n++; }
-  return Buffer.concat([cborMajorN(5, n), ...parts]);
+  if (s.expert) { parts.push(cborUint(4), new Uint8Array([0xf5])); n++; }
+  return concatBytes(cborMajorN(5, n), ...parts);
 }
 
-function encodeTextualCbor(screens: TextualScreen[]): Buffer {
+function encodeTextualCbor(screens: TextualScreen[]): Uint8Array {
   const items = screens.map(encodeSingleScreen);
-  const arr = Buffer.concat([cborMajorN(4, screens.length), ...items]);
-  return Buffer.concat([cborMajorN(5, 1), cborUint(1), arr]);
+  const arr = concatBytes(cborMajorN(4, screens.length), ...items);
+  return concatBytes(cborMajorN(5, 1), cborUint(1), arr);
 }
 
 // ─── Coin metadata & formatting ───────────────────────────────────────────────
