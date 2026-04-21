@@ -116,7 +116,7 @@ export class FirmaWalletService {
 
     async initFromPrivateKey(privateKey: string) {
         try {
-            const tempPrivateKey = Buffer.from(privateKey.replace("0x", ""), "hex");
+            const tempPrivateKey = new Uint8Array(Buffer.from(privateKey.replace("0x", ""), "hex"));
             this.wallet = await DirectSecp256k1Wallet.fromKey(tempPrivateKey, this.getPrefix());
             
             this.privateKey = privateKey;

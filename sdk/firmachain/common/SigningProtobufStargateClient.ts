@@ -268,7 +268,7 @@ export class SigningProtobufStargateClient extends StargateClient {
                 return null;
             }
 
-            const account = Any.decode(Buffer.from(finalData, "base64"));
+            const account = Any.decode(Uint8Array.from(Buffer.from(finalData, "base64")));
             const finalAccount = accountFromAny(account);
 
             return finalAccount;

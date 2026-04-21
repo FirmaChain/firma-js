@@ -271,7 +271,7 @@ export class SigningStargateClient extends StargateClient {
             const result = await axiosInstance.get(path, { params: { data: hexAccAddress } });
 
             const finalData = result.data.result.response.value;
-            const account = Any.decode(Buffer.from(finalData, "base64"));
+            const account = Any.decode(Uint8Array.from(Buffer.from(finalData, "base64")));
 
             return accountFromAny(account);
         } catch (error) {

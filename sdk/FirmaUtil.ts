@@ -282,7 +282,7 @@ export class FirmaUtil {
         try {
             const client = await SigningProtobufStargateClient.connectWithSigner(FirmaUtil.config.rpcAddress, wallet.getRawWallet(), {});
             const address = await wallet.getAddress();
-            const dataBytes = Buffer.from(data, 'utf8');
+            const dataBytes = new TextEncoder().encode(data);
 
             return await client.experimentalAdr36Sign(address, dataBytes);
             // return await FirmaUtil.protobufArbitrarySign(wallet, address, dataBytes);
