@@ -16,7 +16,6 @@ import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { Plan } from "cosmjs-types/cosmos/upgrade/v1beta1/upgrade";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
-import { TextProposal } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { MsgUpdateParams as StakingMsgUpdateParams } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 import equal from 'fast-deep-equal';
 
@@ -241,22 +240,20 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
 
         try {
-            const sendAmount = { denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT) };
-
-            const proposal = TextProposal.fromPartial({
-                title: title,
-                description: description,
-            });
-
-            const content = Any.fromPartial({
-                typeUrl: "/cosmos.gov.v1beta1.TextProposal",
-                value: Uint8Array.from(TextProposal.encode(proposal).finish()),
-            });
-
             const proposer = await wallet.getAddress();
-            const message = GovTxClient.msgSubmitProposal({ content: content, initialDeposit: [sendAmount], proposer: proposer });
+            const initialDeposit = [{ denom: this.config.denom, amount: FirmaUtil.getUFCTStringFromFCT(initialDepositFCT) }];
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
+            const message = GovTxClient.v1MsgSubmitProposal({
+                title: title,
+                summary: description,
+                metadata: "",
+                messages: [],
+                proposer: proposer,
+                initialDeposit: initialDeposit,
+                expedited: false
+            });
+
             return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
 
         } catch (error) {
