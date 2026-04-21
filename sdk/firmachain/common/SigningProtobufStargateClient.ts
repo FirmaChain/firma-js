@@ -135,8 +135,8 @@ export class SigningProtobufStargateClient extends StargateClient {
         const hash = sha256(signBytes);
 
         // Get private key from signer for direct signing (ADR-036 requirement)
-        const rawWallet = this.signer as any;
-        const privKey = rawWallet.privkey;
+        interface DirectSecp256k1WalletLike { privkey?: Uint8Array; }
+        const privKey = (this.signer as unknown as DirectSecp256k1WalletLike).privkey;
         if (!privKey) {
             throw new Error("Private key not accessible for ADR-036 signing");
         }

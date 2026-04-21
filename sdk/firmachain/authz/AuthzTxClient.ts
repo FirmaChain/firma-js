@@ -3,11 +3,13 @@ import { MsgExec, MsgGrant, MsgRevoke } from "./AuthzTxTypes";
 import { ITxClient } from "../common/ITxClient";
 import { FirmaWalletService } from "../../FirmaWalletService";
 
-const types: ReadonlyArray<[string, GeneratedType]> = [
+// AuthzTxTypes are protobufjs-generated without a `decode` method, so they
+// cannot satisfy GeneratedType directly.
+const types = [
     ["/cosmos.authz.v1beta1.MsgExec", MsgExec],
     ["/cosmos.authz.v1beta1.MsgGrant", MsgGrant],
     ["/cosmos.authz.v1beta1.MsgRevoke", MsgRevoke],
-];
+] as unknown as ReadonlyArray<[string, GeneratedType]>;
 
 const registry = new Registry(types);
 

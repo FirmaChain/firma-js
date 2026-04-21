@@ -1,7 +1,7 @@
 import { EncodeObject, Registry } from "@cosmjs/proto-signing";
 import { sha256 } from "@cosmjs/crypto";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
-import { AuthInfo, SignerInfo, TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { Any } from "cosmjs-types/google/protobuf/any";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { PubKey as Secp256k1PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
@@ -18,6 +18,7 @@ import {
   createVestingAminoConverters,
 } from "@cosmjs/stargate";
 import { SignAndBroadcastOptions } from "./TxCommon";
+import { makeAuthInfoBytes } from "./signing";
 
 export interface LedgerWalletInterface {
   getAddress(): Promise<string>;
@@ -54,7 +55,7 @@ function cborText(s: string): Buffer {
 }
 
 interface TextualScreen {
-  title?: string;   // omit or empty = no title key in CBOR
+  title?: string;
   content: string;
   indent?: number;
   expert?: boolean;
@@ -80,14 +81,15 @@ function encodeTextualCbor(screens: TextualScreen[]): Buffer {
 
 interface DenomUnit { denom: string; exponent: number; }
 interface CoinMetadata { base: string; display: string; denom_units: DenomUnit[]; }
+interface DenomsMetadataResponse { metadata?: CoinMetadata; }
 
 async function queryCoinMetadata(restUrl: string, denom: string): Promise<CoinMetadata | null> {
   if (!restUrl) return null;
   try {
     const resp = await fetch(`${restUrl}/cosmos/bank/v1beta1/denoms_metadata/${encodeURIComponent(denom)}`);
     if (!resp.ok) return null;
-    const data = await resp.json();
-    return (data as any).metadata ?? null;
+    const data = await resp.json() as DenomsMetadataResponse;
+    return data.metadata ?? null;
   } catch { return null; }
 }
 
@@ -182,34 +184,6 @@ async function renderFieldValue(
   return String(value ?? "");
 }
 
-// ─── AuthInfo helper ──────────────────────────────────────────────────────────
-
-function makeAuthInfoBytes(
-  mode: SignMode,
-  pubkey: Any,
-  feeAmount: readonly Coin[],
-  gasLimit: bigint,
-  sequence: number,
-  granter?: string,
-  payer?: string,
-): Uint8Array {
-  const signerInfo: SignerInfo = {
-    publicKey: pubkey,
-    modeInfo: { single: { mode } },
-    sequence: BigInt(sequence),
-  };
-  const authInfo = AuthInfo.fromPartial({
-    signerInfos: [signerInfo],
-    fee: {
-      amount: [...feeAmount],
-      gasLimit,
-      granter: granter || "",
-      payer: payer || "",
-    },
-  });
-  return AuthInfo.encode(authInfo).finish();
-}
-
 // ─── Amino signing (SIGN_MODE_LEGACY_AMINO_JSON) ──────────────────────────────
 
 export async function signWithSignerAmino(
@@ -219,51 +193,50 @@ export async function signWithSignerAmino(
   option: SignAndBroadcastOptions,
   registry: Registry,
 ): Promise<TxRaw> {
-  try {
-    const pubkey = await signer.getPublicKey();
-    const pubkeyProto: Any = {
-      typeUrl: "/cosmos.crypto.secp256k1.PubKey",
-      value: Secp256k1PubKey.encode({ key: pubkey }).finish(),
-    };
-    const aminoTypes = new AminoTypes({
-      ...createBankAminoConverters(),
-      ...createStakingAminoConverters(),
-      ...createDistributionAminoConverters(),
-      ...createGovAminoConverters(),
-      ...createIbcAminoConverters(),
-      ...createFeegrantAminoConverters(),
-      ...createAuthzAminoConverters(),
-      ...createVestingAminoConverters(),
-    });
-    const aminoMsgs = messages.map((msg) => aminoTypes.toAmino(msg));
-    const stdFee: StdFee = {
-      amount: option.fee.amount.map((c) => ({ denom: c.denom, amount: c.amount })),
-      gas: option.fee.gasLimit.toString(),
-      granter: option.fee.granter || undefined,
-      payer: option.fee.payer || undefined,
-    };
-    const signDoc = makeSignDoc(
-      aminoMsgs, stdFee, signerData.chain_id, option.memo || "",
-      signerData.account_number, signerData.sequence,
-    );
-    const signStr = Buffer.from(serializeSignDoc(signDoc)).toString("utf8");
-    const signature = await signer.sign(signStr, 0x00);
-    if (!signature || signature.length === 0)
-      throw new Error("Signature is empty. Please confirm the transaction on your Ledger device.");
-    if (signature.length !== 64)
-      throw new Error(`Unexpected signature length: ${signature.length} bytes (expected 64)`);
-    const anyMsgs = messages.map((msg) => registry.encodeAsAny(msg));
-    const bodyBytes = TxBody.encode(TxBody.fromPartial({ messages: anyMsgs, memo: option.memo || "" })).finish();
-    const feeCoins: Coin[] = option.fee.amount.map((a) => ({ denom: a.denom, amount: a.amount }));
-    const authInfoBytes = makeAuthInfoBytes(
-      SignMode.SIGN_MODE_LEGACY_AMINO_JSON, pubkeyProto, feeCoins,
-      BigInt(option.fee.gasLimit), signerData.sequence,
-      option.fee.granter || undefined, option.fee.payer || undefined,
-    );
-    return TxRaw.fromPartial({ bodyBytes, authInfoBytes, signatures: [signature] });
-  } catch (e) {
-    throw e;
-  }
+  const pubkey = await signer.getPublicKey();
+  const pubkeyProto: Any = {
+    typeUrl: "/cosmos.crypto.secp256k1.PubKey",
+    value: Secp256k1PubKey.encode({ key: pubkey }).finish(),
+  };
+  const aminoTypes = new AminoTypes({
+    ...createBankAminoConverters(),
+    ...createStakingAminoConverters(),
+    ...createDistributionAminoConverters(),
+    ...createGovAminoConverters(),
+    ...createIbcAminoConverters(),
+    ...createFeegrantAminoConverters(),
+    ...createAuthzAminoConverters(),
+    ...createVestingAminoConverters(),
+  });
+  const aminoMsgs = messages.map((msg) => aminoTypes.toAmino(msg));
+  const stdFee: StdFee = {
+    amount: option.fee.amount.map((c) => ({ denom: c.denom, amount: c.amount })),
+    gas: option.fee.gasLimit.toString(),
+    granter: option.fee.granter || undefined,
+    payer: option.fee.payer || undefined,
+  };
+  const signDoc = makeSignDoc(
+    aminoMsgs, stdFee, signerData.chain_id, option.memo || "",
+    signerData.account_number, signerData.sequence,
+  );
+  const signStr = Buffer.from(serializeSignDoc(signDoc)).toString("utf8");
+  const signature = await signer.sign(signStr, 0x00);
+  if (!signature || signature.length === 0)
+    throw new Error("Signature is empty. Please confirm the transaction on your Ledger device.");
+  if (signature.length !== 64)
+    throw new Error(`Unexpected signature length: ${signature.length} bytes (expected 64)`);
+  const anyMsgs = messages.map((msg) => registry.encodeAsAny(msg));
+  const bodyBytes = TxBody.encode(TxBody.fromPartial({ messages: anyMsgs, memo: option.memo || "" })).finish();
+  const feeCoins: Coin[] = option.fee.amount.map((a) => ({ denom: a.denom, amount: a.amount }));
+  const authInfoBytes = makeAuthInfoBytes(
+    [{ pubkey: pubkeyProto, sequence: signerData.sequence }],
+    feeCoins,
+    option.fee.gasLimit,
+    option.fee.granter || undefined,
+    option.fee.payer || undefined,
+    SignMode.SIGN_MODE_LEGACY_AMINO_JSON,
+  );
+  return TxRaw.fromPartial({ bodyBytes, authInfoBytes, signatures: [signature] });
 }
 
 // ─── Textual signing (SIGN_MODE_TEXTUAL, P2=0x01) ─────────────────────────────
@@ -281,7 +254,6 @@ async function buildTextualScreens(
 ): Promise<TextualScreen[]> {
   const screens: TextualScreen[] = [];
 
-  // Header fields
   screens.push({ title: "Chain id", content: signerData.chain_id });
   screens.push({ title: "Account number", content: signerData.account_number.toString() });
   screens.push({ title: "Sequence", content: signerData.sequence.toString() });
@@ -289,7 +261,6 @@ async function buildTextualScreens(
   screens.push({ title: "Public key", content: "/cosmos.crypto.secp256k1.PubKey", expert: true });
   screens.push({ title: "Key", content: formatPubkeyHex(pubkey), indent: 1, expert: true });
 
-  // Messages
   const count = messages.length;
   screens.push({ content: `This transaction has ${count} Message${count === 1 ? "" : "s"}` });
 
@@ -297,7 +268,6 @@ async function buildTextualScreens(
     const msg = messages[i];
     screens.push({ title: `Message (${i + 1}/${count})`, content: msg.typeUrl, indent: 1 });
 
-    // Render fields via amino; fall back to raw value
     let fields: Record<string, unknown> = {};
     try {
       fields = aminoTypes.toAmino(msg).value as Record<string, unknown>;
@@ -315,14 +285,9 @@ async function buildTextualScreens(
     screens.push({ content: "End of Message" });
   }
 
-  // Fee
   const feeCoins = option.fee.amount.map((c) => ({ denom: c.denom, amount: c.amount }));
   screens.push({ title: "Fees", content: await formatCoins(feeCoins, restApiAddress) });
-
-  // Gas limit (expert)
   screens.push({ title: "Gas limit", content: formatGasLimit(option.fee.gasLimit), expert: true });
-
-  // Hash of raw bytes (expert)
   screens.push({
     title: "Hash of raw bytes",
     content: computeRawBytesHash(bodyBytes, authInfoBytes),
@@ -340,53 +305,51 @@ export async function signWithSignerTextual(
   registry: Registry,
   restApiAddress = "",
 ): Promise<TxRaw> {
-  try {
-    const { address, publicKey: pubkey } = await signer.getAddressAndPublicKey();
+  const { address, publicKey: pubkey } = await signer.getAddressAndPublicKey();
 
-    const pubkeyProto: Any = {
-      typeUrl: "/cosmos.crypto.secp256k1.PubKey",
-      value: Secp256k1PubKey.encode({ key: pubkey }).finish(),
-    };
+  const pubkeyProto: Any = {
+    typeUrl: "/cosmos.crypto.secp256k1.PubKey",
+    value: Secp256k1PubKey.encode({ key: pubkey }).finish(),
+  };
 
-    // Build tx bytes first (needed for hash)
-    const anyMsgs = messages.map((msg) => registry.encodeAsAny(msg));
-    const bodyBytes = TxBody.encode(
-      TxBody.fromPartial({ messages: anyMsgs, memo: option.memo || "" }),
-    ).finish();
+  const anyMsgs = messages.map((msg) => registry.encodeAsAny(msg));
+  const bodyBytes = TxBody.encode(
+    TxBody.fromPartial({ messages: anyMsgs, memo: option.memo || "" }),
+  ).finish();
 
-    const feeCoins: Coin[] = option.fee.amount.map((a) => ({ denom: a.denom, amount: a.amount }));
-    const authInfoBytes = makeAuthInfoBytes(
-      SignMode.SIGN_MODE_TEXTUAL, pubkeyProto, feeCoins,
-      BigInt(option.fee.gasLimit), signerData.sequence,
-      option.fee.granter || undefined, option.fee.payer || undefined,
-    );
+  const feeCoins: Coin[] = option.fee.amount.map((a) => ({ denom: a.denom, amount: a.amount }));
+  const authInfoBytes = makeAuthInfoBytes(
+    [{ pubkey: pubkeyProto, sequence: signerData.sequence }],
+    feeCoins,
+    option.fee.gasLimit,
+    option.fee.granter || undefined,
+    option.fee.payer || undefined,
+    SignMode.SIGN_MODE_TEXTUAL,
+  );
 
-    const aminoTypes = new AminoTypes({
-      ...createBankAminoConverters(),
-      ...createStakingAminoConverters(),
-      ...createDistributionAminoConverters(),
-      ...createGovAminoConverters(),
-      ...createIbcAminoConverters(),
-      ...createFeegrantAminoConverters(),
-      ...createAuthzAminoConverters(),
-      ...createVestingAminoConverters(),
-    });
+  const aminoTypes = new AminoTypes({
+    ...createBankAminoConverters(),
+    ...createStakingAminoConverters(),
+    ...createDistributionAminoConverters(),
+    ...createGovAminoConverters(),
+    ...createIbcAminoConverters(),
+    ...createFeegrantAminoConverters(),
+    ...createAuthzAminoConverters(),
+    ...createVestingAminoConverters(),
+  });
 
-    const screens = await buildTextualScreens(
-      messages, signerData, option, aminoTypes,
-      pubkey, address, bodyBytes, authInfoBytes, restApiAddress,
-    );
+  const screens = await buildTextualScreens(
+    messages, signerData, option, aminoTypes,
+    pubkey, address, bodyBytes, authInfoBytes, restApiAddress,
+  );
 
-    const cborBuffer = encodeTextualCbor(screens);
+  const cborBuffer = encodeTextualCbor(screens);
 
-    const signature = await signer.sign(cborBuffer, 0x01);
-    if (!signature || signature.length === 0)
-      throw new Error("Signature is empty. Please confirm the transaction on your Ledger device.");
-    if (signature.length !== 64)
-      throw new Error(`Unexpected signature length: ${signature.length} bytes (expected 64)`);
+  const signature = await signer.sign(cborBuffer, 0x01);
+  if (!signature || signature.length === 0)
+    throw new Error("Signature is empty. Please confirm the transaction on your Ledger device.");
+  if (signature.length !== 64)
+    throw new Error(`Unexpected signature length: ${signature.length} bytes (expected 64)`);
 
-    return TxRaw.fromPartial({ bodyBytes, authInfoBytes, signatures: [signature] });
-  } catch (e) {
-    throw e;
-  }
+  return TxRaw.fromPartial({ bodyBytes, authInfoBytes, signatures: [signature] });
 }

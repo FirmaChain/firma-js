@@ -22,7 +22,9 @@ import { MsgTransfer, MsgMint, MsgBurn } from "../nft/NftTxTypes";
 import { MsgCreateToken, MsgUpdateTokenURI } from "../token/TokenTxTypes";
 import { ITxClient } from "./ITxClient";
 
-const types: ReadonlyArray<[string, GeneratedType]> = [
+// Some entries use protobufjs-generated types (no `decode`) or types from
+// @kintsugi-tech/cosmjs-types (different BinaryWriter), so a cast is required.
+const types = [
     ["/cosmos.authz.v1beta1.MsgExec", MsgExec],
     ["/cosmos.authz.v1beta1.MsgGrant", MsgGrant],
     ["/cosmos.authz.v1beta1.MsgRevoke", MsgRevoke],
@@ -76,7 +78,7 @@ const types: ReadonlyArray<[string, GeneratedType]> = [
     ["/firmachain.token.MsgUpdateTokenURI", MsgUpdateTokenURI],
     ["/firmachain.token.MsgMint", MsgMint],
     ["/firmachain.token.MsgBurn", MsgBurn],
-];
+] as unknown as ReadonlyArray<[string, GeneratedType]>;
 
 const registry = new Registry(types);
 

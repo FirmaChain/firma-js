@@ -3,10 +3,12 @@ import { MsgGrantAllowance, MsgRevokeAllowance } from "./FeeGrantTxTypes";
 import { ITxClient } from "../common/ITxClient";
 import { FirmaWalletService } from "../../FirmaWalletService";
 
-const types: ReadonlyArray<[string, GeneratedType]> = [
+// FeeGrantTxTypes are protobufjs-generated without a `decode` method, so they
+// cannot satisfy GeneratedType directly.
+const types = [
     ["/cosmos.feegrant.v1beta1.MsgGrantAllowance", MsgGrantAllowance],
     ["/cosmos.feegrant.v1beta1.MsgRevokeAllowance", MsgRevokeAllowance],
-];
+] as unknown as ReadonlyArray<[string, GeneratedType]>;
 
 const registry = new Registry(types);
 
