@@ -8,7 +8,7 @@
     "dist"
   ],
   "scripts": {
-    "test": "mocha test/**/*.test.ts -r ts-node/register --timeout 1200000",
+    "test": "NODE_OPTIONS=--no-experimental-strip-types TS_NODE_TRANSPILE_ONLY=true mocha 'test/**/*.test.ts' -r ts-node/register --timeout 1200000",
     "lint": "eslint src test --ext .ts,.tsx",
     "nodemon": "nodemon",
     "dev": "ts-node ./test/test_index.ts",
