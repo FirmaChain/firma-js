@@ -100,10 +100,10 @@ export const MsgCreateToken = {
           message.tokenURI = reader.string();
           break;
         case 5:
-          message.totalSupply = longToNumber(reader.uint64() as Long);
+          message.totalSupply = Number(reader.uint64());
           break;
         case 6:
-          message.decimal = longToNumber(reader.uint64() as Long);
+          message.decimal = Number(reader.uint64());
           break;
         case 7:
           message.mintable = reader.bool();
@@ -300,7 +300,7 @@ export const MsgMint = {
           message.tokenID = reader.string();
           break;
         case 3:
-          message.amount = longToNumber(reader.uint64() as Long);
+          message.amount = Number(reader.uint64());
           break;
         case 4:
           message.toAddress = reader.string();
@@ -441,7 +441,7 @@ export const MsgBurn = {
           message.tokenID = reader.string();
           break;
         case 3:
-          message.amount = longToNumber(reader.uint64() as Long);
+          message.amount = Number(reader.uint64());
           break;
         default:
           reader.skipType(tag & 7);
@@ -771,9 +771,3 @@ export type DeepPartial<T> = T extends Builtin
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
-function longToNumber(long: Long): number {
-  if (long.gt(Number.MAX_SAFE_INTEGER)) {
-    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
-  }
-  return long.toNumber();
-}

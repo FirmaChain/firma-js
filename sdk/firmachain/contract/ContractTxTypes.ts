@@ -73,7 +73,7 @@ export const MsgCreateContractFile = {
                 message.fileHash = reader.string();
                 break;
             case 3:
-                message.timeStamp = longToNumber(reader.uint64() as Long);
+                message.timeStamp = Number(reader.uint64());
                 break;
             case 4:
                 message.ownerList.push(reader.string());
@@ -273,7 +273,7 @@ export const MsgAddContractLog = {
                 message.contractHash = reader.string();
                 break;
             case 3:
-                message.timeStamp = longToNumber(reader.uint64() as Long);
+                message.timeStamp = Number(reader.uint64());
                 break;
             case 4:
                 message.eventName = reader.string();
@@ -402,7 +402,7 @@ export const MsgAddContractLogResponse = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
             case 1:
-                message.id = longToNumber(reader.uint64() as Long);
+                message.id = Number(reader.uint64());
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -519,10 +519,3 @@ export type DeepPartial<T> = T extends Builtin
     : T extends {}
     ? { [K in keyof T]?: DeepPartial<T[K]> }
     : Partial<T>;
-
-function longToNumber(long: Long): number {
-    if (long.gt(Number.MAX_SAFE_INTEGER)) {
-        throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
-    }
-    return long.toNumber();
-}

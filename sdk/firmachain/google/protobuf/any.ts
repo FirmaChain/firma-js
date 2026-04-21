@@ -1,6 +1,5 @@
 /* eslint-disable */
-import { util, configure, Writer, Reader } from "protobufjs/minimal";
-import * as Long from "long";
+import { Reader } from "protobufjs/minimal";
 import { BinaryWriter } from "cosmjs-types/binary";
 
 export const protobufPackage = "google.protobuf";
