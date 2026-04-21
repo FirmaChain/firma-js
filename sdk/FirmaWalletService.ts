@@ -4,7 +4,7 @@ import { stringToPath, Slip10, HdPath, Slip10Curve, Bip39, EnglishMnemonic } fro
 
 import { FirmaConfig } from "./FirmaConfig";
 import { FirmaUtil } from "./FirmaUtil";
-import { LedgerWalletInterface, signWithSignerProtobuf } from "./firmachain/common/LedgerWallet";
+import { LedgerWalletInterface, signWithSignerTextual } from "./firmachain/common/LedgerWallet";
 import { SignAndBroadcastOptions } from "./firmachain/common";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
@@ -245,7 +245,6 @@ export class FirmaWalletService {
             chain_id: chainId,
         };
 
-        // Use protobuf signing with FirmaChain Ledger app
-        return await signWithSignerProtobuf(this.ledger, messages, signerData, option, registry);
+        return await signWithSignerTextual(this.ledger, messages, signerData, option, registry);
     }
 }
