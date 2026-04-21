@@ -220,16 +220,6 @@ export class FirmaWalletService {
         try {
             const addressAndPubkey = await this.ledger.getAddressAndPublicKey();
             address = addressAndPubkey.address;
-            
-            // Optional: Test address display on device
-            if (this.ledger.showAddressOnDevice) {
-                try {
-                    await this.ledger.showAddressOnDevice();
-                } catch (displayError) {
-                    // Silent fail for address display
-                }
-            }
-            
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             throw new Error(`Failed to connect to Ledger: ${errorMessage}. Please make sure your Ledger is connected and the FirmaChain app is open.`);
