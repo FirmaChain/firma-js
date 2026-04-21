@@ -273,6 +273,7 @@ async function buildTextualScreens(
   bodyBytes: Uint8Array,
   authInfoBytes: Uint8Array,
   restApiAddress: string,
+  registry: Registry,
 ): Promise<TextualScreen[]> {
   const screens: TextualScreen[] = [];
 
@@ -294,11 +295,18 @@ async function buildTextualScreens(
     try {
       fields = aminoTypes.toAmino(msg).value as Record<string, unknown>;
     } catch {
-      if (msg.value && typeof msg.value === "object") {
+      // Re-encode then decode via registry to get fields in canonical proto field number order
+      const MsgType = registry.lookupType(msg.typeUrl);
+      if (MsgType) {
+        const encodedBytes = registry.encodeAsAny(msg).value;
+        fields = (MsgType.decode(encodedBytes) as unknown) as Record<string, unknown>;
+      } else if (msg.value && typeof msg.value === "object") {
         fields = msg.value as Record<string, unknown>;
       }
     }
     for (const [k, v] of Object.entries(fields)) {
+      // cosmos SDK textual renderer omits proto3 zero/default values
+      if (v === "" || v === false || (Array.isArray(v) && v.length === 0)) continue;
       const title = fieldToDisplayName(k);
       const content = await renderFieldValue(v, restApiAddress);
       screens.push({ title, content, indent: 2 });
@@ -362,10 +370,21 @@ export async function signWithSignerTextual(
 
   const screens = await buildTextualScreens(
     messages, signerData, option, aminoTypes,
-    pubkey, address, bodyBytes, authInfoBytes, restApiAddress,
+    pubkey, address, bodyBytes, authInfoBytes, restApiAddress, registry,
   );
 
+  console.log('[Textual] === SCREENS DUMP ===');
+  screens.forEach((s, i) => {
+    const parts = [`[${i}]`];
+    if (s.title) parts.push(`title="${s.title}"`);
+    parts.push(`content="${s.content}"`);
+    if (s.indent) parts.push(`indent=${s.indent}`);
+    if (s.expert) parts.push(`expert=true`);
+    console.log('[Textual]', parts.join(' '));
+  });
+
   const cborBuffer = encodeTextualCbor(screens);
+  console.log('[Textual] CBOR hex:', Array.from(cborBuffer).map(b => b.toString(16).padStart(2, '0')).join(''));
 
   const signature = await signer.sign(cborBuffer, 0x01);
   if (!signature || signature.length === 0)

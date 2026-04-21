@@ -38,3 +38,5 @@ export * from './sdk/FirmaCosmWasmCw20';
 export * from './sdk/FirmaCosmWasmCw721';
 export * from './sdk/FirmaCosmWasmCwBridge';
 
+export * from './sdk/firmachain/common/FirmaLedger';
+
