@@ -28,7 +28,6 @@ export class TokenService {
         Promise<number> {
 
         try {
-            const newAmount = FirmaUtil.getUTokenFromToken(amount, decimal);
             const txRaw = await this.getSignedTxMint(wallet, tokenID, amount, toAddress, txMisc);
             return await FirmaUtil.estimateGas(txRaw);
 

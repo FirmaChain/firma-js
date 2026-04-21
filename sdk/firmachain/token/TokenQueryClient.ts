@@ -1,4 +1,3 @@
-import { Uint64 } from "@cosmjs/math";
 import Axios, { AxiosInstance } from "axios";
 import { Pagination } from "../common";
 

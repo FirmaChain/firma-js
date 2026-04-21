@@ -11,10 +11,6 @@ export interface TotalRewardInfo {
     total: string;
 }
 
-interface RewardInfoInternal {
-    validator_address: string;
-    amount: string;
-}
 
 export class DistributionQueryClient {
     private readonly axios: AxiosInstance;

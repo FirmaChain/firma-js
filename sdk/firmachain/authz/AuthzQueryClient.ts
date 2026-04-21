@@ -1,7 +1,7 @@
 import Axios, { AxiosInstance } from "axios";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { Pagination } from ".";
-import { AuthorizationType, SendAuthorization } from "./AuthzTxTypes";
+import { AuthorizationType } from "./AuthzTxTypes";
 
 
 export interface GrantSendData {

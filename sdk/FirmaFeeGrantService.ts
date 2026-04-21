@@ -7,7 +7,6 @@ import { FirmaConfig } from "./FirmaConfig";
 import { DefaultTxMisc, FirmaUtil, getSignAndBroadcastOption } from "./FirmaUtil";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { FeeAllowanceType, FeeAllowanceType1, FeeGrantQueryClient } from "./firmachain/feegrant/FeeGrantQueryClient";
-import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { Any } from "./firmachain/google/protobuf/any";
 import { DeliverTxResponse } from "@cosmjs/stargate";
 import { BasicAllowance, PeriodicAllowance } from "cosmjs-types/cosmos/feegrant/v1beta1/feegrant";
@@ -64,14 +63,6 @@ export class FirmaFeeGrantService {
             FirmaUtil.printLog(error);
             throw error;
         }
-    }
-
-    private getCoinType(amount?: number): Coin[] {
-
-        if (amount == undefined)
-            return [];
-
-        return [{ denom: this.config.denom, amount: amount!.toString() }];
     }
 
     async getGasEstimationGrantPeriodicAllowance(wallet: FirmaWalletService,
