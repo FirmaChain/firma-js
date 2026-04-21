@@ -1,15 +1,15 @@
-import { Registry, EncodeObject } from "@cosmjs/proto-signing";
+import { Registry, EncodeObject, GeneratedType } from "@cosmjs/proto-signing";
 import { MsgExec, MsgGrant, MsgRevoke } from "./AuthzTxTypes";
 import { ITxClient } from "../common/ITxClient";
 import { FirmaWalletService } from "../../FirmaWalletService";
 
-const types = [
+const types: ReadonlyArray<[string, GeneratedType]> = [
     ["/cosmos.authz.v1beta1.MsgExec", MsgExec],
     ["/cosmos.authz.v1beta1.MsgGrant", MsgGrant],
     ["/cosmos.authz.v1beta1.MsgRevoke", MsgRevoke],
 ];
 
-const registry = new Registry(types as any);
+const registry = new Registry(types);
 
 export interface MsgExecAllowanceEncodeObject extends EncodeObject {
     readonly typeUrl: "/cosmos.authz.v1beta1.MsgExec";

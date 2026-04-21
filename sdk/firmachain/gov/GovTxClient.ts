@@ -1,4 +1,4 @@
-import { Registry, EncodeObject } from "@cosmjs/proto-signing";
+import { Registry, EncodeObject, GeneratedType } from "@cosmjs/proto-signing";
 import {
     MsgDeposit as V1MsgDeposit,
     MsgSubmitProposal as V1MsgSubmitProposal,
@@ -13,7 +13,7 @@ import { MsgCancelProposal as V1MsgCancelProposal } from "@kintsugi-tech/cosmjs-
 import { FirmaWalletService } from "../../FirmaWalletService";
 import { ITxClient } from "../common/ITxClient";
 
-const types = [
+const types: ReadonlyArray<[string, GeneratedType]> = [
     ["/cosmos.gov.v1.MsgDeposit", V1MsgDeposit],
     ["/cosmos.gov.v1.MsgSubmitProposal", V1MsgSubmitProposal],
     ["/cosmos.gov.v1.MsgUpdateParams", V1MsgUpdateParams],
@@ -27,7 +27,7 @@ const types = [
     ["/cosmos.gov.v1beta1.MsgVoteWeighted", MsgVoteWeighted],
 ];
 
-const registry = new Registry(types as any);
+const registry = new Registry(types);
 
 export interface V1MsgDepositEncodeObject extends EncodeObject {
     readonly typeUrl: "/cosmos.gov.v1.MsgDeposit";

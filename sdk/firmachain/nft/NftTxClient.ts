@@ -1,15 +1,15 @@
-import { Registry, OfflineDirectSigner, EncodeObject } from "@cosmjs/proto-signing";
+import { Registry, EncodeObject, GeneratedType } from "@cosmjs/proto-signing";
 import { MsgTransfer, MsgMint, MsgBurn } from "./NftTxTypes";
 import { ITxClient } from "../common/ITxClient";
 import { FirmaWalletService } from "../../FirmaWalletService";
 
-const types = [
+const types: ReadonlyArray<[string, GeneratedType]> = [
     ["/firmachain.nft.MsgTransfer", MsgTransfer],
     ["/firmachain.nft.MsgMint", MsgMint],
-    ["/firmachain.nft.MsgBurn", MsgBurn]
+    ["/firmachain.nft.MsgBurn", MsgBurn],
 ];
 
-const registry = new Registry(types as any);
+const registry = new Registry(types);
 
 export interface MsgNftTransferEncodeObject extends EncodeObject {
     readonly typeUrl: "/firmachain.nft.MsgTransfer";

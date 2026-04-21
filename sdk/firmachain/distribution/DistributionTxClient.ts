@@ -1,4 +1,4 @@
-import { Registry, EncodeObject, OfflineDirectSigner } from "@cosmjs/proto-signing";
+import { Registry, EncodeObject, GeneratedType } from "@cosmjs/proto-signing";
 
 import {
     MsgFundCommunityPool,
@@ -10,14 +10,14 @@ import { FirmaWalletService } from "../../FirmaWalletService";
 
 import { ITxClient } from "../common/ITxClient";
 
-const types = [
+const types: ReadonlyArray<[string, GeneratedType]> = [
     ["/cosmos.distribution.v1beta1.MsgFundCommunityPool", MsgFundCommunityPool],
     ["/cosmos.distribution.v1beta1.MsgSetWithdrawAddress", MsgSetWithdrawAddress],
     ["/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward", MsgWithdrawDelegatorReward],
-    ["/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission", MsgWithdrawValidatorCommission]
+    ["/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission", MsgWithdrawValidatorCommission],
 ];
 
-const registry = new Registry(types as any);
+const registry = new Registry(types);
 
 export interface MsgFundCommunityPoolEncodeObject extends EncodeObject {
     readonly typeUrl: "/cosmos.distribution.v1beta1.MsgFundCommunityPool";

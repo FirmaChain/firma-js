@@ -1,14 +1,14 @@
-import { Registry, OfflineDirectSigner, EncodeObject } from "@cosmjs/proto-signing";
+import { Registry, EncodeObject, GeneratedType } from "@cosmjs/proto-signing";
 import { MsgGrantAllowance, MsgRevokeAllowance } from "./FeeGrantTxTypes";
 import { ITxClient } from "../common/ITxClient";
 import { FirmaWalletService } from "../../FirmaWalletService";
 
-const types = [
+const types: ReadonlyArray<[string, GeneratedType]> = [
     ["/cosmos.feegrant.v1beta1.MsgGrantAllowance", MsgGrantAllowance],
-    ["/cosmos.feegrant.v1beta1.MsgRevokeAllowance", MsgRevokeAllowance]
+    ["/cosmos.feegrant.v1beta1.MsgRevokeAllowance", MsgRevokeAllowance],
 ];
 
-const registry = new Registry(types as any);
+const registry = new Registry(types);
 
 export interface MsgFeeGrantAllowanceEncodeObject extends EncodeObject {
     readonly typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance";

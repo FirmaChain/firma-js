@@ -1,16 +1,16 @@
-import { Registry, OfflineDirectSigner, EncodeObject } from "@cosmjs/proto-signing";
+import { Registry, EncodeObject, GeneratedType } from "@cosmjs/proto-signing";
 import { MsgUpdateTokenURI, MsgMint, MsgBurn, MsgCreateToken } from "./TokenTxTypes";
 import { ITxClient } from "../common/ITxClient";
 import { FirmaWalletService } from "../../FirmaWalletService";
 
-const types = [
+const types: ReadonlyArray<[string, GeneratedType]> = [
     ["/firmachain.token.MsgCreateToken", MsgCreateToken],
     ["/firmachain.token.MsgUpdateTokenURI", MsgUpdateTokenURI],
     ["/firmachain.token.MsgMint", MsgMint],
-    ["/firmachain.token.MsgBurn", MsgBurn]
+    ["/firmachain.token.MsgBurn", MsgBurn],
 ];
 
-const registry = new Registry(types as any);
+const registry = new Registry(types);
 
 export interface MsgCreateTokenEncodeObject extends EncodeObject {
     readonly typeUrl: "/firmachain.token.MsgCreateToken";

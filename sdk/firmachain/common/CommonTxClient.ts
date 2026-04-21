@@ -1,4 +1,4 @@
-import { Registry } from "@cosmjs/proto-signing";
+import { Registry, GeneratedType } from "@cosmjs/proto-signing";
 import { MsgSend, MsgMultiSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
 import {
     MsgDeposit as V1MsgDeposit,
@@ -22,7 +22,7 @@ import { MsgTransfer, MsgMint, MsgBurn } from "../nft/NftTxTypes";
 import { MsgCreateToken, MsgUpdateTokenURI } from "../token/TokenTxTypes";
 import { ITxClient } from "./ITxClient";
 
-const types = [
+const types: ReadonlyArray<[string, GeneratedType]> = [
     ["/cosmos.authz.v1beta1.MsgExec", MsgExec],
     ["/cosmos.authz.v1beta1.MsgGrant", MsgGrant],
     ["/cosmos.authz.v1beta1.MsgRevoke", MsgRevoke],
@@ -75,11 +75,10 @@ const types = [
     ["/firmachain.token.MsgCreateToken", MsgCreateToken],
     ["/firmachain.token.MsgUpdateTokenURI", MsgUpdateTokenURI],
     ["/firmachain.token.MsgMint", MsgMint],
-    ["/firmachain.token.MsgBurn", MsgBurn]
-    
+    ["/firmachain.token.MsgBurn", MsgBurn],
 ];
 
-const registry = new Registry(types as any);
+const registry = new Registry(types);
 
 export class CommonTxClient extends ITxClient {
 

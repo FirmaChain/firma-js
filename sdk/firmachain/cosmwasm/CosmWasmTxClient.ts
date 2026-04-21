@@ -1,4 +1,4 @@
-import { Registry, EncodeObject } from "@cosmjs/proto-signing";
+import { Registry, EncodeObject, GeneratedType } from "@cosmjs/proto-signing";
 import { ITxClient } from "../common/ITxClient";
 import { FirmaWalletService } from "../../FirmaWalletService";
 
@@ -12,17 +12,16 @@ import {
 
 } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 
-const types = [
+const types: ReadonlyArray<[string, GeneratedType]> = [
     ["/cosmwasm.wasm.v1.MsgStoreCode", MsgStoreCode],
     ["/cosmwasm.wasm.v1.MsgInstantiateContract", MsgInstantiateContract],
     ["/cosmwasm.wasm.v1.MsgExecuteContract", MsgExecuteContract],
-
     ["/cosmwasm.wasm.v1.MsgUpdateAdmin", MsgUpdateAdmin],
     ["/cosmwasm.wasm.v1.MsgClearAdmin", MsgClearAdmin],
     ["/cosmwasm.wasm.v1.MsgMigrateContract", MsgMigrateContract],
 ];
 
-const registry = new Registry(types as any);
+const registry = new Registry(types);
 
 export interface MsgStoreCodeEncodeObject extends EncodeObject {
     readonly typeUrl: "/cosmwasm.wasm.v1.MsgStoreCode";
