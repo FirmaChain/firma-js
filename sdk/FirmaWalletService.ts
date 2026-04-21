@@ -245,6 +245,6 @@ export class FirmaWalletService {
             chain_id: chainId,
         };
 
-        return await signWithSignerTextual(this.ledger, messages, signerData, option, registry);
+        return await signWithSignerTextual(this.ledger, messages, signerData, option, registry, this.config.restApiAddress);
     }
 }
