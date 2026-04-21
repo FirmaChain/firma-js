@@ -6,6 +6,7 @@ import { SignDoc, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { FirmaWalletService } from "../../FirmaWalletService";
 import { DeliverTxResponse } from "@cosmjs/stargate";
 import { SigningStargateClient, TxRawExt } from "./SigningStargateClient";
+import { StargateClient } from "./StargateClient";
 
 export class ITxClient {
 
@@ -21,26 +22,25 @@ export class ITxClient {
     public getRegistry(): Registry { return this.registry; }
 
     async sign(msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions): Promise<TxRaw> {
-        
+
         if (this.wallet.isLedger()) {
             return this.wallet.signLedger(msgs, { fee, memo }, this.registry);
         } else {
             const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, { registry: this.registry });
             const address = (await this.rawWallet.getAccounts())[0].address;
-    
+
             return await client.sign(address, msgs, fee, memo);
         }
     }
 
     async broadcast(txRaw: TxRaw): Promise<DeliverTxResponse> {
-        const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, { registry: this.registry });
+        const client = await StargateClient.connect(this.serverUrl);
         const txBytes = TxRaw.encode(txRaw).finish();
-
         return await client.broadcastTx(txBytes);
     }
 
     async broadcastTxBytes(txBytes: Uint8Array): Promise<DeliverTxResponse> {
-        const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, { registry: this.registry });
+        const client = await StargateClient.connect(this.serverUrl);
         return await client.broadcastTx(txBytes);
     }
 
