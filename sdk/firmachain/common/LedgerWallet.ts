@@ -5,6 +5,7 @@ import { TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { Any } from "cosmjs-types/google/protobuf/any";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { PubKey as Secp256k1PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
+import { MsgCommunityPoolSpend } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
 import { makeSignDoc, serializeSignDoc, StdFee } from "@cosmjs/amino";
 import {
   AminoTypes,
@@ -189,6 +190,22 @@ function isLongObject(v: unknown): v is { low: number; high: number; unsigned: b
   return typeof v === "object" && v !== null && "low" in v && "high" in v && typeof (v as any).toString === "function";
 }
 
+// Fallback type registry for nested Any values that may not be in the tx-specific registry
+const NESTED_ANY_DECODERS: Map<string, { decode(b: Uint8Array): Record<string, unknown> }> = new Map([
+  ["/cosmos.distribution.v1beta1.MsgCommunityPoolSpend", MsgCommunityPoolSpend as any],
+]);
+
+function lookupNestedDecoder(
+  typeUrl: string,
+  registry: Registry,
+): { decode(b: Uint8Array): Record<string, unknown> } | null {
+  try {
+    const t = registry.lookupType(typeUrl);
+    if (t) return t as any;
+  } catch {}
+  return NESTED_ANY_DECODERS.get(typeUrl) ?? null;
+}
+
 async function renderFieldValue(
   value: unknown,
   restUrl: string,
@@ -351,6 +368,43 @@ async function buildTextualScreens(
       if (v === "" || v === false || (Array.isArray(v) && v.length === 0)) continue;
       if (v === 0 || v === BigInt(0)) continue;
       if (isLongObject(v) && v.low === 0 && v.high === 0) continue;
+
+      // Repeated Any[] field (e.g. MsgSubmitProposal.messages): render nested proto messages
+      if (
+        Array.isArray(v) &&
+        v.length > 0 &&
+        typeof v[0] === "object" &&
+        v[0] !== null &&
+        "typeUrl" in v[0] &&
+        "value" in v[0] &&
+        (v[0] as any).value instanceof Uint8Array
+      ) {
+        const anyArray = v as Array<{ typeUrl: string; value: Uint8Array }>;
+        const count = anyArray.length;
+        screens.push({ title: fieldToDisplayName(k), content: `${count} Message${count === 1 ? "" : "s"}`, indent: 2 });
+        for (const anyItem of anyArray) {
+          screens.push({ content: anyItem.typeUrl, indent: 3 });
+          const decoder = lookupNestedDecoder(anyItem.typeUrl, registry);
+          if (decoder) {
+            try {
+              const nested = decoder.decode(anyItem.value) as Record<string, unknown>;
+              for (const [fk, fv] of Object.entries(nested)) {
+                if (fv === "" || fv === false || (Array.isArray(fv) && fv.length === 0)) continue;
+                if (fv === 0 || fv === BigInt(0)) continue;
+                if (isLongObject(fv) && fv.low === 0 && fv.high === 0) continue;
+                const fcontent = await renderFieldValue(fv, restApiAddress, fk, anyItem.typeUrl);
+                screens.push({ title: fieldToDisplayName(fk), content: fcontent, indent: 4 });
+              }
+            } catch (e) {
+              console.warn('[Textual] nested Any decode error for', anyItem.typeUrl, ':', e);
+            }
+          } else {
+            console.warn('[Textual] no decoder for nested Any:', anyItem.typeUrl);
+          }
+        }
+        continue;
+      }
+
       console.log('[Textual] field:', k, 'type:', typeof v, 'value:', v);
       const title = fieldToDisplayName(k);
       let content: string;
