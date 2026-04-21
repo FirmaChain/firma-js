@@ -93,23 +93,36 @@ async function queryCoinMetadata(restUrl: string, denom: string): Promise<CoinMe
   } catch { return null; }
 }
 
+// Matches cosmos SDK math.FormatInt: adds apostrophe thousand separators
+function formatIntWithSep(v: string): string {
+  const neg = v.startsWith("-");
+  const digits = neg ? v.slice(1) : v;
+  if (digits.length <= 3) return v;
+  const groups: string[] = [];
+  const mod3 = digits.length % 3;
+  let i = 0;
+  if (mod3 !== 0) { groups.push(digits.slice(0, mod3)); i = mod3; }
+  while (i < digits.length) { groups.push(digits.slice(i, i + 3)); i += 3; }
+  return (neg ? "-" : "") + groups.join("'");
+}
+
 function formatOneCoin(amount: string, denom: string, meta: CoinMetadata | null): string {
-  if (!meta) return `${amount} ${denom}`;
+  if (!meta) return `${formatIntWithSep(amount)} ${denom}`;
   const baseUnit = meta.denom_units.find((u) => u.denom === denom);
   const displayName = meta.display;
   const displayUnit = meta.denom_units.find(
     (u) => u.denom === displayName || u.denom === displayName.toLowerCase(),
   );
-  if (!baseUnit || !displayUnit) return `${amount} ${displayName || denom}`;
+  if (!baseUnit || !displayUnit) return `${formatIntWithSep(amount)} ${displayName || denom}`;
   const exp = displayUnit.exponent - baseUnit.exponent;
-  if (exp <= 0) return `${amount} ${displayName}`;
+  if (exp <= 0) return `${formatIntWithSep(amount)} ${displayName}`;
   const factor = BigInt(10 ** exp);
   const big = BigInt(amount);
   const whole = big / factor;
   const rem = big % factor;
-  if (rem === BigInt(0)) return `${whole} ${displayName}`;
+  if (rem === BigInt(0)) return `${formatIntWithSep(whole.toString())} ${displayName}`;
   const decimals = rem.toString().padStart(exp, "0").replace(/0+$/, "");
-  return `${whole}.${decimals} ${displayName}`;
+  return `${formatIntWithSep(whole.toString())}.${decimals} ${displayName}`;
 }
 
 async function formatCoins(

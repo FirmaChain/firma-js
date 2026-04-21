@@ -1,6 +1,7 @@
 import { expect } from 'chai';
-import { FirmaUtil, FirmaWalletService } from '..';
 import { FirmaSDK } from '../sdk/FirmaSDK';
+import { FirmaUtil } from '../sdk/FirmaUtil';
+import { FirmaWalletService } from '../sdk/FirmaWalletService';
 
 import { aliceMnemonic, bobMnemonic, TestChainConfig, validatorMnemonic } from './config_test';
 
