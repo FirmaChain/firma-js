@@ -12,6 +12,17 @@ const DEBUG_LEDGER =
   (typeof process !== 'undefined' && process.env?.DEBUG_LEDGER === '1') ||
   (typeof globalThis !== 'undefined' && (globalThis as { DEBUG_LEDGER?: boolean }).DEBUG_LEDGER === true);
 
+// Sanitized error formatter — extracts only the fields Zondax/Ledger libraries
+// surface in their documented error shape (.message, .returnCode). Prevents
+// accidental leakage of attached context (transport state, buffered bytes) when
+// the upstream library decorates errors with extra properties.
+function formatLedgerError(error: unknown): string {
+  const e = error as { message?: unknown; returnCode?: unknown } | null;
+  const msg = typeof e?.message === 'string' ? e.message : String(error);
+  const rc = typeof e?.returnCode === 'number' ? ' | returnCode: 0x' + e.returnCode.toString(16) : '';
+  return msg + rc;
+}
+
 export type { LedgerWalletInterface };
 
 // Minimal interface for Ledger transport classes (WebHID, NodeHID, etc.)
@@ -57,8 +68,8 @@ export class FirmaCosmosLedgerWallet implements LedgerWalletInterface {
       const response = await this.cosmosApp!.getAddressAndPubKey(FIRMA_PATH, FIRMA_HRP);
       await this.close();
       return response.bech32_address;
-    } catch (error: any) {
-      console.error('[FirmaLedger] getAddress error:', error?.message, '| returnCode: 0x' + error?.returnCode?.toString(16));
+    } catch (error) {
+      console.error('[FirmaLedger] getAddress error:', formatLedgerError(error));
       await this.close();
       return '';
     }
@@ -70,8 +81,8 @@ export class FirmaCosmosLedgerWallet implements LedgerWalletInterface {
       const response = await this.cosmosApp!.getAddressAndPubKey(FIRMA_PATH, FIRMA_HRP);
       await this.close();
       return { address: response.bech32_address, publicKey: new Uint8Array(response.compressed_pk) };
-    } catch (error: any) {
-      console.error('[FirmaLedger] getAddressAndPublicKey error:', error?.message, '| returnCode: 0x' + error?.returnCode?.toString(16));
+    } catch (error) {
+      console.error('[FirmaLedger] getAddressAndPublicKey error:', formatLedgerError(error));
       await this.close();
       return { address: '', publicKey: new Uint8Array() };
     }
@@ -85,7 +96,7 @@ export class FirmaCosmosLedgerWallet implements LedgerWalletInterface {
       await this.close();
       return new Uint8Array(response.compressed_pk);
     } catch (error) {
-      console.error('[FirmaLedger] getPublicKey error:', error);
+      console.error('[FirmaLedger] getPublicKey error:', formatLedgerError(error));
       await this.close();
       throw error;
     }
@@ -97,7 +108,7 @@ export class FirmaCosmosLedgerWallet implements LedgerWalletInterface {
       await this.cosmosApp!.showAddressAndPubKey(FIRMA_PATH, FIRMA_HRP);
       await this.close();
     } catch (error) {
-      console.error('[FirmaLedger] showAddressOnDevice error:', error);
+      console.error('[FirmaLedger] showAddressOnDevice error:', formatLedgerError(error));
       await this.close();
     }
   }
@@ -112,7 +123,7 @@ export class FirmaCosmosLedgerWallet implements LedgerWalletInterface {
       const secp256k1 = Secp256k1Signature.fromDer(new Uint8Array(response.signature)).toFixedLength();
       return new Uint8Array(secp256k1);
     } catch (error) {
-      console.error('[FirmaLedger] sign error:', error);
+      console.error('[FirmaLedger] sign error:', formatLedgerError(error));
       await this.close();
       throw error;
     }
