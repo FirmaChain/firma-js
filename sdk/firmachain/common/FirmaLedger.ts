@@ -104,7 +104,7 @@ export class FirmaCosmosLedgerWallet implements LedgerWalletInterface {
       await this.connect();
       const response = await this.cosmosApp!.sign(FIRMA_PATH, buffer, FIRMA_HRP, txtype);
       await this.close();
-      const secp256k1 = Secp256k1Signature.fromDer(response.signature).toFixedLength();
+      const secp256k1 = Secp256k1Signature.fromDer(new Uint8Array(response.signature)).toFixedLength();
       return new Uint8Array(secp256k1);
     } catch (error) {
       console.error('[FirmaLedger] sign error:', error);
