@@ -221,7 +221,7 @@ const STAKE_AUTHORIZATION_TYPE_NAMES: Record<number, string> = {
 };
 
 function isLongObject(v: unknown): v is { low: number; high: number; unsigned: boolean; toString(): string } {
-  return typeof v === "object" && v !== null && "low" in v && "high" in v && typeof (v as any).toString === "function";
+  return typeof v === "object" && v !== null && "low" in v && "high" in v && typeof (v as { toString: unknown }).toString === "function";
 }
 
 // Converts Uint8Array or a JSON-serialized numeric-keyed object back to Uint8Array
@@ -339,29 +339,36 @@ const COSMOS_DEC_FIELDS = new Set([
   "minDepositRatio", "min_deposit_ratio",
 ]);
 
+// Minimal structural contract for proto message classes used as Any decoders.
+// The real proto classes have a richer `.decode(reader, length?)` signature, but
+// we only need to feed them raw bytes and receive back a keyed object.
+interface NestedDecoder {
+  decode(b: Uint8Array): unknown;
+}
+
 // Fallback decoders for Any-wrapped messages that the per-tx Registry may not
 // know about. TEXTUAL rendering must descend into the inner message and emit
 // each sub-field as its own screen; without a decoder here we would render only
 // the Any typeUrl and omit every sub-field — which leaves our CBOR shorter than
 // the chain's reconstruction and causes `code 4 unauthorized`. The Authorization
 // entries were added specifically for authz Grant flows (stake delegate grant).
-const NESTED_ANY_DECODERS: Map<string, { decode(b: Uint8Array): Record<string, unknown> }> = new Map([
-  ["/cosmos.distribution.v1beta1.MsgCommunityPoolSpend", MsgCommunityPoolSpend as any],
-  ["/cosmos.staking.v1beta1.MsgUpdateParams", StakingMsgUpdateParams as any],
-  ["/cosmos.staking.v1beta1.StakeAuthorization", StakeAuthorization as any],
-  ["/cosmos.bank.v1beta1.SendAuthorization", SendAuthorization as any],
-  ["/cosmos.authz.v1beta1.GenericAuthorization", GenericAuthorization as any],
-  ["/cosmos.gov.v1.MsgUpdateParams", GovMsgUpdateParams as any],
-  ["/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade", MsgSoftwareUpgrade as any],
+const NESTED_ANY_DECODERS: Map<string, NestedDecoder> = new Map([
+  ["/cosmos.distribution.v1beta1.MsgCommunityPoolSpend", MsgCommunityPoolSpend],
+  ["/cosmos.staking.v1beta1.MsgUpdateParams", StakingMsgUpdateParams],
+  ["/cosmos.staking.v1beta1.StakeAuthorization", StakeAuthorization],
+  ["/cosmos.bank.v1beta1.SendAuthorization", SendAuthorization],
+  ["/cosmos.authz.v1beta1.GenericAuthorization", GenericAuthorization],
+  ["/cosmos.gov.v1.MsgUpdateParams", GovMsgUpdateParams],
+  ["/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade", MsgSoftwareUpgrade],
 ]);
 
 function lookupNestedDecoder(
   typeUrl: string,
   registry: Registry,
-): { decode(b: Uint8Array): Record<string, unknown> } | null {
+): NestedDecoder | null {
   try {
     const t = registry.lookupType(typeUrl);
-    if (t) return t as any;
+    if (t) return t as NestedDecoder;
   } catch {}
   return NESTED_ANY_DECODERS.get(typeUrl) ?? null;
 }
@@ -373,7 +380,7 @@ function isSingleAnyObject(v: unknown): v is { typeUrl: string; value: unknown }
     !Array.isArray(v) &&
     "typeUrl" in v &&
     "value" in v &&
-    typeof (v as any).typeUrl === "string"
+    typeof (v as { typeUrl: unknown }).typeUrl === "string"
   );
 }
 
@@ -738,7 +745,7 @@ async function buildTextualScreens(
         v[0] !== null &&
         "typeUrl" in v[0] &&
         "value" in v[0] &&
-        toUint8ArraySafe((v[0] as any).value) !== null
+        toUint8ArraySafe((v[0] as { value: unknown }).value) !== null
       ) {
         const anyArray = v as Array<{ typeUrl: string; value: unknown }>;
         const anyCount = anyArray.length;

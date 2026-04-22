@@ -43,7 +43,10 @@ export class FirmaCosmosLedgerWallet implements LedgerWalletInterface {
   }
 
   private async close() {
-    try { (this.cosmosApp as any)?.transport?.close(); } catch (_) {}
+    try {
+      const app = this.cosmosApp as (CosmosApp & { transport?: { close?: () => void } }) | undefined;
+      app?.transport?.close?.();
+    } catch (_) {}
     this.isOpen = false;
   }
 
