@@ -403,23 +403,7 @@ async function renderSingleAnyField(
   }
   try {
     const nested = decoder.decode(valueBytes) as Record<string, unknown>;
-    for (const [fk, fv] of Object.entries(nested)) {
-      if (shouldSkipField(fv)) continue;
-      if (isSingleAnyObject(fv)) {
-        await renderSingleAnyField(fk, fv, baseIndent + 1, registry, restUrl, screens);
-        continue;
-      }
-      if (Array.isArray(fv) && isMultiScreenRepeated(fv)) {
-        await renderRepeatedScalar(fk, fv, baseIndent + 1, restUrl, screens, any.typeUrl);
-        continue;
-      }
-      if (isPlainProtoMessage(fv)) {
-        await renderNestedProtoMessage(fv as Record<string, unknown>, fk, baseIndent + 1, restUrl, screens, registry, any.typeUrl);
-        continue;
-      }
-      const content = await renderFieldValue(fv, restUrl, fk, any.typeUrl);
-      screens.push({ title: fieldToDisplayName(fk), content, indent: baseIndent + 1 });
-    }
+    await renderMessageFields(nested, baseIndent + 1, registry, restUrl, screens, any.typeUrl);
   } catch (e) {
     console.warn('[Textual] nested Any decode error for', any.typeUrl, ':', e);
   }
@@ -537,22 +521,56 @@ async function renderNestedProtoMessage(
   const displayName = fieldToDisplayName(fieldName);
   const typeName = getNestedMessageTypeName(fieldName, parentTypeUrl);
   screens.push({ title: displayName, content: `${typeName} object`, indent: baseIndent });
-  for (const [k, v] of Object.entries(obj)) {
+  await renderMessageFields(obj, baseIndent + 1, registry, restUrl, screens, parentTypeUrl);
+}
+
+// Dispatches a single field to the appropriate renderer (Any / repeated scalar /
+// nested message / scalar fallback). Extracted from the three duplicated loops
+// in renderSingleAnyField, renderNestedProtoMessage, and buildTextualScreens.
+async function renderSingleField(
+  fieldName: string,
+  value: unknown,
+  baseIndent: number,
+  registry: Registry,
+  restUrl: string,
+  screens: TextualScreen[],
+  parentTypeUrl?: string,
+): Promise<void> {
+  if (isSingleAnyObject(value)) {
+    await renderSingleAnyField(fieldName, value, baseIndent, registry, restUrl, screens);
+    return;
+  }
+  if (Array.isArray(value) && isMultiScreenRepeated(value)) {
+    await renderRepeatedScalar(fieldName, value, baseIndent, restUrl, screens, parentTypeUrl);
+    return;
+  }
+  if (isPlainProtoMessage(value)) {
+    await renderNestedProtoMessage(value as Record<string, unknown>, fieldName, baseIndent, restUrl, screens, registry, parentTypeUrl);
+    return;
+  }
+  let content: string;
+  try {
+    content = await renderFieldValue(value, restUrl, fieldName, parentTypeUrl);
+  } catch (e) {
+    console.warn('[Textual] renderFieldValue error for field', fieldName, ':', e);
+    content = "(error)";
+  }
+  screens.push({ title: fieldToDisplayName(fieldName), content, indent: baseIndent });
+}
+
+// Iterates a proto message's fields, skipping proto3-default values and
+// dispatching the rest through renderSingleField.
+async function renderMessageFields(
+  fields: Record<string, unknown>,
+  baseIndent: number,
+  registry: Registry,
+  restUrl: string,
+  screens: TextualScreen[],
+  parentTypeUrl?: string,
+): Promise<void> {
+  for (const [k, v] of Object.entries(fields)) {
     if (shouldSkipField(v)) continue;
-    if (isSingleAnyObject(v)) {
-      await renderSingleAnyField(k, v, baseIndent + 1, registry, restUrl, screens);
-      continue;
-    }
-    if (Array.isArray(v) && isMultiScreenRepeated(v)) {
-      await renderRepeatedScalar(k, v, baseIndent + 1, restUrl, screens, parentTypeUrl);
-      continue;
-    }
-    if (isPlainProtoMessage(v)) {
-      await renderNestedProtoMessage(v as Record<string, unknown>, k, baseIndent + 1, restUrl, screens, registry, parentTypeUrl);
-    } else {
-      const content = await renderFieldValue(v, restUrl, k, parentTypeUrl);
-      screens.push({ title: fieldToDisplayName(k), content, indent: baseIndent + 1 });
-    }
+    await renderSingleField(k, v, baseIndent, registry, restUrl, screens, parentTypeUrl);
   }
 }
 
@@ -736,23 +754,7 @@ async function buildTextualScreens(
           if (decoder && valueBytes) {
             try {
               const nested = decoder.decode(valueBytes) as Record<string, unknown>;
-              for (const [fk, fv] of Object.entries(nested)) {
-                if (shouldSkipField(fv)) continue;
-                if (isSingleAnyObject(fv)) {
-                  await renderSingleAnyField(fk, fv, 4, registry, restApiAddress, screens);
-                  continue;
-                }
-                if (Array.isArray(fv) && isMultiScreenRepeated(fv)) {
-                  await renderRepeatedScalar(fk, fv, 4, restApiAddress, screens, anyItem.typeUrl);
-                  continue;
-                }
-                if (isPlainProtoMessage(fv)) {
-                  await renderNestedProtoMessage(fv as Record<string, unknown>, fk, 4, restApiAddress, screens, registry, anyItem.typeUrl);
-                  continue;
-                }
-                const fcontent = await renderFieldValue(fv, restApiAddress, fk, anyItem.typeUrl);
-                screens.push({ title: fieldToDisplayName(fk), content: fcontent, indent: 4 });
-              }
+              await renderMessageFields(nested, 4, registry, restApiAddress, screens, anyItem.typeUrl);
             } catch (e) {
               console.warn('[Textual] nested Any decode error for', anyItem.typeUrl, ':', e);
             }
@@ -765,34 +767,8 @@ async function buildTextualScreens(
         continue;
       }
 
-      // Repeated scalar at top level (repeated string/int/bool)
-      if (Array.isArray(v) && isMultiScreenRepeated(v)) {
-        await renderRepeatedScalar(k, v, 2, restApiAddress, screens, msg.typeUrl);
-        continue;
-      }
-
-      // Single Any field (e.g. MsgGrant.grant.authorization — though that one is nested; kept here for top-level Any msgs)
-      if (isSingleAnyObject(v)) {
-        await renderSingleAnyField(k, v, 2, registry, restApiAddress, screens);
-        continue;
-      }
-
-      // Plain proto message field (e.g. params, plan, grant) — render as "{Name} object" + sub-fields
-      if (isPlainProtoMessage(v)) {
-        await renderNestedProtoMessage(v as Record<string, unknown>, k, 2, restApiAddress, screens, registry, msg.typeUrl);
-        continue;
-      }
-
-      const title = fieldToDisplayName(k);
-      let content: string;
-      try {
-        content = await renderFieldValue(v, restApiAddress, k, msg.typeUrl);
-      } catch (e) {
-        console.warn('[Textual] renderFieldValue error for field', k, ':', e);
-        content = "(error)";
-      }
-      // Fields within a message are at indent 2 (message renderer adds +1 to base 1, Any replaces header not adds indent)
-      screens.push({ title, content, indent: 2 });
+      // Non-Any[] fields: dispatch through the shared single-field renderer
+      await renderSingleField(k, v, 2, registry, restApiAddress, screens, msg.typeUrl);
     }
   }
   // One "End of Message" terminal after all messages (SDK formatRepeated terminal for Envelope.message field)
