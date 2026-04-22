@@ -7,6 +7,9 @@ import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { PubKey as Secp256k1PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
 import { MsgCommunityPoolSpend } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
 import { MsgUpdateParams as StakingMsgUpdateParams } from "cosmjs-types/cosmos/staking/v1beta1/tx";
+import { StakeAuthorization } from "cosmjs-types/cosmos/staking/v1beta1/authz";
+import { SendAuthorization } from "cosmjs-types/cosmos/bank/v1beta1/authz";
+import { GenericAuthorization } from "cosmjs-types/cosmos/authz/v1beta1/authz";
 import { MsgUpdateParams as GovMsgUpdateParams } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 import { MsgSoftwareUpgrade } from "@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/tx";
 import { makeSignDoc, serializeSignDoc, StdFee } from "@cosmjs/amino";
@@ -181,12 +184,34 @@ function fieldToDisplayName(name: string): string {
   return snake.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 }
 
+// Returns true if v is a plain proto message object (not Duration, Coin, Any, array, or primitive)
+function isPlainProtoMessage(v: unknown): boolean {
+  if (typeof v !== "object" || v === null || Array.isArray(v)) return false;
+  if ("seconds" in v) return false;                      // Duration / Timestamp
+  if ("denom" in v && "amount" in v) return false;       // Coin
+  if ("typeUrl" in v) return false;                      // Any
+  return true;
+}
+
 const VOTE_OPTION_NAMES: Record<number, string> = {
   0: "VOTE_OPTION_UNSPECIFIED",
   1: "VOTE_OPTION_YES",
   2: "VOTE_OPTION_ABSTAIN",
   3: "VOTE_OPTION_NO",
   4: "VOTE_OPTION_NO_WITH_VETO",
+};
+
+// Cosmos textual renders enum values as their symbolic name (via fd.Enum()), not
+// as the numeric wire value. Decoded proto objects give us only the number, so
+// we map it back to the canonical name here. Without this, authz stake grants
+// rendered the authorizationType as "1" instead of "AUTHORIZATION_TYPE_DELEGATE"
+// and failed TEXTUAL signature verification.
+const STAKE_AUTHORIZATION_TYPE_NAMES: Record<number, string> = {
+  0: "AUTHORIZATION_TYPE_UNSPECIFIED",
+  1: "AUTHORIZATION_TYPE_DELEGATE",
+  2: "AUTHORIZATION_TYPE_UNDELEGATE",
+  3: "AUTHORIZATION_TYPE_REDELEGATE",
+  4: "AUTHORIZATION_TYPE_CANCEL_UNBONDING_DELEGATION",
 };
 
 function isLongObject(v: unknown): v is { low: number; high: number; unsigned: boolean; toString(): string } {
@@ -214,7 +239,12 @@ function durationToAminoNanos(d: { seconds: bigint | string | number; nanos?: nu
   return (BigInt(d.seconds.toString()) * BigInt(1_000_000_000) + BigInt(d.nanos ?? 0)).toString();
 }
 
-// Renders proto Duration as human-readable string (matches Cosmos SDK textual renderer)
+// Renders proto Duration as human-readable string (matches Cosmos SDK textual renderer).
+// NOTE: parts are joined with ", " (comma + space), not just space. Cosmos SDK's
+// duration renderer uses comma-separated components; an earlier version of this
+// function joined with " " which produced "5 minutes 1 second" instead of the
+// chain's "5 minutes, 1 second" and broke TEXTUAL signature verification for any
+// message containing a non-trivial Duration (gov Params Update was the trigger).
 function renderDuration(d: { seconds: bigint | string | number; nanos?: number }): string {
   let totalSeconds = BigInt(d.seconds.toString());
   const days = totalSeconds / BigInt(86400);
@@ -228,18 +258,69 @@ function renderDuration(d: { seconds: bigint | string | number; nanos?: number }
   if (hours > BigInt(0)) parts.push(`${hours} hour${hours === BigInt(1) ? "" : "s"}`);
   if (minutes > BigInt(0)) parts.push(`${minutes} minute${minutes === BigInt(1) ? "" : "s"}`);
   if (seconds > BigInt(0)) parts.push(`${seconds} second${seconds === BigInt(1) ? "" : "s"}`);
-  return parts.length > 0 ? parts.join(" ") : "0 seconds";
+  return parts.length > 0 ? parts.join(", ") : "0 seconds";
 }
 
-// cosmos.Dec is an 18-decimal fixed-point integer string; render as decimal fraction
+// Renders proto Timestamp as RFC3339Nano (matches Cosmos SDK textual renderer
+// time.Format(time.RFC3339Nano) — trailing zeros of subsecond precision trimmed).
+// Added because google.protobuf.Timestamp and google.protobuf.Duration share the
+// {seconds, nanos} shape, and the renderer previously treated every such object
+// as a Duration. That produced e.g. "20930 days, 11 hours, 10 minutes, 25 seconds"
+// for an authz.Grant.expiration Timestamp, while the chain reconstructed the
+// equivalent RFC3339 string ("2027-04-22T11:10:25Z") — CBOR bytes diverged and
+// signature verification failed with `code 4 unauthorized`.
+function renderTimestamp(t: { seconds: bigint | string | number; nanos?: number }): string {
+  const secs = BigInt(t.seconds.toString());
+  const nanos = t.nanos ?? 0;
+  const ms = Number(secs) * 1000;
+  const iso = new Date(ms).toISOString();
+  if (nanos === 0) {
+    return iso.replace(/\.\d+Z$/, "Z");
+  }
+  const nanoStr = String(nanos).padStart(9, "0").replace(/0+$/, "");
+  return iso.replace(/\.\d+Z$/, `.${nanoStr}Z`);
+}
+
+// Proto fields that carry google.protobuf.Timestamp (not Duration). Both have
+// the same {seconds, nanos} shape, so field name is the only disambiguator
+// unless we thread proto type info through the renderer.
+const TIMESTAMP_FIELD_NAMES = new Set([
+  "expiration", "expirationTime", "expiration_time",
+  "time",
+]);
+
+// cosmos.Dec may reach us as either form:
+//   (a) raw 18-decimal fixed-point integer string ("334000000000000000")
+//   (b) already-formatted decimal string ("0.334000000000000000") — this is what
+//       Cosmos SDK's Dec.String() produces and what REST/LCD returns.
+// Both must render to the Cosmos textual form: integer part with ' thousand
+// separators, trailing fractional zeros stripped (e.g. "1'234.56", "0.334").
+//
+// The earlier implementation assumed (a) only. Given input "0.334000000000000000"
+// it produced "0..334" (the leading "0." was treated as the integer slice and a
+// second "." was injected as the decimal separator), breaking TEXTUAL signature
+// verification for gov.Params (quorum/threshold/etc.) update proposals submitted
+// from firma-station where the params come through pre-formatted from the chain.
 function renderCosmosDecString(s: string): string {
   const neg = s.startsWith("-");
-  const digits = neg ? s.slice(1) : s;
-  const DEC_PRECISION = 18;
-  const padded = digits.padStart(DEC_PRECISION + 1, "0");
-  const intPart = padded.slice(0, padded.length - DEC_PRECISION) || "0";
-  const fracPart = padded.slice(padded.length - DEC_PRECISION).replace(/0+$/, "");
-  return (neg ? "-" : "") + (fracPart ? `${intPart}.${fracPart}` : intPart);
+  const raw = neg ? s.slice(1) : s;
+
+  let intPart: string;
+  let fracPart: string;
+
+  if (raw.includes(".")) {
+    const [intPartRaw, fracPartRaw = ""] = raw.split(".");
+    intPart = intPartRaw.replace(/^0+/, "") || "0";
+    fracPart = fracPartRaw.replace(/0+$/, "");
+  } else {
+    const DEC_PRECISION = 18;
+    const padded = raw.padStart(DEC_PRECISION + 1, "0");
+    intPart = (padded.slice(0, padded.length - DEC_PRECISION).replace(/^0+/, "") || "0");
+    fracPart = padded.slice(padded.length - DEC_PRECISION).replace(/0+$/, "");
+  }
+
+  const intFormatted = formatIntWithSep(intPart);
+  return (neg ? "-" : "") + (fracPart ? `${intFormatted}.${fracPart}` : intFormatted);
 }
 
 // Fields known to carry cosmos.Dec values (18-decimal fixed-point strings)
@@ -252,10 +333,18 @@ const COSMOS_DEC_FIELDS = new Set([
   "minDepositRatio", "min_deposit_ratio",
 ]);
 
-// Fallback type registry for nested Any values that may not be in the tx-specific registry
+// Fallback decoders for Any-wrapped messages that the per-tx Registry may not
+// know about. TEXTUAL rendering must descend into the inner message and emit
+// each sub-field as its own screen; without a decoder here we would render only
+// the Any typeUrl and omit every sub-field — which leaves our CBOR shorter than
+// the chain's reconstruction and causes `code 4 unauthorized`. The Authorization
+// entries were added specifically for authz Grant flows (stake delegate grant).
 const NESTED_ANY_DECODERS: Map<string, { decode(b: Uint8Array): Record<string, unknown> }> = new Map([
   ["/cosmos.distribution.v1beta1.MsgCommunityPoolSpend", MsgCommunityPoolSpend as any],
   ["/cosmos.staking.v1beta1.MsgUpdateParams", StakingMsgUpdateParams as any],
+  ["/cosmos.staking.v1beta1.StakeAuthorization", StakeAuthorization as any],
+  ["/cosmos.bank.v1beta1.SendAuthorization", SendAuthorization as any],
+  ["/cosmos.authz.v1beta1.GenericAuthorization", GenericAuthorization as any],
   ["/cosmos.gov.v1.MsgUpdateParams", GovMsgUpdateParams as any],
   ["/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade", MsgSoftwareUpgrade as any],
 ]);
@@ -269,6 +358,196 @@ function lookupNestedDecoder(
     if (t) return t as any;
   } catch {}
   return NESTED_ANY_DECODERS.get(typeUrl) ?? null;
+}
+
+function isSingleAnyObject(v: unknown): v is { typeUrl: string; value: unknown } {
+  return (
+    typeof v === "object" &&
+    v !== null &&
+    !Array.isArray(v) &&
+    "typeUrl" in v &&
+    "value" in v &&
+    typeof (v as any).typeUrl === "string"
+  );
+}
+
+// Cosmos textual Any renderer: replace "{Type} object" header with the typeUrl
+// content, then recursively render the inner message's fields at indent+1.
+//
+// Added because previously `renderFieldValue` for an Any object returned only
+// the typeUrl as a single string and never descended into sub-fields. This was
+// fine for repeated-Any fields (MsgSubmitProposal.messages handled separately),
+// but broke on single-Any fields such as authz.Grant.authorization. The chain's
+// textual renderer always expands the Any body, so dropping the sub-fields on
+// the wallet side left the CBOR short and signatures unverifiable.
+async function renderSingleAnyField(
+  fieldName: string,
+  any: { typeUrl: string; value: unknown },
+  baseIndent: number,
+  registry: Registry,
+  restUrl: string,
+  screens: TextualScreen[],
+): Promise<void> {
+  screens.push({ title: fieldToDisplayName(fieldName), content: any.typeUrl, indent: baseIndent });
+  const decoder = lookupNestedDecoder(any.typeUrl, registry);
+  const valueBytes = toUint8ArraySafe(any.value);
+  if (!decoder || !valueBytes) {
+    if (!decoder) console.warn('[Textual] no decoder for nested Any:', any.typeUrl);
+    return;
+  }
+  try {
+    const nested = decoder.decode(valueBytes) as Record<string, unknown>;
+    for (const [fk, fv] of Object.entries(nested)) {
+      if (shouldSkipField(fv)) continue;
+      if (isSingleAnyObject(fv)) {
+        await renderSingleAnyField(fk, fv, baseIndent + 1, registry, restUrl, screens);
+        continue;
+      }
+      if (Array.isArray(fv) && isMultiScreenRepeated(fv)) {
+        await renderRepeatedScalar(fk, fv, baseIndent + 1, restUrl, screens, any.typeUrl);
+        continue;
+      }
+      if (isPlainProtoMessage(fv)) {
+        await renderNestedProtoMessage(fv as Record<string, unknown>, fk, baseIndent + 1, restUrl, screens, registry, any.typeUrl);
+        continue;
+      }
+      const content = await renderFieldValue(fv, restUrl, fk, any.typeUrl);
+      screens.push({ title: fieldToDisplayName(fk), content, indent: baseIndent + 1 });
+    }
+  } catch (e) {
+    console.warn('[Textual] nested Any decode error for', any.typeUrl, ':', e);
+  }
+}
+
+// Scalar kind label for Cosmos textual formatRepeated.
+// Matches Go's toSentenceCase(fd.Kind().String()) — first letter capitalized,
+// NO pluralization regardless of count (e.g. "3 String", "1 Any", "2 Int64").
+function getScalarKindLabel(item: unknown): string {
+  if (typeof item === "string") return "String";
+  if (typeof item === "boolean") return "Bool";
+  if (typeof item === "number" || typeof item === "bigint") return "Int64";
+  if (isLongObject(item)) return "Int64";
+  if (item instanceof Uint8Array) return "Bytes";
+  return "Item";
+}
+
+// Renders a repeated scalar/primitive field (repeated string, int, bool, etc.)
+// as cosmos textual formatRepeated output:
+//   "{Title}: {N} {Kind}"        (kind is capitalized singular, no plural)
+//   "{Title} (1/N): {value}"
+//   ...
+//   "End of {Title}"
+//
+// Added for authz StakeAuthorization.Validators.address (repeated string). The
+// old fallback in renderFieldValue JSON-stringified the array to a single line
+// ('["firmavaloper1...", ...]'), which the chain's textual renderer does NOT
+// produce — it emits the count header + per-item screens + terminal. Mismatch
+// → signature verification failed.
+async function renderRepeatedScalar(
+  fieldName: string,
+  items: unknown[],
+  baseIndent: number,
+  restUrl: string,
+  screens: TextualScreen[],
+  parentTypeUrl?: string,
+): Promise<void> {
+  const count = items.length;
+  const kind = getScalarKindLabel(items[0]);
+  const title = fieldToDisplayName(fieldName);
+  screens.push({ title, content: `${count} ${kind}`, indent: baseIndent });
+  for (let i = 0; i < count; i++) {
+    const itemTitle = `${title} (${i + 1}/${count})`;
+    const content = await renderFieldValue(items[i], restUrl, fieldName, parentTypeUrl);
+    screens.push({ title: itemTitle, content, indent: baseIndent + 1 });
+  }
+  screens.push({ content: `End of ${title}`, indent: baseIndent });
+}
+
+// True for arrays that should render as formatRepeated multi-screen (not a single
+// comma-joined line like Coin arrays). Applies to primitives and plain messages.
+function isMultiScreenRepeated(v: unknown[]): boolean {
+  if (v.length === 0) return false;
+  const first = v[0];
+  if (typeof first === "string") return true;
+  if (typeof first === "boolean") return true;
+  if (typeof first === "number" || typeof first === "bigint") return true;
+  if (isLongObject(first)) return true;
+  return false;
+}
+
+// Mirrors proto3 "default value skipping" — the chain's textual renderer
+// omits fields that are at their proto3 default (proto3 doesn't write defaults
+// to the wire, so the chain's Message.Has(fd) returns false for them). If the
+// wallet renders them anyway, our CBOR gains extra screens the chain never
+// produces and signature verification fails. The Any/Timestamp/Uint8Array
+// entries below were added incrementally as failure modes surfaced (most
+// notably Plan.upgraded_client_state, an empty Any that blocked Software
+// Upgrade proposals).
+function shouldSkipField(v: unknown): boolean {
+  if (v === "" || v === false) return true;
+  if (Array.isArray(v) && v.length === 0) return true;
+  if (v === 0 || v === BigInt(0)) return true;
+  if (v === null || v === undefined) return true;
+  if (isLongObject(v) && v.low === 0 && v.high === 0) return true;
+  if (v instanceof Uint8Array && v.length === 0) return true;
+  if (typeof v === "object" && v !== null && "seconds" in v && !Array.isArray(v)) {
+    const dur = v as { seconds: bigint | string | number; nanos?: number };
+    if (BigInt(dur.seconds.toString()) === BigInt(0) && (dur.nanos ?? 0) === 0) return true;
+  }
+  if (typeof v === "object" && v !== null && "typeUrl" in v && !Array.isArray(v)) {
+    const any = v as { typeUrl: string };
+    if (any.typeUrl === "") return true;
+  }
+  return false;
+}
+
+// Cosmos textual "{TypeName} object" header uses the proto MESSAGE TYPE name,
+// not the field name. Most of our fields coincidentally match (params→Params,
+// plan→Plan, grant→Grant), but some don't (allow_list→Validators). Hardcode
+// the known overrides; fallback to field-derived display name otherwise.
+//
+// Without this override, StakeAuthorization.allow_list rendered as "Allow list
+// object" while the chain produced "Validators object", and every stake-grant
+// tx failed TEXTUAL signature verification. Extend this map when a new
+// field→type name divergence is discovered in a failing tx.
+function getNestedMessageTypeName(fieldName: string, parentTypeUrl?: string): string {
+  if (parentTypeUrl === "/cosmos.staking.v1beta1.StakeAuthorization") {
+    if (fieldName === "allowList" || fieldName === "denyList") return "Validators";
+  }
+  return fieldToDisplayName(fieldName);
+}
+
+// Renders a nested proto message object as title+content header followed by sub-fields.
+// Mirrors Cosmos SDK MessageValueRenderer: "{TypeName} object" header + sub-fields at indent+1.
+async function renderNestedProtoMessage(
+  obj: Record<string, unknown>,
+  fieldName: string,
+  baseIndent: number,
+  restUrl: string,
+  screens: TextualScreen[],
+  registry: Registry,
+  parentTypeUrl?: string,
+): Promise<void> {
+  const displayName = fieldToDisplayName(fieldName);
+  const typeName = getNestedMessageTypeName(fieldName, parentTypeUrl);
+  screens.push({ title: displayName, content: `${typeName} object`, indent: baseIndent });
+  for (const [k, v] of Object.entries(obj)) {
+    if (shouldSkipField(v)) continue;
+    if (isSingleAnyObject(v)) {
+      await renderSingleAnyField(k, v, baseIndent + 1, registry, restUrl, screens);
+      continue;
+    }
+    if (Array.isArray(v) && isMultiScreenRepeated(v)) {
+      await renderRepeatedScalar(k, v, baseIndent + 1, restUrl, screens, parentTypeUrl);
+      continue;
+    }
+    if (isPlainProtoMessage(v)) {
+      await renderNestedProtoMessage(v as Record<string, unknown>, k, baseIndent + 1, restUrl, screens, registry, parentTypeUrl);
+    } else {
+      const content = await renderFieldValue(v, restUrl, k, parentTypeUrl);
+      screens.push({ title: fieldToDisplayName(k), content, indent: baseIndent + 1 });
+    }
+  }
 }
 
 async function renderFieldValue(
@@ -285,6 +564,10 @@ async function renderFieldValue(
     // VoteOption enum → string name
     if (typeUrl === "/cosmos.gov.v1.MsgVote" && fieldName === "option" && typeof value === "number") {
       return VOTE_OPTION_NAMES[value] ?? String(value);
+    }
+    // StakeAuthorization.AuthorizationType enum → string name
+    if (typeUrl === "/cosmos.staking.v1beta1.StakeAuthorization" && fieldName === "authorizationType" && typeof value === "number") {
+      return STAKE_AUTHORIZATION_TYPE_NAMES[value] ?? String(value);
     }
     return formatIntWithSep(value.toString());
   }
@@ -309,9 +592,13 @@ async function renderFieldValue(
     return JSON.stringify(value);
   }
   if (typeof value === "object" && value !== null) {
-    // proto Duration { seconds, nanos }
+    // proto Duration / Timestamp { seconds, nanos } — identical shape, disambiguated by field name
     if ("seconds" in value) {
-      return renderDuration(value as { seconds: bigint | string | number; nanos?: number });
+      const tv = value as { seconds: bigint | string | number; nanos?: number };
+      if (fieldName && TIMESTAMP_FIELD_NAMES.has(fieldName)) {
+        return renderTimestamp(tv);
+      }
+      return renderDuration(tv);
     }
     if ("denom" in value && "amount" in value) {
       const coin = value as { denom: string; amount: string };
@@ -391,8 +678,7 @@ async function buildTextualScreens(
   screens.push({ title: "Sequence", content: signerData.sequence.toString() });
   screens.push({ title: "Address", content: address, expert: true });
   screens.push({ title: "Public key", content: "/cosmos.crypto.secp256k1.PubKey", expert: true });
-  screens.push({ content: "PubKey object", indent: 1, expert: true });
-  screens.push({ title: "Key", content: formatPubkeyHex(pubkey), indent: 2, expert: true });
+  screens.push({ title: "Key", content: formatPubkeyHex(pubkey), indent: 1, expert: true });
 
   const count = messages.length;
   screens.push({ content: `This transaction has ${count} Message${count === 1 ? "" : "s"}` });
@@ -400,11 +686,9 @@ async function buildTextualScreens(
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
     screens.push({ title: `Message (${i + 1}/${count})`, content: msg.typeUrl, indent: 1 });
-    const msgTypeName = msg.typeUrl.replace(/^\//, "").split(".").pop() ?? msg.typeUrl;
-    screens.push({ content: `${msgTypeName} object`, indent: 2 });
+    // Any renderer replaces the "{Type} object" header with the typeUrl — no "object" screen here.
 
     let fields: Record<string, unknown> = {};
-    // Always use proto decode for canonical field order (not amino)
     const MsgType = registry.lookupType(msg.typeUrl);
     if (MsgType) {
       try {
@@ -420,17 +704,9 @@ async function buildTextualScreens(
     }
     console.log('[Textual] typeUrl:', msg.typeUrl, 'fields keys:', Object.keys(fields));
     for (const [k, v] of Object.entries(fields)) {
-      // cosmos SDK textual renderer omits proto3 zero/default values
-      if (v === "" || v === false || (Array.isArray(v) && v.length === 0)) continue;
-      if (v === 0 || v === BigInt(0)) continue;
-      if (isLongObject(v) && v.low === 0 && v.high === 0) continue;
-      // Omit zero Duration
-      if (typeof v === "object" && v !== null && "seconds" in v && !Array.isArray(v)) {
-        const dur = v as { seconds: bigint | string | number; nanos?: number };
-        if (BigInt(dur.seconds.toString()) === BigInt(0) && (dur.nanos ?? 0) === 0) continue;
-      }
+      if (shouldSkipField(v)) continue;
 
-      // Repeated Any[] field (e.g. MsgSubmitProposal.messages): render nested proto messages
+      // Repeated Any[] field (e.g. MsgSubmitProposal.messages)
       if (
         Array.isArray(v) &&
         v.length > 0 &&
@@ -441,26 +717,35 @@ async function buildTextualScreens(
         toUint8ArraySafe((v[0] as any).value) !== null
       ) {
         const anyArray = v as Array<{ typeUrl: string; value: unknown }>;
-        const count = anyArray.length;
-        screens.push({ title: fieldToDisplayName(k), content: `${count} Message${count === 1 ? "" : "s"}`, indent: 3 });
-        for (const anyItem of anyArray) {
-          const nestedTypeName = anyItem.typeUrl.replace(/^\//, "").split(".").pop() ?? anyItem.typeUrl;
-          screens.push({ content: `${nestedTypeName} object`, indent: 4 });
+        const anyCount = anyArray.length;
+        const fieldTitle = fieldToDisplayName(k);
+        // Header: "N Any" matches SDK's formatRepeated count screen (getKind = "Any" for google.protobuf.Any)
+        screens.push({ title: fieldTitle, content: `${anyCount} Any`, indent: 2 });
+        for (let j = 0; j < anyArray.length; j++) {
+          const anyItem = anyArray[j];
+          // Any renderer replaces "{Type} object" header with typeUrl — use typeUrl as content
+          screens.push({ title: `${fieldTitle} (${j + 1}/${anyCount})`, content: anyItem.typeUrl, indent: 3 });
           const decoder = lookupNestedDecoder(anyItem.typeUrl, registry);
           const valueBytes = toUint8ArraySafe(anyItem.value);
           if (decoder && valueBytes) {
             try {
               const nested = decoder.decode(valueBytes) as Record<string, unknown>;
               for (const [fk, fv] of Object.entries(nested)) {
-                if (fv === "" || fv === false || (Array.isArray(fv) && fv.length === 0)) continue;
-                if (fv === 0 || fv === BigInt(0)) continue;
-                if (isLongObject(fv) && fv.low === 0 && fv.high === 0) continue;
-                if (typeof fv === "object" && fv !== null && "seconds" in fv && !Array.isArray(fv)) {
-                  const dur = fv as { seconds: bigint | string | number; nanos?: number };
-                  if (BigInt(dur.seconds.toString()) === BigInt(0) && (dur.nanos ?? 0) === 0) continue;
+                if (shouldSkipField(fv)) continue;
+                if (isSingleAnyObject(fv)) {
+                  await renderSingleAnyField(fk, fv, 4, registry, restApiAddress, screens);
+                  continue;
+                }
+                if (Array.isArray(fv) && isMultiScreenRepeated(fv)) {
+                  await renderRepeatedScalar(fk, fv, 4, restApiAddress, screens, anyItem.typeUrl);
+                  continue;
+                }
+                if (isPlainProtoMessage(fv)) {
+                  await renderNestedProtoMessage(fv as Record<string, unknown>, fk, 4, restApiAddress, screens, registry, anyItem.typeUrl);
+                  continue;
                 }
                 const fcontent = await renderFieldValue(fv, restApiAddress, fk, anyItem.typeUrl);
-                screens.push({ title: fieldToDisplayName(fk), content: fcontent, indent: 5 });
+                screens.push({ title: fieldToDisplayName(fk), content: fcontent, indent: 4 });
               }
             } catch (e) {
               console.warn('[Textual] nested Any decode error for', anyItem.typeUrl, ':', e);
@@ -469,6 +754,26 @@ async function buildTextualScreens(
             console.warn('[Textual] no decoder for nested Any:', anyItem.typeUrl);
           }
         }
+        // Terminal screen for repeated Any field (mirrors SDK formatRepeated terminalScreen)
+        screens.push({ content: `End of ${fieldTitle}`, indent: 2 });
+        continue;
+      }
+
+      // Repeated scalar at top level (repeated string/int/bool)
+      if (Array.isArray(v) && isMultiScreenRepeated(v)) {
+        await renderRepeatedScalar(k, v, 2, restApiAddress, screens, msg.typeUrl);
+        continue;
+      }
+
+      // Single Any field (e.g. MsgGrant.grant.authorization — though that one is nested; kept here for top-level Any msgs)
+      if (isSingleAnyObject(v)) {
+        await renderSingleAnyField(k, v, 2, registry, restApiAddress, screens);
+        continue;
+      }
+
+      // Plain proto message field (e.g. params, plan, grant) — render as "{Name} object" + sub-fields
+      if (isPlainProtoMessage(v)) {
+        await renderNestedProtoMessage(v as Record<string, unknown>, k, 2, restApiAddress, screens, registry, msg.typeUrl);
         continue;
       }
 
@@ -480,11 +785,12 @@ async function buildTextualScreens(
         console.warn('[Textual] renderFieldValue error for field', k, ':', e);
         content = "(error)";
       }
-      screens.push({ title, content, indent: 3 });
+      // Fields within a message are at indent 2 (message renderer adds +1 to base 1, Any replaces header not adds indent)
+      screens.push({ title, content, indent: 2 });
     }
-
-    screens.push({ content: "End of Message" });
   }
+  // One "End of Message" terminal after all messages (SDK formatRepeated terminal for Envelope.message field)
+  screens.push({ content: "End of Message" });
 
   const feeCoins = option.fee.amount.map((c) => ({ denom: c.denom, amount: c.amount }));
   screens.push({ title: "Fees", content: await formatCoins(feeCoins, restApiAddress) });
@@ -702,20 +1008,6 @@ function buildAminoTypesForCheck(): AminoTypes {
   return new AminoTypes({ ...baseConverters, ...nestedMsgConverters, ...govV1Converters });
 }
 
-// Base amino types (no gov v1) — used only for sign-mode routing.
-// gov v1 messages deliberately have no amino encoding here so they fall through to TEXTUAL.
-function buildBaseAminoTypes(): AminoTypes {
-  return new AminoTypes({
-    ...createBankAminoConverters(),
-    ...createStakingAminoConverters(),
-    ...createDistributionAminoConverters(),
-    ...createGovAminoConverters(),   // only v1beta1 converters in @cosmjs/stargate 0.34.x
-    ...createIbcAminoConverters(),
-    ...createFeegrantAminoConverters(),
-    ...createAuthzAminoConverters(),
-    ...createVestingAminoConverters(),
-  });
-}
 
 export async function signWithSignerAuto(
   signer: LedgerWalletInterface,
