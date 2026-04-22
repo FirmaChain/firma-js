@@ -27,11 +27,22 @@ import {
 import { SignAndBroadcastOptions } from "./TxCommon";
 import { makeAuthInfoBytes } from "./signing";
 
-// Verbose TEXTUAL render tracing. Enable with env DEBUG_LEDGER=1 (node) or
-// `globalThis.DEBUG_LEDGER = true` (browser) to dump per-sign screens/CBOR.
+// Two-tier Ledger debug logging.
+//
+// DEBUG_LEDGER=1 — structural tracing only: connect events, typeUrl, field
+// names. Does NOT expose transaction contents. Safe to enable in shared
+// staging environments.
+//
+// DEBUG_LEDGER_CBOR=1 — full transaction dump: rendered screens (addresses,
+// amounts, memos) and CBOR hex bytes. Reveals every detail of the tx being
+// signed. Do NOT enable in production or on shared hosts.
 const DEBUG_LEDGER =
   (typeof process !== "undefined" && process.env?.DEBUG_LEDGER === "1") ||
   (typeof globalThis !== "undefined" && (globalThis as { DEBUG_LEDGER?: boolean }).DEBUG_LEDGER === true);
+
+const DEBUG_LEDGER_CBOR =
+  (typeof process !== "undefined" && process.env?.DEBUG_LEDGER_CBOR === "1") ||
+  (typeof globalThis !== "undefined" && (globalThis as { DEBUG_LEDGER_CBOR?: boolean }).DEBUG_LEDGER_CBOR === true);
 
 export interface LedgerWalletInterface {
   getAddress(): Promise<string>;
@@ -1048,7 +1059,7 @@ export async function signWithSignerTextual(
     pubkey, address, bodyBytes, authInfoBytes, restApiAddress, registry,
   );
 
-  if (DEBUG_LEDGER) {
+  if (DEBUG_LEDGER_CBOR) {
     console.log('[Textual] === SCREENS DUMP ===');
     screens.forEach((s, i) => {
       const parts = [`[${i}]`];
@@ -1061,7 +1072,7 @@ export async function signWithSignerTextual(
   }
 
   const cborBuffer = encodeTextualCbor(screens);
-  if (DEBUG_LEDGER) {
+  if (DEBUG_LEDGER_CBOR) {
     console.log('[Textual] CBOR hex:', Array.from(cborBuffer).map(b => b.toString(16).padStart(2, '0')).join(''));
   }
 
