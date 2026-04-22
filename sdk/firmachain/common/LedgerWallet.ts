@@ -6,6 +6,9 @@ import { Any } from "cosmjs-types/google/protobuf/any";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { PubKey as Secp256k1PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
 import { MsgCommunityPoolSpend } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
+import { MsgUpdateParams as StakingMsgUpdateParams } from "cosmjs-types/cosmos/staking/v1beta1/tx";
+import { MsgUpdateParams as GovMsgUpdateParams } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
+import { MsgSoftwareUpgrade } from "@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/tx";
 import { makeSignDoc, serializeSignDoc, StdFee } from "@cosmjs/amino";
 import {
   AminoTypes,
@@ -190,9 +193,71 @@ function isLongObject(v: unknown): v is { low: number; high: number; unsigned: b
   return typeof v === "object" && v !== null && "low" in v && "high" in v && typeof (v as any).toString === "function";
 }
 
+// Converts Uint8Array or a JSON-serialized numeric-keyed object back to Uint8Array
+function toUint8ArraySafe(v: unknown): Uint8Array | null {
+  if (v instanceof Uint8Array) return v;
+  if (Buffer.isBuffer(v)) return new Uint8Array(v);
+  if (typeof v === "object" && v !== null && !Array.isArray(v)) {
+    const obj = v as Record<string, unknown>;
+    const keys = Object.keys(obj);
+    if (keys.length > 0 && keys.every((k) => !isNaN(Number(k)) && typeof obj[k] === "number")) {
+      const arr = new Uint8Array(keys.length);
+      for (const k of keys) arr[Number(k)] = obj[k] as number;
+      return arr;
+    }
+  }
+  return null;
+}
+
+// Converts proto Duration { seconds: bigint, nanos: number } to amino nanoseconds string
+function durationToAminoNanos(d: { seconds: bigint | string | number; nanos?: number }): string {
+  return (BigInt(d.seconds.toString()) * BigInt(1_000_000_000) + BigInt(d.nanos ?? 0)).toString();
+}
+
+// Renders proto Duration as human-readable string (matches Cosmos SDK textual renderer)
+function renderDuration(d: { seconds: bigint | string | number; nanos?: number }): string {
+  let totalSeconds = BigInt(d.seconds.toString());
+  const days = totalSeconds / BigInt(86400);
+  totalSeconds -= days * BigInt(86400);
+  const hours = totalSeconds / BigInt(3600);
+  totalSeconds -= hours * BigInt(3600);
+  const minutes = totalSeconds / BigInt(60);
+  const seconds = totalSeconds - minutes * BigInt(60);
+  const parts: string[] = [];
+  if (days > BigInt(0)) parts.push(`${days} day${days === BigInt(1) ? "" : "s"}`);
+  if (hours > BigInt(0)) parts.push(`${hours} hour${hours === BigInt(1) ? "" : "s"}`);
+  if (minutes > BigInt(0)) parts.push(`${minutes} minute${minutes === BigInt(1) ? "" : "s"}`);
+  if (seconds > BigInt(0)) parts.push(`${seconds} second${seconds === BigInt(1) ? "" : "s"}`);
+  return parts.length > 0 ? parts.join(" ") : "0 seconds";
+}
+
+// cosmos.Dec is an 18-decimal fixed-point integer string; render as decimal fraction
+function renderCosmosDecString(s: string): string {
+  const neg = s.startsWith("-");
+  const digits = neg ? s.slice(1) : s;
+  const DEC_PRECISION = 18;
+  const padded = digits.padStart(DEC_PRECISION + 1, "0");
+  const intPart = padded.slice(0, padded.length - DEC_PRECISION) || "0";
+  const fracPart = padded.slice(padded.length - DEC_PRECISION).replace(/0+$/, "");
+  return (neg ? "-" : "") + (fracPart ? `${intPart}.${fracPart}` : intPart);
+}
+
+// Fields known to carry cosmos.Dec values (18-decimal fixed-point strings)
+const COSMOS_DEC_FIELDS = new Set([
+  "minCommissionRate", "min_commission_rate",
+  "quorum", "threshold", "vetoThreshold", "veto_threshold",
+  "minInitialDepositRatio", "min_initial_deposit_ratio",
+  "proposalCancelRatio", "proposal_cancel_ratio",
+  "expeditedThreshold", "expedited_threshold",
+  "minDepositRatio", "min_deposit_ratio",
+]);
+
 // Fallback type registry for nested Any values that may not be in the tx-specific registry
 const NESTED_ANY_DECODERS: Map<string, { decode(b: Uint8Array): Record<string, unknown> }> = new Map([
   ["/cosmos.distribution.v1beta1.MsgCommunityPoolSpend", MsgCommunityPoolSpend as any],
+  ["/cosmos.staking.v1beta1.MsgUpdateParams", StakingMsgUpdateParams as any],
+  ["/cosmos.gov.v1.MsgUpdateParams", GovMsgUpdateParams as any],
+  ["/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade", MsgSoftwareUpgrade as any],
 ]);
 
 function lookupNestedDecoder(
@@ -212,20 +277,20 @@ async function renderFieldValue(
   fieldName?: string,
   typeUrl?: string,
 ): Promise<string> {
-  if (typeof value === "string") return value;
+  if (typeof value === "string") {
+    if (fieldName && COSMOS_DEC_FIELDS.has(fieldName)) return renderCosmosDecString(value);
+    return value;
+  }
   if (typeof value === "number" || typeof value === "bigint") {
     // VoteOption enum → string name
     if (typeUrl === "/cosmos.gov.v1.MsgVote" && fieldName === "option" && typeof value === "number") {
-      const enumName = VOTE_OPTION_NAMES[value] ?? String(value);
-      console.log('[Textual] VoteOption enum:', value, '->', enumName);
-      return enumName;
+      return VOTE_OPTION_NAMES[value] ?? String(value);
     }
-    console.log('[Textual] renderFieldValue number/bigint field:', fieldName, 'typeUrl:', typeUrl, 'value:', value, 'type:', typeof value);
-    return String(value);
+    return formatIntWithSep(value.toString());
   }
-  // Long.js object (protobufjs uint64/int64) → decimal string
-  if (isLongObject(value)) return value.toString();
-  if (typeof value === "boolean") return value ? "Yes" : "No";
+  // Long.js object (protobufjs uint64/int64) → decimal string with apostrophe separators
+  if (isLongObject(value)) return formatIntWithSep(value.toString());
+  if (typeof value === "boolean") return value ? "True" : "False";
   if (value instanceof Uint8Array) return `(${value.length} bytes)`;
   if (Array.isArray(value)) {
     if (value.length === 0) return "(none)";
@@ -244,6 +309,10 @@ async function renderFieldValue(
     return JSON.stringify(value);
   }
   if (typeof value === "object" && value !== null) {
+    // proto Duration { seconds, nanos }
+    if ("seconds" in value) {
+      return renderDuration(value as { seconds: bigint | string | number; nanos?: number });
+    }
     if ("denom" in value && "amount" in value) {
       const coin = value as { denom: string; amount: string };
       const meta = await queryCoinMetadata(restUrl, coin.denom);
@@ -270,16 +339,7 @@ export async function signWithSignerAmino(
     typeUrl: "/cosmos.crypto.secp256k1.PubKey",
     value: Secp256k1PubKey.encode({ key: pubkey }).finish(),
   };
-  const aminoTypes = new AminoTypes({
-    ...createBankAminoConverters(),
-    ...createStakingAminoConverters(),
-    ...createDistributionAminoConverters(),
-    ...createGovAminoConverters(),
-    ...createIbcAminoConverters(),
-    ...createFeegrantAminoConverters(),
-    ...createAuthzAminoConverters(),
-    ...createVestingAminoConverters(),
-  });
+  const aminoTypes = buildAminoTypesForCheck();
   const aminoMsgs = messages.map((msg) => aminoTypes.toAmino(msg));
   const stdFee: StdFee = {
     amount: option.fee.amount.map((c) => ({ denom: c.denom, amount: c.amount })),
@@ -317,7 +377,6 @@ async function buildTextualScreens(
   messages: EncodeObject[],
   signerData: SignerData,
   option: SignAndBroadcastOptions,
-  aminoTypes: AminoTypes,
   pubkey: Uint8Array,
   address: string,
   bodyBytes: Uint8Array,
@@ -332,7 +391,8 @@ async function buildTextualScreens(
   screens.push({ title: "Sequence", content: signerData.sequence.toString() });
   screens.push({ title: "Address", content: address, expert: true });
   screens.push({ title: "Public key", content: "/cosmos.crypto.secp256k1.PubKey", expert: true });
-  screens.push({ title: "Key", content: formatPubkeyHex(pubkey), indent: 1, expert: true });
+  screens.push({ content: "PubKey object", indent: 1, expert: true });
+  screens.push({ title: "Key", content: formatPubkeyHex(pubkey), indent: 2, expert: true });
 
   const count = messages.length;
   screens.push({ content: `This transaction has ${count} Message${count === 1 ? "" : "s"}` });
@@ -340,34 +400,35 @@ async function buildTextualScreens(
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
     screens.push({ title: `Message (${i + 1}/${count})`, content: msg.typeUrl, indent: 1 });
+    const msgTypeName = msg.typeUrl.replace(/^\//, "").split(".").pop() ?? msg.typeUrl;
+    screens.push({ content: `${msgTypeName} object`, indent: 2 });
 
     let fields: Record<string, unknown> = {};
-    let usedAmino = false;
-    try {
-      fields = aminoTypes.toAmino(msg).value as Record<string, unknown>;
-      usedAmino = true;
-    } catch {
-      // Re-encode then decode via registry to get fields in canonical proto field number order
-      const MsgType = registry.lookupType(msg.typeUrl);
-      if (MsgType) {
-        try {
-          const encodedBytes = registry.encodeAsAny(msg).value;
-          fields = (MsgType.decode(encodedBytes) as unknown) as Record<string, unknown>;
-        } catch {
-          if (msg.value && typeof msg.value === "object") {
-            fields = msg.value as Record<string, unknown>;
-          }
+    // Always use proto decode for canonical field order (not amino)
+    const MsgType = registry.lookupType(msg.typeUrl);
+    if (MsgType) {
+      try {
+        const encodedBytes = registry.encodeAsAny(msg).value;
+        fields = (MsgType.decode(encodedBytes) as unknown) as Record<string, unknown>;
+      } catch {
+        if (msg.value && typeof msg.value === "object") {
+          fields = msg.value as Record<string, unknown>;
         }
-      } else if (msg.value && typeof msg.value === "object") {
-        fields = msg.value as Record<string, unknown>;
       }
+    } else if (msg.value && typeof msg.value === "object") {
+      fields = msg.value as Record<string, unknown>;
     }
-    console.log('[Textual] usedAmino:', usedAmino, 'typeUrl:', msg.typeUrl, 'fields keys:', Object.keys(fields));
+    console.log('[Textual] typeUrl:', msg.typeUrl, 'fields keys:', Object.keys(fields));
     for (const [k, v] of Object.entries(fields)) {
       // cosmos SDK textual renderer omits proto3 zero/default values
       if (v === "" || v === false || (Array.isArray(v) && v.length === 0)) continue;
       if (v === 0 || v === BigInt(0)) continue;
       if (isLongObject(v) && v.low === 0 && v.high === 0) continue;
+      // Omit zero Duration
+      if (typeof v === "object" && v !== null && "seconds" in v && !Array.isArray(v)) {
+        const dur = v as { seconds: bigint | string | number; nanos?: number };
+        if (BigInt(dur.seconds.toString()) === BigInt(0) && (dur.nanos ?? 0) === 0) continue;
+      }
 
       // Repeated Any[] field (e.g. MsgSubmitProposal.messages): render nested proto messages
       if (
@@ -377,23 +438,29 @@ async function buildTextualScreens(
         v[0] !== null &&
         "typeUrl" in v[0] &&
         "value" in v[0] &&
-        (v[0] as any).value instanceof Uint8Array
+        toUint8ArraySafe((v[0] as any).value) !== null
       ) {
-        const anyArray = v as Array<{ typeUrl: string; value: Uint8Array }>;
+        const anyArray = v as Array<{ typeUrl: string; value: unknown }>;
         const count = anyArray.length;
-        screens.push({ title: fieldToDisplayName(k), content: `${count} Message${count === 1 ? "" : "s"}`, indent: 2 });
+        screens.push({ title: fieldToDisplayName(k), content: `${count} Message${count === 1 ? "" : "s"}`, indent: 3 });
         for (const anyItem of anyArray) {
-          screens.push({ content: anyItem.typeUrl, indent: 3 });
+          const nestedTypeName = anyItem.typeUrl.replace(/^\//, "").split(".").pop() ?? anyItem.typeUrl;
+          screens.push({ content: `${nestedTypeName} object`, indent: 4 });
           const decoder = lookupNestedDecoder(anyItem.typeUrl, registry);
-          if (decoder) {
+          const valueBytes = toUint8ArraySafe(anyItem.value);
+          if (decoder && valueBytes) {
             try {
-              const nested = decoder.decode(anyItem.value) as Record<string, unknown>;
+              const nested = decoder.decode(valueBytes) as Record<string, unknown>;
               for (const [fk, fv] of Object.entries(nested)) {
                 if (fv === "" || fv === false || (Array.isArray(fv) && fv.length === 0)) continue;
                 if (fv === 0 || fv === BigInt(0)) continue;
                 if (isLongObject(fv) && fv.low === 0 && fv.high === 0) continue;
+                if (typeof fv === "object" && fv !== null && "seconds" in fv && !Array.isArray(fv)) {
+                  const dur = fv as { seconds: bigint | string | number; nanos?: number };
+                  if (BigInt(dur.seconds.toString()) === BigInt(0) && (dur.nanos ?? 0) === 0) continue;
+                }
                 const fcontent = await renderFieldValue(fv, restApiAddress, fk, anyItem.typeUrl);
-                screens.push({ title: fieldToDisplayName(fk), content: fcontent, indent: 4 });
+                screens.push({ title: fieldToDisplayName(fk), content: fcontent, indent: 5 });
               }
             } catch (e) {
               console.warn('[Textual] nested Any decode error for', anyItem.typeUrl, ':', e);
@@ -405,7 +472,6 @@ async function buildTextualScreens(
         continue;
       }
 
-      console.log('[Textual] field:', k, 'type:', typeof v, 'value:', v);
       const title = fieldToDisplayName(k);
       let content: string;
       try {
@@ -414,7 +480,7 @@ async function buildTextualScreens(
         console.warn('[Textual] renderFieldValue error for field', k, ':', e);
         content = "(error)";
       }
-      screens.push({ title, content, indent: 2 });
+      screens.push({ title, content, indent: 3 });
     }
 
     screens.push({ content: "End of Message" });
@@ -435,11 +501,215 @@ async function buildTextualScreens(
 // ─── Auto sign mode routing ───────────────────────────────────────────────────
 
 function buildAminoTypesForCheck(): AminoTypes {
-  return new AminoTypes({
+  const baseConverters = {
     ...createBankAminoConverters(),
     ...createStakingAminoConverters(),
     ...createDistributionAminoConverters(),
     ...createGovAminoConverters(),
+    ...createIbcAminoConverters(),
+    ...createFeegrantAminoConverters(),
+    ...createAuthzAminoConverters(),
+    ...createVestingAminoConverters(),
+  };
+
+  // Custom converters for nested governance action messages absent from @cosmjs/stargate 0.34.x
+  const nestedMsgConverters: Record<string, any> = {
+    "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend": {
+      aminoType: "cosmos-sdk/distr/MsgCommunityPoolSpend",
+      toAmino: (value: any) => ({
+        authority: value.authority,
+        recipient: value.recipient,
+        amount: value.amount,
+      }),
+      fromAmino: (value: any) => ({
+        authority: value.authority,
+        recipient: value.recipient,
+        amount: value.amount,
+      }),
+    },
+    "/cosmos.staking.v1beta1.MsgUpdateParams": {
+      aminoType: "cosmos-sdk/x/staking/MsgUpdateParams",
+      toAmino: (value: any) => {
+        const p = value.params ?? {};
+        return {
+          authority: value.authority,
+          params: {
+            unbonding_time: p.unbondingTime ? durationToAminoNanos(p.unbondingTime) : "0",
+            max_validators: p.maxValidators,
+            max_entries: p.maxEntries,
+            historical_entries: p.historicalEntries,
+            bond_denom: p.bondDenom,
+            min_commission_rate: p.minCommissionRate ?? "0",
+          },
+        };
+      },
+      fromAmino: (value: any) => value,
+    },
+    "/cosmos.gov.v1.MsgUpdateParams": {
+      aminoType: "cosmos-sdk/x/gov/v1/MsgUpdateParams",
+      toAmino: (value: any) => {
+        const p = value.params ?? {};
+        const result: any = {
+          authority: value.authority,
+          params: {
+            ...(p.minDeposit?.length ? { min_deposit: p.minDeposit } : {}),
+            ...(p.maxDepositPeriod ? { max_deposit_period: durationToAminoNanos(p.maxDepositPeriod) } : {}),
+            ...(p.votingPeriod ? { voting_period: durationToAminoNanos(p.votingPeriod) } : {}),
+            ...(p.quorum ? { quorum: p.quorum } : {}),
+            ...(p.threshold ? { threshold: p.threshold } : {}),
+            ...(p.vetoThreshold ? { veto_threshold: p.vetoThreshold } : {}),
+            ...(p.minInitialDepositRatio ? { min_initial_deposit_ratio: p.minInitialDepositRatio } : {}),
+            ...(p.proposalCancelRatio ? { proposal_cancel_ratio: p.proposalCancelRatio } : {}),
+            ...(p.proposalCancelDest ? { proposal_cancel_dest: p.proposalCancelDest } : {}),
+            ...(p.expeditedVotingPeriod ? { expedited_voting_period: durationToAminoNanos(p.expeditedVotingPeriod) } : {}),
+            ...(p.expeditedThreshold ? { expedited_threshold: p.expeditedThreshold } : {}),
+            ...(p.expeditedMinDeposit?.length ? { expedited_min_deposit: p.expeditedMinDeposit } : {}),
+            burn_vote_quorum: p.burnVoteQuorum ?? false,
+            burn_proposal_deposit_prevote: p.burnProposalDepositPrevote ?? false,
+            burn_vote_veto: p.burnVoteVeto ?? false,
+            ...(p.minDepositRatio ? { min_deposit_ratio: p.minDepositRatio } : {}),
+          },
+        };
+        return result;
+      },
+      fromAmino: (value: any) => value,
+    },
+    "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade": {
+      aminoType: "cosmos-sdk/MsgSoftwareUpgrade",
+      toAmino: (value: any) => {
+        const plan = value.plan ?? {};
+        return {
+          authority: value.authority,
+          plan: {
+            name: plan.name,
+            height: plan.height?.toString() ?? "0",
+            info: plan.info ?? "",
+          },
+        };
+      },
+      fromAmino: (value: any) => value,
+    },
+  };
+
+  // Build base amino types (with nested msg converters) for use inside the MsgSubmitProposal toAmino
+  const baseAminoTypes = new AminoTypes({ ...baseConverters, ...nestedMsgConverters });
+
+  // All cosmos.gov.v1 messages are absent from @cosmjs/stargate 0.34.x createGovAminoConverters
+  // (only v1beta1 is present).  Without these converters signWithSignerAuto falls back to
+  // SIGN_MODE_TEXTUAL, which the chain cannot verify.
+  const govV1Converters: Record<string, any> = {
+    "/cosmos.gov.v1.MsgSubmitProposal": {
+      aminoType: "cosmos-sdk/v1/MsgSubmitProposal",
+      toAmino: (value: any) => {
+        const aminoMessages: any[] = [];
+        for (const anyMsg of (value.messages || [])) {
+          const valueBytes = toUint8ArraySafe(anyMsg.value);
+          const decoder = NESTED_ANY_DECODERS.get(anyMsg.typeUrl);
+          if (decoder && valueBytes) {
+            const decoded = decoder.decode(valueBytes);
+            aminoMessages.push(baseAminoTypes.toAmino({ typeUrl: anyMsg.typeUrl, value: decoded }));
+          } else {
+            try {
+              aminoMessages.push(baseAminoTypes.toAmino(anyMsg));
+            } catch {
+              throw new Error(`Cannot amino-convert nested message: ${anyMsg.typeUrl}`);
+            }
+          }
+        }
+        const result: any = {
+          proposer: value.proposer,
+          title: value.title || "",
+          summary: value.summary || "",
+        };
+        if (aminoMessages.length > 0) result.messages = aminoMessages;
+        if (value.initialDeposit && value.initialDeposit.length > 0) result.initial_deposit = value.initialDeposit;
+        if (value.metadata) result.metadata = value.metadata;
+        if (value.expedited) result.expedited = value.expedited;
+        return result;
+      },
+      fromAmino: (value: any) => ({
+        messages: value.messages ?? [],
+        initialDeposit: value.initial_deposit ?? [],
+        proposer: value.proposer,
+        title: value.title,
+        summary: value.summary,
+        metadata: value.metadata ?? "",
+        expedited: value.expedited ?? false,
+      }),
+    },
+    "/cosmos.gov.v1.MsgVote": {
+      aminoType: "cosmos-sdk/v1/MsgVote",
+      toAmino: (value: any) => {
+        const result: any = {
+          proposal_id: value.proposalId.toString(),
+          voter: value.voter,
+          option: value.option,
+        };
+        if (value.metadata) result.metadata = value.metadata;
+        return result;
+      },
+      fromAmino: (value: any) => ({
+        proposalId: BigInt(value.proposal_id),
+        voter: value.voter,
+        option: value.option,
+        metadata: value.metadata ?? "",
+      }),
+    },
+    "/cosmos.gov.v1.MsgVoteWeighted": {
+      aminoType: "cosmos-sdk/v1/MsgVoteWeighted",
+      toAmino: (value: any) => {
+        const result: any = {
+          proposal_id: value.proposalId.toString(),
+          voter: value.voter,
+          options: value.options,
+        };
+        if (value.metadata) result.metadata = value.metadata;
+        return result;
+      },
+      fromAmino: (value: any) => ({
+        proposalId: BigInt(value.proposal_id),
+        voter: value.voter,
+        options: value.options,
+        metadata: value.metadata ?? "",
+      }),
+    },
+    "/cosmos.gov.v1.MsgDeposit": {
+      aminoType: "cosmos-sdk/v1/MsgDeposit",
+      toAmino: (value: any) => ({
+        proposal_id: value.proposalId.toString(),
+        depositor: value.depositor,
+        amount: value.amount,
+      }),
+      fromAmino: (value: any) => ({
+        proposalId: BigInt(value.proposal_id),
+        depositor: value.depositor,
+        amount: value.amount,
+      }),
+    },
+    "/cosmos.gov.v1.MsgCancelProposal": {
+      aminoType: "cosmos-sdk/v1/MsgCancelProposal",
+      toAmino: (value: any) => ({
+        proposal_id: value.proposalId.toString(),
+        proposer: value.proposer,
+      }),
+      fromAmino: (value: any) => ({
+        proposalId: BigInt(value.proposal_id),
+        proposer: value.proposer,
+      }),
+    },
+  };
+
+  return new AminoTypes({ ...baseConverters, ...nestedMsgConverters, ...govV1Converters });
+}
+
+// Base amino types (no gov v1) — used only for sign-mode routing.
+// gov v1 messages deliberately have no amino encoding here so they fall through to TEXTUAL.
+function buildBaseAminoTypes(): AminoTypes {
+  return new AminoTypes({
+    ...createBankAminoConverters(),
+    ...createStakingAminoConverters(),
+    ...createDistributionAminoConverters(),
+    ...createGovAminoConverters(),   // only v1beta1 converters in @cosmjs/stargate 0.34.x
     ...createIbcAminoConverters(),
     ...createFeegrantAminoConverters(),
     ...createAuthzAminoConverters(),
@@ -455,19 +725,9 @@ export async function signWithSignerAuto(
   registry: Registry,
   restApiAddress = "",
 ): Promise<TxRaw> {
-  const aminoTypes = buildAminoTypesForCheck();
-  const allSupportAmino = messages.every((msg) => {
-    try { aminoTypes.toAmino(msg); return true; }
-    catch { return false; }
-  });
-
-  if (allSupportAmino) {
-    console.log('[Ledger] sign mode: LEGACY_AMINO_JSON (all msgs support amino)');
-    return signWithSignerAmino(signer, messages, signerData, option, registry);
-  } else {
-    console.log('[Ledger] sign mode: TEXTUAL (amino unavailable for some msgs)');
-    return signWithSignerTextual(signer, messages, signerData, option, registry, restApiAddress);
-  }
+  const typeUrls = messages.map((m) => m.typeUrl).join(', ');
+  console.log(`[Ledger] sign mode: TEXTUAL | msgs: ${typeUrls}`);
+  return signWithSignerTextual(signer, messages, signerData, option, registry, restApiAddress);
 }
 
 export async function signWithSignerTextual(
@@ -500,19 +760,8 @@ export async function signWithSignerTextual(
     SignMode.SIGN_MODE_TEXTUAL,
   );
 
-  const aminoTypes = new AminoTypes({
-    ...createBankAminoConverters(),
-    ...createStakingAminoConverters(),
-    ...createDistributionAminoConverters(),
-    ...createGovAminoConverters(),
-    ...createIbcAminoConverters(),
-    ...createFeegrantAminoConverters(),
-    ...createAuthzAminoConverters(),
-    ...createVestingAminoConverters(),
-  });
-
   const screens = await buildTextualScreens(
-    messages, signerData, option, aminoTypes,
+    messages, signerData, option,
     pubkey, address, bodyBytes, authInfoBytes, restApiAddress, registry,
   );
 
