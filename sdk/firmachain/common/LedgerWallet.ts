@@ -27,6 +27,12 @@ import {
 import { SignAndBroadcastOptions } from "./TxCommon";
 import { makeAuthInfoBytes } from "./signing";
 
+// Verbose TEXTUAL render tracing. Enable with env DEBUG_LEDGER=1 (node) or
+// `globalThis.DEBUG_LEDGER = true` (browser) to dump per-sign screens/CBOR.
+const DEBUG_LEDGER =
+  (typeof process !== "undefined" && process.env?.DEBUG_LEDGER === "1") ||
+  (typeof globalThis !== "undefined" && (globalThis as { DEBUG_LEDGER?: boolean }).DEBUG_LEDGER === true);
+
 export interface LedgerWalletInterface {
   getAddress(): Promise<string>;
   sign(message: string | Uint8Array, txtype?: number): Promise<Uint8Array>;
@@ -702,7 +708,7 @@ async function buildTextualScreens(
     } else if (msg.value && typeof msg.value === "object") {
       fields = msg.value as Record<string, unknown>;
     }
-    console.log('[Textual] typeUrl:', msg.typeUrl, 'fields keys:', Object.keys(fields));
+    if (DEBUG_LEDGER) console.log('[Textual] typeUrl:', msg.typeUrl, 'fields keys:', Object.keys(fields));
     for (const [k, v] of Object.entries(fields)) {
       if (shouldSkipField(v)) continue;
 
@@ -1017,8 +1023,10 @@ export async function signWithSignerAuto(
   registry: Registry,
   restApiAddress = "",
 ): Promise<TxRaw> {
-  const typeUrls = messages.map((m) => m.typeUrl).join(', ');
-  console.log(`[Ledger] sign mode: TEXTUAL | msgs: ${typeUrls}`);
+  if (DEBUG_LEDGER) {
+    const typeUrls = messages.map((m) => m.typeUrl).join(', ');
+    console.log(`[Ledger] sign mode: TEXTUAL | msgs: ${typeUrls}`);
+  }
   return signWithSignerTextual(signer, messages, signerData, option, registry, restApiAddress);
 }
 
@@ -1057,18 +1065,22 @@ export async function signWithSignerTextual(
     pubkey, address, bodyBytes, authInfoBytes, restApiAddress, registry,
   );
 
-  console.log('[Textual] === SCREENS DUMP ===');
-  screens.forEach((s, i) => {
-    const parts = [`[${i}]`];
-    if (s.title) parts.push(`title="${s.title}"`);
-    parts.push(`content="${s.content}"`);
-    if (s.indent) parts.push(`indent=${s.indent}`);
-    if (s.expert) parts.push(`expert=true`);
-    console.log('[Textual]', parts.join(' '));
-  });
+  if (DEBUG_LEDGER) {
+    console.log('[Textual] === SCREENS DUMP ===');
+    screens.forEach((s, i) => {
+      const parts = [`[${i}]`];
+      if (s.title) parts.push(`title="${s.title}"`);
+      parts.push(`content="${s.content}"`);
+      if (s.indent) parts.push(`indent=${s.indent}`);
+      if (s.expert) parts.push(`expert=true`);
+      console.log('[Textual]', parts.join(' '));
+    });
+  }
 
   const cborBuffer = encodeTextualCbor(screens);
-  console.log('[Textual] CBOR hex:', Array.from(cborBuffer).map(b => b.toString(16).padStart(2, '0')).join(''));
+  if (DEBUG_LEDGER) {
+    console.log('[Textual] CBOR hex:', Array.from(cborBuffer).map(b => b.toString(16).padStart(2, '0')).join(''));
+  }
 
   const signature = await signer.sign(cborBuffer, 0x01);
   if (!signature || signature.length === 0)

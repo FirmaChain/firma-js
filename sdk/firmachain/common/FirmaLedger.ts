@@ -6,6 +6,12 @@ import { LedgerWalletInterface } from './LedgerWallet';
 const FIRMA_PATH = "m/44'/7777777'/0'/0/0";
 const FIRMA_HRP = 'firma';
 
+// Verbose Ledger transport tracing. Enable with env DEBUG_LEDGER=1 (node) or
+// `globalThis.DEBUG_LEDGER = true` (browser).
+const DEBUG_LEDGER =
+  (typeof process !== 'undefined' && process.env?.DEBUG_LEDGER === '1') ||
+  (typeof globalThis !== 'undefined' && (globalThis as { DEBUG_LEDGER?: boolean }).DEBUG_LEDGER === true);
+
 export type { LedgerWalletInterface };
 
 // Minimal interface for Ledger transport classes (WebHID, NodeHID, etc.)
@@ -27,12 +33,13 @@ export class FirmaCosmosLedgerWallet implements LedgerWalletInterface {
   private async connect() {
     if (this.isOpen) return;
     const transport = await this.transportHID.create();
-    console.log('[Ledger] transport.deviceModel :', transport.deviceModel?.id);
-    console.log('[Ledger] transport.deviceModel :', transport.deviceModel?.productName);
+    if (DEBUG_LEDGER) {
+      console.log('[Ledger] transport.deviceModel id:', transport.deviceModel?.id);
+      console.log('[Ledger] transport.deviceModel productName:', transport.deviceModel?.productName);
+    }
     this.cosmosApp = new CosmosApp(transport);
-    console.log('[Ledger] cosmosApp:', this.cosmosApp);
     this.isOpen = true;
-    console.log('[Ledger] connect success');
+    if (DEBUG_LEDGER) console.log('[Ledger] connect success');
   }
 
   private async close() {
@@ -42,7 +49,7 @@ export class FirmaCosmosLedgerWallet implements LedgerWalletInterface {
 
   async getAddress(): Promise<string> {
     try {
-      console.log('[FirmaLedger] getAddress');
+      if (DEBUG_LEDGER) console.log('[FirmaLedger] getAddress');
       await this.connect();
       const response = await this.cosmosApp!.getAddressAndPubKey(FIRMA_PATH, FIRMA_HRP);
       await this.close();
@@ -69,14 +76,9 @@ export class FirmaCosmosLedgerWallet implements LedgerWalletInterface {
 
   async getPublicKey(): Promise<Uint8Array> {
     try {
-      console.log('[FirmaLedger] getPublicKey');
+      if (DEBUG_LEDGER) console.log('[FirmaLedger] getPublicKey path:', FIRMA_PATH, 'hrp:', FIRMA_HRP);
       await this.connect();
-      console.log('[FirmaLedger] cosmosApp:', this.cosmosApp);
-      console.log('[FirmaLedger] FIRMA_PATH:', FIRMA_PATH);
-      console.log('[FirmaLedger] FIRMA_HRP:', FIRMA_HRP);
       const response = await this.cosmosApp!.getAddressAndPubKey(FIRMA_PATH, FIRMA_HRP);
-      console.log('[FirmaLedger] response:', response);
-      console.log('[FirmaLedger] response.compressed_pk:', response.compressed_pk);
       await this.close();
       return new Uint8Array(response.compressed_pk);
     } catch (error) {
@@ -92,7 +94,7 @@ export class FirmaCosmosLedgerWallet implements LedgerWalletInterface {
       await this.cosmosApp!.showAddressAndPubKey(FIRMA_PATH, FIRMA_HRP);
       await this.close();
     } catch (error) {
-      console.log(error);
+      console.error('[FirmaLedger] showAddressOnDevice error:', error);
       await this.close();
     }
   }
@@ -100,7 +102,7 @@ export class FirmaCosmosLedgerWallet implements LedgerWalletInterface {
   async sign(message: string | Uint8Array, txtype = 0x00): Promise<Uint8Array> {
     try {
       const buffer = typeof message === 'string' ? Buffer.from(message) : Buffer.from(message);
-      console.log('[FirmaLedger] sign txtype:', txtype, 'buffer length:', buffer.length);
+      if (DEBUG_LEDGER) console.log('[FirmaLedger] sign txtype:', txtype, 'buffer length:', buffer.length);
       await this.connect();
       const response = await this.cosmosApp!.sign(FIRMA_PATH, buffer, FIRMA_HRP, txtype);
       await this.close();
