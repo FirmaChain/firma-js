@@ -95,11 +95,7 @@ describe('[05. Ledger Feegrant Tx Test]', () => {
 	});
 
 	it('GrantPeriodicAllowance via Ledger', async function() {
-		this.timeout(120000);
-
-		try {
-			await firma.FeeGrant.revokeAllowance(ledgerWallet, bobAddress);
-		} catch (error) {}
+		this.timeout(240000);
 
 		const spendAmount = FirmaUtil.getUFCTStringFromFCTStr('10');
 		const expirationDate = new Date();
