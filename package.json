@@ -8,7 +8,9 @@
     "dist"
   ],
   "scripts": {
-    "test": "NODE_OPTIONS=--no-experimental-strip-types TS_NODE_TRANSPILE_ONLY=true mocha ${SPEC:-'test/**/*.test.ts'}",
+    "test": "NODE_OPTIONS=--no-experimental-strip-types TS_NODE_TRANSPILE_ONLY=true mocha ${SPEC:-'test/integration/**/*.test.ts'}",
+    "test:integration": "NODE_OPTIONS=--no-experimental-strip-types TS_NODE_TRANSPILE_ONLY=true mocha 'test/integration/**/*.test.ts'",
+    "test:ledger": "NODE_OPTIONS=--no-experimental-strip-types TS_NODE_TRANSPILE_ONLY=true mocha 'test/ledger/**/*.test.ts'",
     "lint": "eslint src test --ext .ts,.tsx",
     "nodemon": "nodemon",
     "dev": "ts-node ./test/test_index.ts",
