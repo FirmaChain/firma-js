@@ -10,6 +10,7 @@ import { MsgUpdateParams as StakingMsgUpdateParams } from "cosmjs-types/cosmos/s
 import { StakeAuthorization } from "cosmjs-types/cosmos/staking/v1beta1/authz";
 import { SendAuthorization } from "cosmjs-types/cosmos/bank/v1beta1/authz";
 import { GenericAuthorization } from "cosmjs-types/cosmos/authz/v1beta1/authz";
+import { BasicAllowance, PeriodicAllowance, AllowedMsgAllowance } from "cosmjs-types/cosmos/feegrant/v1beta1/feegrant";
 import { MsgUpdateParams as GovMsgUpdateParams } from "@kintsugi-tech/cosmjs-types/cosmos/gov/v1/tx";
 import { MsgSoftwareUpgrade } from "@kintsugi-tech/cosmjs-types/cosmos/upgrade/v1beta1/tx";
 import { makeSignDoc, serializeSignDoc, StdFee } from "@cosmjs/amino";
@@ -195,9 +196,26 @@ function computeRawBytesHash(bodyBytes: Uint8Array, authInfoBytes: Uint8Array): 
   return Buffer.from(sha256(buf)).toString("hex");
 }
 
-// proto snake_case or camelCase → "Sentence case"
-function fieldToDisplayName(name: string): string {
-  const snake = name.replace(/([A-Z])/g, "_$1").toLowerCase().replace(/^_/, "");
+// Cosmos SDK's formatFieldName splits the proto field name on underscore and
+// title-cases only the first word (preserving inner casing with NoLower). So:
+//   standard Cosmos proto `from_address`   → "From address"
+//   Firma custom proto    `tokenURI`       → "TokenURI"  (no underscore → one word)
+// cosmjs-types TS bindings expose field names in camelCase either way, so we
+// can't derive the proto style from the TS key alone — `fromAddress` could come
+// from `from_address` or `fromAddress`. Instead we key off parentTypeUrl: every
+// Firma custom module declares fields in camelCase, so for `/firmachain.*` we
+// preserve the TS key verbatim (just capitalize the first letter). Other
+// prefixes (cosmos, ibc, etc.) follow the standard Cosmos convention of
+// converting camelCase TS → snake proto → sentence case.
+function fieldToDisplayName(name: string, parentTypeUrl?: string): string {
+  if (parentTypeUrl && parentTypeUrl.startsWith("/firmachain.")) {
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+  const snake = name
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1_$2")
+    .replace(/([a-z])([A-Z])/g, "$1_$2")
+    .toLowerCase()
+    .replace(/^_/, "");
   return snake.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 }
 
@@ -303,6 +321,7 @@ function renderTimestamp(t: { seconds: bigint | string | number; nanos?: number 
 // unless we thread proto type info through the renderer.
 const TIMESTAMP_FIELD_NAMES = new Set([
   "expiration", "expirationTime", "expiration_time",
+  "periodReset", "period_reset",
   "time",
 ]);
 
@@ -372,6 +391,9 @@ const NESTED_ANY_DECODERS: Map<string, NestedDecoder> = new Map<string, NestedDe
   ["/cosmos.staking.v1beta1.StakeAuthorization", StakeAuthorization],
   ["/cosmos.bank.v1beta1.SendAuthorization", SendAuthorization],
   ["/cosmos.authz.v1beta1.GenericAuthorization", GenericAuthorization],
+  ["/cosmos.feegrant.v1beta1.BasicAllowance", BasicAllowance],
+  ["/cosmos.feegrant.v1beta1.PeriodicAllowance", PeriodicAllowance],
+  ["/cosmos.feegrant.v1beta1.AllowedMsgAllowance", AllowedMsgAllowance],
   ["/cosmos.gov.v1.MsgUpdateParams", GovMsgUpdateParams],
   ["/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade", MsgSoftwareUpgrade],
 ]);
@@ -414,8 +436,9 @@ async function renderSingleAnyField(
   registry: Registry,
   restUrl: string,
   screens: TextualScreen[],
+  parentTypeUrl?: string,
 ): Promise<void> {
-  screens.push({ title: fieldToDisplayName(fieldName), content: any.typeUrl, indent: baseIndent });
+  screens.push({ title: fieldToDisplayName(fieldName, parentTypeUrl), content: any.typeUrl, indent: baseIndent });
   const decoder = lookupNestedDecoder(any.typeUrl, registry);
   const valueBytes = toUint8ArraySafe(any.value);
   if (!decoder || !valueBytes) {
@@ -464,7 +487,7 @@ async function renderRepeatedScalar(
 ): Promise<void> {
   const count = items.length;
   const kind = getScalarKindLabel(items[0]);
-  const title = fieldToDisplayName(fieldName);
+  const title = fieldToDisplayName(fieldName, parentTypeUrl);
   screens.push({ title, content: `${count} ${kind}`, indent: baseIndent });
   for (let i = 0; i < count; i++) {
     const itemTitle = `${title} (${i + 1}/${count})`;
@@ -525,7 +548,13 @@ function getNestedMessageTypeName(fieldName: string, parentTypeUrl?: string): st
   if (parentTypeUrl === "/cosmos.staking.v1beta1.StakeAuthorization") {
     if (fieldName === "allowList" || fieldName === "denyList") return "Validators";
   }
-  return fieldToDisplayName(fieldName);
+  if (parentTypeUrl === "/cosmos.feegrant.v1beta1.PeriodicAllowance") {
+    // `basic` is a nested BasicAllowance message — chain renderer uses the
+    // proto type name "BasicAllowance" in the "{Type} object" header, not the
+    // field-derived "Basic".
+    if (fieldName === "basic") return "BasicAllowance";
+  }
+  return fieldToDisplayName(fieldName, parentTypeUrl);
 }
 
 // Renders a nested proto message object as title+content header followed by sub-fields.
@@ -539,7 +568,7 @@ async function renderNestedProtoMessage(
   registry: Registry,
   parentTypeUrl?: string,
 ): Promise<void> {
-  const displayName = fieldToDisplayName(fieldName);
+  const displayName = fieldToDisplayName(fieldName, parentTypeUrl);
   const typeName = getNestedMessageTypeName(fieldName, parentTypeUrl);
   screens.push({ title: displayName, content: `${typeName} object`, indent: baseIndent });
   await renderMessageFields(obj, baseIndent + 1, registry, restUrl, screens, parentTypeUrl);
@@ -558,7 +587,7 @@ async function renderSingleField(
   parentTypeUrl?: string,
 ): Promise<void> {
   if (isSingleAnyObject(value)) {
-    await renderSingleAnyField(fieldName, value, baseIndent, registry, restUrl, screens);
+    await renderSingleAnyField(fieldName, value, baseIndent, registry, restUrl, screens, parentTypeUrl);
     return;
   }
   if (Array.isArray(value) && isMultiScreenRepeated(value)) {
@@ -576,7 +605,7 @@ async function renderSingleField(
     console.warn('[Textual] renderFieldValue error for field', fieldName, ':', e);
     content = "(error)";
   }
-  screens.push({ title: fieldToDisplayName(fieldName), content, indent: baseIndent });
+  screens.push({ title: fieldToDisplayName(fieldName, parentTypeUrl), content, indent: baseIndent });
 }
 
 // Iterates a proto message's fields, skipping proto3-default values and
@@ -763,7 +792,7 @@ async function buildTextualScreens(
       ) {
         const anyArray = v as Array<{ typeUrl: string; value: unknown }>;
         const anyCount = anyArray.length;
-        const fieldTitle = fieldToDisplayName(k);
+        const fieldTitle = fieldToDisplayName(k, msg.typeUrl);
         // Header: "N Any" matches SDK's formatRepeated count screen (getKind = "Any" for google.protobuf.Any)
         screens.push({ title: fieldTitle, content: `${anyCount} Any`, indent: 2 });
         for (let j = 0; j < anyArray.length; j++) {
