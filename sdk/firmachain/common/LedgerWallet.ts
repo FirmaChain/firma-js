@@ -792,8 +792,21 @@ async function buildTextualScreens(
   // One "End of Message" terminal after all messages (SDK formatRepeated terminal for Envelope.message field)
   screens.push({ content: "End of Message" });
 
+  // Memo — chain's envelope renderer emits this iff memo != "" (proto3 default skipped).
+  // Must sit between "End of Message" and "Fees"; otherwise CBOR diverges from the chain's.
+  if (option.memo && option.memo.length > 0) {
+    screens.push({ title: "Memo", content: option.memo });
+  }
+
   const feeCoins = option.fee.amount.map((c) => ({ denom: c.denom, amount: c.amount }));
   screens.push({ title: "Fees", content: await formatCoins(feeCoins, restApiAddress) });
+  // Fee payer / Fee granter — conditional, non-expert, emitted by chain's renderFee.
+  if (option.fee.payer) {
+    screens.push({ title: "Fee payer", content: option.fee.payer });
+  }
+  if (option.fee.granter) {
+    screens.push({ title: "Fee granter", content: option.fee.granter });
+  }
   screens.push({ title: "Gas limit", content: formatGasLimit(option.fee.gasLimit), expert: true });
   screens.push({
     title: "Hash of raw bytes",
