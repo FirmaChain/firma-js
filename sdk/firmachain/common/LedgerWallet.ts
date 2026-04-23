@@ -363,7 +363,10 @@ interface NestedDecoder {
 // the Any typeUrl and omit every sub-field — which leaves our CBOR shorter than
 // the chain's reconstruction and causes `code 4 unauthorized`. The Authorization
 // entries were added specifically for authz Grant flows (stake delegate grant).
-const NESTED_ANY_DECODERS: Map<string, NestedDecoder> = new Map([
+// Entries are typed via `[string, NestedDecoder]` to prevent TS from narrowing
+// the value type to the first entry's proto class (which would then reject the
+// rest, since each proto's `encode` signature accepts a different message shape).
+const NESTED_ANY_DECODERS: Map<string, NestedDecoder> = new Map<string, NestedDecoder>([
   ["/cosmos.distribution.v1beta1.MsgCommunityPoolSpend", MsgCommunityPoolSpend],
   ["/cosmos.staking.v1beta1.MsgUpdateParams", StakingMsgUpdateParams],
   ["/cosmos.staking.v1beta1.StakeAuthorization", StakeAuthorization],
