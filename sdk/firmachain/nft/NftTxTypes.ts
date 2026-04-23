@@ -1,4 +1,5 @@
 import { Reader, Writer } from "protobufjs/minimal";
+import Long from "long";
 
 export const protobufPackage = "firmachain.nft";
 
@@ -56,7 +57,7 @@ export const MsgTransfer = {
                 message.owner = reader.string();
                 break;
             case 2:
-                message.nftId = Number(reader.uint64());
+                message.nftId = longToNumber(reader.uint64() as Long);
                 break;
             case 3:
                 message.toAddress = reader.string();
@@ -180,7 +181,7 @@ export const MsgBurn = {
                 message.owner = reader.string();
                 break;
             case 2:
-                message.nftId = Number(reader.uint64());
+                message.nftId = longToNumber(reader.uint64() as Long);
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -373,7 +374,7 @@ export const MsgMintResponse = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
             case 1:
-                message.nftId = Number(reader.uint64());
+                message.nftId = longToNumber(reader.uint64() as Long);
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -483,3 +484,10 @@ export type DeepPartial<T> = T extends Builtin
     : T extends {}
     ? { [K in keyof T]?: DeepPartial<T[K]> }
     : Partial<T>;
+
+function longToNumber(long: Long): number {
+    if (long.gt(Number.MAX_SAFE_INTEGER)) {
+        throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+    }
+    return long.toNumber();
+}
