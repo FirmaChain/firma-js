@@ -166,31 +166,50 @@ describe('[06. Ledger Gov Tx Test]', () => {
 		expect(result.code).to.equal(0);
 	});
 
-	// NOTE: vote tests require an active proposal in the voting period.
-	// Set `activeProposalId` to a valid id before enabling.
-	const activeProposalId = 1;
+	// Scenario: submit a TextProposal that immediately enters the voting period
+	// (initial deposit ≥ min_deposit), then vote YES → NO → ABSTAIN → NO_WITH_VETO
+	// on the same proposal. Each later vote overrides the previous one per
+	// Cosmos SDK gov semantics, so all four submissions should return code 0.
+	it('SubmitTextProposal → Vote all options scenario via Ledger', async function() {
+		this.timeout(600000);
 
-	it.skip('Vote YES via Ledger', async function() {
-		this.timeout(120000);
-		const result = await firma.Gov.vote(ledgerWallet, activeProposalId, VotingOption.VOTE_OPTION_YES);
-		expect(result.code).to.equal(0);
-	});
+		// 1. Compute an initial deposit that clears the chain's min_deposit.
+		const govParams = await firma.Gov.getParamAsGovParams();
+		const minDepositCoin = govParams.minDeposit[0];
+		const minDepositFct = Math.ceil(Number(minDepositCoin.amount) / 1_000_000);
+		const initialDepositFCT = minDepositFct + 10;
+		console.log('[Ledger] min_deposit:', minDepositCoin.amount, minDepositCoin.denom,
+			'→ using', initialDepositFCT, 'FCT');
 
-	it.skip('Vote NO via Ledger', async function() {
-		this.timeout(120000);
-		const result = await firma.Gov.vote(ledgerWallet, activeProposalId, VotingOption.VOTE_OPTION_NO);
-		expect(result.code).to.equal(0);
-	});
+		// 2. Submit TextProposal.
+		const submitResult = await firma.Gov.submitTextProposal(
+			ledgerWallet,
+			'Ledger Voting Scenario Test',
+			'Submitted to exercise all four vote options via Ledger',
+			initialDepositFCT
+		);
+		expect(submitResult.code).to.equal(0);
 
-	it.skip('Vote ABSTAIN via Ledger', async function() {
-		this.timeout(120000);
-		const result = await firma.Gov.vote(ledgerWallet, activeProposalId, VotingOption.VOTE_OPTION_ABSTAIN);
-		expect(result.code).to.equal(0);
-	});
+		const proposalIdStr = extractValue(submitResult.events, 'submit_proposal', 'proposal_id');
+		expect(proposalIdStr).to.not.equal('');
+		const proposalId = Number(proposalIdStr);
+		console.log('[Ledger] proposalId:', proposalId);
 
-	it.skip('Vote NO_WITH_VETO via Ledger', async function() {
-		this.timeout(120000);
-		const result = await firma.Gov.vote(ledgerWallet, activeProposalId, VotingOption.VOTE_OPTION_NO_WITH_VETO);
-		expect(result.code).to.equal(0);
+		// 3. Vote all four options on the same proposal; later votes override earlier ones.
+		const voteYes = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_YES);
+		console.log('[Ledger] vote YES code:', voteYes.code);
+		expect(voteYes.code).to.equal(0);
+
+		const voteNo = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_NO);
+		console.log('[Ledger] vote NO code:', voteNo.code);
+		expect(voteNo.code).to.equal(0);
+
+		const voteAbstain = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_ABSTAIN);
+		console.log('[Ledger] vote ABSTAIN code:', voteAbstain.code);
+		expect(voteAbstain.code).to.equal(0);
+
+		const voteVeto = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_NO_WITH_VETO);
+		console.log('[Ledger] vote NO_WITH_VETO code:', voteVeto.code);
+		expect(voteVeto.code).to.equal(0);
 	});
 });
