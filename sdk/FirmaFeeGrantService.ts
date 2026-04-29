@@ -22,7 +22,8 @@ export class FirmaFeeGrantService {
         try {
             const txRaw = await this.getSignedTxRevokeAllowance(wallet,
                 granteeAddress,
-                txMisc);
+                txMisc,
+                true);
 
             return await FirmaUtil.estimateGas(txRaw);
 
@@ -34,7 +35,8 @@ export class FirmaFeeGrantService {
 
     private async getSignedTxRevokeAllowance(wallet: FirmaWalletService,
         granteeAddress: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const address = await wallet.getAddress();
@@ -42,7 +44,7 @@ export class FirmaFeeGrantService {
             const feeGrantTxClient = new FeeGrantTxClient(wallet, this.config.rpcAddress);
             const message = FeeGrantTxClient.msgRevokeAllowance({ granter: address, grantee: granteeAddress });
 
-            return await feeGrantTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await feeGrantTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -74,7 +76,8 @@ export class FirmaFeeGrantService {
             const txRaw = await this.getSignedTxGrantPeriodicAllowance(wallet,
                 granteeAddress,
                 feegrantOption,
-                txMisc);
+                txMisc,
+                true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -86,7 +89,8 @@ export class FirmaFeeGrantService {
     private async getSignedTxGrantPeriodicAllowance(wallet: FirmaWalletService,
         granteeAddress: string,
         feegrantOption: PeriodicAllowance,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const address = await wallet.getAddress();
@@ -106,7 +110,7 @@ export class FirmaFeeGrantService {
                 allowance: Any.fromJSON(allowanceAnyData)
             });
 
-            return await feeGrantTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await feeGrantTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -123,7 +127,8 @@ export class FirmaFeeGrantService {
             const txRaw = await this.getSignedTxGrantBasicAllowance(wallet,
                 granteeAddress,
                 feegrantOption,
-                txMisc);
+                txMisc,
+                true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -135,11 +140,12 @@ export class FirmaFeeGrantService {
     private async getSignedTxGrantBasicAllowance(wallet: FirmaWalletService,
         granteeAddress: string,
         feegrantOption: BasicAllowance,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const feeGrantTxClient = new FeeGrantTxClient(wallet, this.config.rpcAddress);
-            
+
             const address = await wallet.getAddress();
             const bytes = BasicAllowance.encode(feegrantOption).finish();
             const allowanceAnyData = {
@@ -153,7 +159,7 @@ export class FirmaFeeGrantService {
                 allowance: Any.fromJSON(allowanceAnyData)
             });
 
-            return await feeGrantTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await feeGrantTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);

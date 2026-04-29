@@ -97,7 +97,7 @@ export class NftService {
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxTransfer(wallet, toAddress, nftID, txMisc);
+            const txRaw = await this.getSignedTxTransfer(wallet, toAddress, nftID, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -126,13 +126,14 @@ export class NftService {
     async getSignedTxTransfer(wallet: FirmaWalletService,
         toAddress: string,
         nftID: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const message = await this.getUnsignedTxTransfer(wallet, toAddress, nftID);
 
             const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
-            return await nftTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await nftTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -159,7 +160,7 @@ export class NftService {
         Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxBurn(wallet, nftID, txMisc);
+            const txRaw = await this.getSignedTxBurn(wallet, nftID, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -182,14 +183,14 @@ export class NftService {
             }
         }
 
-    async getSignedTxBurn(wallet: FirmaWalletService, nftID: string, txMisc: TxMisc = DefaultTxMisc):
+    async getSignedTxBurn(wallet: FirmaWalletService, nftID: string, txMisc: TxMisc = DefaultTxMisc, simulate = false):
         Promise<TxRaw> {
 
         try {
             const message = await this.getUnsignedTxBurn(wallet, nftID);
 
             const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
-            return await nftTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await nftTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -218,7 +219,7 @@ export class NftService {
 
         try {
             const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
-            const txRaw = await nftTxClient.sign(msgList, getSignAndBroadcastOption(this.config.denom, txMisc));
+            const txRaw = await nftTxClient.sign(msgList, getSignAndBroadcastOption(this.config.denom, txMisc), true);
 
             return await FirmaUtil.estimateGas(txRaw);
 
@@ -232,7 +233,7 @@ export class NftService {
         Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxMint(wallet, tokenURI, txMisc);
+            const txRaw = await this.getSignedTxMint(wallet, tokenURI, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -241,14 +242,14 @@ export class NftService {
         }
     }
 
-    async getSignedTxMint(wallet: FirmaWalletService, tokenURI: string, txMisc: TxMisc = DefaultTxMisc):
+    async getSignedTxMint(wallet: FirmaWalletService, tokenURI: string, txMisc: TxMisc = DefaultTxMisc, simulate = false):
         Promise<TxRaw> {
 
         try {
             const message = await this.getUnsignedTxMint(wallet, tokenURI);
 
             const nftTxClient = new NftTxClient(wallet, this.config.rpcAddress);
-            return await nftTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await nftTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);

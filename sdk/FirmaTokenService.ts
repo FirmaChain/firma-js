@@ -15,7 +15,7 @@ export class TokenService {
         try {
             const newTotalSupply = FirmaUtil.getUTokenFromToken(totalSupply, decimal);
 
-            const txRaw = await this.getSignedTxCreateToken(wallet, tokenName, tokenSymbol, tokenURI, newTotalSupply, decimal, isMintable, isBurnable, txMisc);
+            const txRaw = await this.getSignedTxCreateToken(wallet, tokenName, tokenSymbol, tokenURI, newTotalSupply, decimal, isMintable, isBurnable, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -28,7 +28,7 @@ export class TokenService {
         Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxMint(wallet, tokenID, amount, toAddress, txMisc);
+            const txRaw = await this.getSignedTxMint(wallet, tokenID, amount, toAddress, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -41,7 +41,7 @@ export class TokenService {
 
         try {
             const newAmount = FirmaUtil.getUTokenFromToken(amount, decimal);
-            const txRaw = await this.getSignedTxBurn(wallet, tokenID, newAmount, txMisc);
+            const txRaw = await this.getSignedTxBurn(wallet, tokenID, newAmount, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -53,7 +53,7 @@ export class TokenService {
     async getGasEstimationUpdateTokenURI(wallet: FirmaWalletService, tokenID: string, tokenURI: string, txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxUpdateTokenURI(wallet, tokenID, tokenURI, txMisc);
+            const txRaw = await this.getSignedTxUpdateTokenURI(wallet, tokenID, tokenURI, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -62,7 +62,7 @@ export class TokenService {
         }
     }
 
-    private async getSignedTxUpdateTokenURI(wallet: FirmaWalletService, tokenID: string, tokenURI: string, txMisc: TxMisc = DefaultTxMisc):
+    private async getSignedTxUpdateTokenURI(wallet: FirmaWalletService, tokenID: string, tokenURI: string, txMisc: TxMisc = DefaultTxMisc, simulate = false):
         Promise<TxRaw> {
 
         try {
@@ -74,7 +74,7 @@ export class TokenService {
             });
 
             const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -82,7 +82,7 @@ export class TokenService {
         }
     }
 
-    private async getSignedTxBurn(wallet: FirmaWalletService, tokenID: string, amount: number, txMisc: TxMisc = DefaultTxMisc):
+    private async getSignedTxBurn(wallet: FirmaWalletService, tokenID: string, amount: number, txMisc: TxMisc = DefaultTxMisc, simulate = false):
         Promise<TxRaw> {
 
         try {
@@ -94,7 +94,7 @@ export class TokenService {
             });
 
             const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -102,7 +102,7 @@ export class TokenService {
         }
     }
 
-    private async getSignedTxMint(wallet: FirmaWalletService, tokenID: string, amount: number, toAddress: string, txMisc: TxMisc = DefaultTxMisc):
+    private async getSignedTxMint(wallet: FirmaWalletService, tokenID: string, amount: number, toAddress: string, txMisc: TxMisc = DefaultTxMisc, simulate = false):
         Promise<TxRaw> {
 
         try {
@@ -115,7 +115,7 @@ export class TokenService {
             });
 
             const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -123,7 +123,7 @@ export class TokenService {
         }
     }
 
-    private async getSignedTxCreateToken(wallet: FirmaWalletService, tokenName: string, tokenSymbol: string, tokenURI: string, totalSupply: number, decimal: number, isMintable: boolean, isBurnable: boolean, txMisc: TxMisc = DefaultTxMisc):
+    private async getSignedTxCreateToken(wallet: FirmaWalletService, tokenName: string, tokenSymbol: string, tokenURI: string, totalSupply: number, decimal: number, isMintable: boolean, isBurnable: boolean, txMisc: TxMisc = DefaultTxMisc, simulate = false):
         Promise<TxRaw> {
 
         try {
@@ -140,7 +140,7 @@ export class TokenService {
             });
 
             const txClient = new TokenTxClient(wallet, this.config.rpcAddress);
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);

@@ -43,7 +43,7 @@ export class FirmaGovService {
         try {
             const bigIntId = BigInt(proposalId);
 
-            const txRaw = await this.getSignedTxVote(wallet, bigIntId, option, txMisc);
+            const txRaw = await this.getSignedTxVote(wallet, bigIntId, option, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -60,7 +60,7 @@ export class FirmaGovService {
         try {
             const bigIntId = BigInt(proposalId);
 
-            const txRaw = await this.getSignedTxDeposit(wallet, bigIntId, amount, txMisc);
+            const txRaw = await this.getSignedTxDeposit(wallet, bigIntId, amount, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -90,7 +90,7 @@ export class FirmaGovService {
                 typeUrl: "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade",
                 value: MsgSoftwareUpgrade.encode(msgObj).finish()
             };
-            const txRaw = await this.getSignedTxSubmitSoftwareUpgradeProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
+            const txRaw = await this.getSignedTxSubmitSoftwareUpgradeProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -128,7 +128,7 @@ export class FirmaGovService {
                 })).finish()
             };
 
-            const txRaw = await this.getSignedTxSubmitStakingParamsUpdateProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
+            const txRaw = await this.getSignedTxSubmitStakingParamsUpdateProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -166,7 +166,7 @@ export class FirmaGovService {
                 })).finish()
             }
 
-            const txRaw = await this.getSignedTxSubmitGovParamsUpdateProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc);
+            const txRaw = await this.getSignedTxSubmitGovParamsUpdateProposal(wallet, title, summary, initialDepositFCT, [message], metadata, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -196,7 +196,7 @@ export class FirmaGovService {
                 })).finish())
             }
 
-            const txRaw = await this.getSignedTxSubmitCommunityPoolSpendProposal(wallet, title, summary, initialDepositFCT, [message], recipient, txMisc);
+            const txRaw = await this.getSignedTxSubmitCommunityPoolSpendProposal(wallet, title, summary, initialDepositFCT, [message], recipient, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -211,7 +211,7 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxSubmitTextProposal(wallet, title, description, initialDepositFCT, txMisc);
+            const txRaw = await this.getSignedTxSubmitTextProposal(wallet, title, description, initialDepositFCT, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -225,7 +225,7 @@ export class FirmaGovService {
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxCancelProposal(wallet, proposalId, txMisc);
+            const txRaw = await this.getSignedTxCancelProposal(wallet, proposalId, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -252,6 +252,7 @@ export class FirmaGovService {
         description: string,
         initialDepositFCT: number,
         txMisc: TxMisc = DefaultTxMisc,
+        simulate = false,
         metadata: string = "ipfs://CID"): Promise<TxRaw> {
 
         try {
@@ -269,7 +270,7 @@ export class FirmaGovService {
                 expedited: false
             });
 
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -283,7 +284,8 @@ export class FirmaGovService {
         initialDepositFCT: number,
         messages: Any[],
         metadata: string = "",
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const proposer = await wallet.getAddress();
@@ -300,7 +302,7 @@ export class FirmaGovService {
                 expedited: false
             });
 
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -313,7 +315,8 @@ export class FirmaGovService {
         initialDepositFCT: number,
         messages: Any[],
         metadata: string = "",
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const proposer = await wallet.getAddress();
@@ -329,7 +332,7 @@ export class FirmaGovService {
                 initialDeposit: initialDeposit,
                 expedited: false
             });
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -342,7 +345,8 @@ export class FirmaGovService {
         initialDepositFCT: number,
         messages: Any[],
         metadata: string = "",
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const proposer = await wallet.getAddress();
@@ -358,7 +362,7 @@ export class FirmaGovService {
                 initialDeposit: initialDeposit,
                 expedited: false
             });
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -371,7 +375,8 @@ export class FirmaGovService {
         initialDepositFCT: number,
         messages: Any[],
         metadata: string = "",
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const proposer = await wallet.getAddress();
@@ -387,7 +392,7 @@ export class FirmaGovService {
                 initialDeposit: initialDeposit,
                 expedited: false
             });
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -396,14 +401,15 @@ export class FirmaGovService {
 
     private async getSignedTxCancelProposal(wallet: FirmaWalletService,
         proposalId: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         const proposer = await wallet.getAddress();
 
         const txClient = new GovTxClient(wallet, this.config.rpcAddress);
         const message = GovTxClient.v1MsgCancelProposal({ proposalId: BigInt(proposalId), proposer: proposer });
 
-        return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+        return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
     }
 
     async submitSoftwareUpgradeProposal(wallet: FirmaWalletService,
@@ -620,14 +626,15 @@ export class FirmaGovService {
     private async getSignedTxVote(wallet: FirmaWalletService,
         proposalId: bigint,
         option: VotingOption,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const voter = await wallet.getAddress();
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
 
             const message = GovTxClient.v1MsgVote({ proposalId: proposalId, voter: voter, option: option as number, metadata: "" });
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -654,7 +661,8 @@ export class FirmaGovService {
     private async getSignedTxDeposit(wallet: FirmaWalletService,
         proposalId: bigint,
         amount: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const depositor = await wallet.getAddress();
@@ -662,7 +670,7 @@ export class FirmaGovService {
             const message = GovTxClient.v1MsgDeposit({ proposalId: proposalId, depositor: depositor, amount: [sendAmount] });
 
             const txClient = new GovTxClient(wallet, this.config.rpcAddress);
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);

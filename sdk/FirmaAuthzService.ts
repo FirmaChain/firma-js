@@ -16,7 +16,8 @@ export class FirmaAuthzService {
         granteeAddress: string,
         maxTokens: string,
         expirationDate: Timestamp,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const address = await wallet.getAddress();
@@ -38,7 +39,7 @@ export class FirmaAuthzService {
             });
 
             const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
-            return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -52,7 +53,8 @@ export class FirmaAuthzService {
         type: AuthorizationType,
         maxTokens: string,
         expirationDate: Timestamp,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const address = await wallet.getAddress();
@@ -76,7 +78,7 @@ export class FirmaAuthzService {
             });
 
             const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
-            return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -88,7 +90,8 @@ export class FirmaAuthzService {
         granteeAddress: string,
         msgType: string,
         expirationDate: Timestamp,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const address = await wallet.getAddress();
@@ -109,8 +112,8 @@ export class FirmaAuthzService {
                 }
             });
 
-            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);        
-            return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
+            return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -121,7 +124,8 @@ export class FirmaAuthzService {
     private async getSignedTxRevokeGenericAuthorization(wallet: FirmaWalletService,
         granteeAddress: string,
         msgType: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const address = await wallet.getAddress();
@@ -133,7 +137,7 @@ export class FirmaAuthzService {
             });
 
             const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
-            return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -144,7 +148,8 @@ export class FirmaAuthzService {
     // executeAllowance
     private async getSignedTxExecuteAllowance(wallet: FirmaWalletService,
         msgs: Any[],
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const address = await wallet.getAddress();
@@ -155,7 +160,7 @@ export class FirmaAuthzService {
             });
 
             const authzTxClient = new AuthzTxClient(wallet, this.config.rpcAddress);
-            return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await authzTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -169,7 +174,7 @@ export class FirmaAuthzService {
         maxTokens: number,
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
         try {
-            const txRaw = await this.getSignedTxGrantSendAutorization(wallet, granteeAddress, FirmaUtil.getUFCTStringFromFCT(maxTokens), expirationDate, txMisc);
+            const txRaw = await this.getSignedTxGrantSendAutorization(wallet, granteeAddress, FirmaUtil.getUFCTStringFromFCT(maxTokens), expirationDate, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -203,7 +208,7 @@ export class FirmaAuthzService {
         maxTokens: number = 0,
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
         try {
-            const txRaw = await this.getSignedTxGrantStakeAutorization(wallet, granteeAddress, validatorAddressList, type, FirmaUtil.getUFCTStringFromFCT(maxTokens), expirationDate, txMisc);
+            const txRaw = await this.getSignedTxGrantStakeAutorization(wallet, granteeAddress, validatorAddressList, type, FirmaUtil.getUFCTStringFromFCT(maxTokens), expirationDate, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -237,7 +242,7 @@ export class FirmaAuthzService {
         expirationDate: Timestamp,
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
         try {
-            const txRaw = await this.getSignedTxGrantGenericAuthorization(wallet, granteeAddress, msg, expirationDate, txMisc);
+            const txRaw = await this.getSignedTxGrantGenericAuthorization(wallet, granteeAddress, msg, expirationDate, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -344,7 +349,7 @@ export class FirmaAuthzService {
                     throw "AuthorizationType Error : " + type;
             }
 
-            const txRaw = await this.getSignedTxRevokeGenericAuthorization(wallet, granteeAddress, msgType, txMisc);
+            const txRaw = await this.getSignedTxRevokeGenericAuthorization(wallet, granteeAddress, msgType, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -391,7 +396,7 @@ export class FirmaAuthzService {
         msgs: Any[],
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
         try {
-            const txRaw = await this.getSignedTxExecuteAllowance(wallet, msgs, txMisc);
+            const txRaw = await this.getSignedTxExecuteAllowance(wallet, msgs, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {

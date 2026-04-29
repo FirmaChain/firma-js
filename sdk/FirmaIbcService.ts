@@ -26,7 +26,7 @@ export class FirmaIbcService {
         memo: string = "",
         txMisc: TxMisc = DefaultTxMisc): Promise<number>  {
         try {
-            const txRaw = await this.getSignedTxTransfer(wallet, sourcePort, sourceChannel, denom, amount, receiver, timeoutHeight, timeoutTimestamp, memo, txMisc);
+            const txRaw = await this.getSignedTxTransfer(wallet, sourcePort, sourceChannel, denom, amount, receiver, timeoutHeight, timeoutTimestamp, memo, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -66,7 +66,8 @@ export class FirmaIbcService {
         timeoutHeight: Height,
         timeoutTimestamp: bigint,
         memo: string = "",
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
         try {
             const address = await wallet.getAddress();
 
@@ -78,7 +79,7 @@ export class FirmaIbcService {
             });
 
             const ibcTxClient = new IbcTxClient(wallet, this.config.rpcAddress);
-            return await ibcTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await ibcTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);

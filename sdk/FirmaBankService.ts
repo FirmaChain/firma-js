@@ -20,7 +20,7 @@ export class FirmaBankService {
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxSend(wallet, targetAddress, this.config.denom, FirmaUtil.getUFCTStringFromFCT(amount), txMisc);
+            const txRaw = await this.getSignedTxSend(wallet, targetAddress, this.config.denom, FirmaUtil.getUFCTStringFromFCT(amount), txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -32,7 +32,7 @@ export class FirmaBankService {
     async getGasEstimationSendToken(wallet: FirmaWalletService, targetAddress: string, tokenID: string, amount: number, decimal: number, txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxSend(wallet, targetAddress, tokenID, FirmaUtil.getUTokenStringFromToken(amount, decimal), txMisc);
+            const txRaw = await this.getSignedTxSend(wallet, targetAddress, tokenID, FirmaUtil.getUTokenStringFromToken(amount, decimal), txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -166,7 +166,8 @@ export class FirmaBankService {
         targetAddress: string,
         denom: string,
         amount: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
         try {
             const bankTxClient = new BankTxClient(wallet, this.config.rpcAddress);
 
@@ -175,7 +176,7 @@ export class FirmaBankService {
 
             const message = BankTxClient.msgSend({ fromAddress: address, toAddress: targetAddress, amount: [sendAmount] });
 
-            return await bankTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await bankTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
