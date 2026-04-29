@@ -44,8 +44,12 @@ describe('[09. Ledger Staking Tx Test]', () => {
 
 		const amountFCT = 60;
 
+		const gas = await firma.Staking.getGasEstimationDelegate(ledgerWallet, valOperAddress, amountFCT);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
 		console.log('[Ledger] Please confirm the transaction on your Ledger device...');
-		const result = await firma.Staking.delegate(ledgerWallet, valOperAddress, amountFCT);
+
+		const result = await firma.Staking.delegate(ledgerWallet, valOperAddress, amountFCT, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
@@ -78,11 +82,16 @@ describe('[09. Ledger Staking Tx Test]', () => {
 		const dstValoperAddress = validatorList[1].operator_address;
 		const amount = 10;
 
-		const delegateResult = await firma.Staking.delegate(ledgerWallet, srcValoperAddress, amount);
+		const delegateGas = await firma.Staking.getGasEstimationDelegate(ledgerWallet, srcValoperAddress, amount);
+		const delegateFee = Math.ceil(delegateGas * 0.1);
+		console.log('[Ledger] delegate gas:', delegateGas, 'fee:', delegateFee);
+
+		const delegateResult = await firma.Staking.delegate(ledgerWallet, srcValoperAddress, amount, { gas: delegateGas, fee: delegateFee });
 		expect(delegateResult.code).to.equal(0);
 
 		const gas = await firma.Staking.getGasEstimationRedelegate(ledgerWallet, srcValoperAddress, dstValoperAddress, amount);
 		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] redelegate gas:', gas, 'fee:', fee);
 
 		const result = await firma.Staking.redelegate(ledgerWallet, srcValoperAddress, dstValoperAddress, amount, { gas, fee });
 

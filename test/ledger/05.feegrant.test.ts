@@ -42,16 +42,18 @@ describe('[05. Ledger Feegrant Tx Test]', () => {
 	it('GrantBasicAllowance via Ledger', async function() {
 		this.timeout(120000);
 
-		const result = await firma.FeeGrant.grantBasicAllowance(
-			ledgerWallet,
-			bobAddress,
-			{
-				spendLimit: [{
-					denom: firma.Config.denom,
-					amount: '10000'
-				}]
-			}
-		);
+		const allowance = {
+			spendLimit: [{
+				denom: firma.Config.denom,
+				amount: '10000'
+			}]
+		};
+
+		const gas = await firma.FeeGrant.getGasEstimationGrantBasicAllowance(ledgerWallet, bobAddress, allowance);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.FeeGrant.grantBasicAllowance(ledgerWallet, bobAddress, allowance, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
@@ -60,7 +62,11 @@ describe('[05. Ledger Feegrant Tx Test]', () => {
 	it('RevokeAllowance via Ledger', async function() {
 		this.timeout(120000);
 
-		const result = await firma.FeeGrant.revokeAllowance(ledgerWallet, bobAddress);
+		const gas = await firma.FeeGrant.getGasEstimationRevokeAllowance(ledgerWallet, bobAddress);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.FeeGrant.revokeAllowance(ledgerWallet, bobAddress, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
@@ -72,25 +78,31 @@ describe('[05. Ledger Feegrant Tx Test]', () => {
 		const expirationDate = new Date();
 		expirationDate.setDate(expirationDate.getDate() + 1);
 
-		const result = await firma.FeeGrant.grantBasicAllowance(
-			ledgerWallet,
-			bobAddress,
-			{
-				spendLimit: [{
-					amount: '10000',
-					denom: firma.Config.denom
-				}],
-				expiration: {
-					seconds: BigInt(Math.floor(expirationDate.getTime() / 1000)),
-					nanos: (expirationDate.getTime() % 1000) * 1000000
-				}
+		const allowance = {
+			spendLimit: [{
+				amount: '10000',
+				denom: firma.Config.denom
+			}],
+			expiration: {
+				seconds: BigInt(Math.floor(expirationDate.getTime() / 1000)),
+				nanos: (expirationDate.getTime() % 1000) * 1000000
 			}
-		);
+		};
+
+		const grantGas = await firma.FeeGrant.getGasEstimationGrantBasicAllowance(ledgerWallet, bobAddress, allowance);
+		const grantFee = Math.ceil(grantGas * 0.1);
+		console.log('[Ledger] grant gas:', grantGas, 'fee:', grantFee);
+
+		const result = await firma.FeeGrant.grantBasicAllowance(ledgerWallet, bobAddress, allowance, { gas: grantGas, fee: grantFee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
 
-		const revokeResult = await firma.FeeGrant.revokeAllowance(ledgerWallet, bobAddress);
+		const revokeGas = await firma.FeeGrant.getGasEstimationRevokeAllowance(ledgerWallet, bobAddress);
+		const revokeFee = Math.ceil(revokeGas * 0.1);
+		console.log('[Ledger] revoke gas:', revokeGas, 'fee:', revokeFee);
+
+		const revokeResult = await firma.FeeGrant.revokeAllowance(ledgerWallet, bobAddress, { gas: revokeGas, fee: revokeFee });
 		expect(revokeResult.code).to.equal(0);
 	});
 
@@ -120,12 +132,20 @@ describe('[05. Ledger Feegrant Tx Test]', () => {
 			}
 		};
 
-		const result = await firma.FeeGrant.grantPeriodicAllowance(ledgerWallet, bobAddress, periodicAllowanceData);
+		const grantGas = await firma.FeeGrant.getGasEstimationGrantPeriodicAllowance(ledgerWallet, bobAddress, periodicAllowanceData);
+		const grantFee = Math.ceil(grantGas * 0.1);
+		console.log('[Ledger] grant gas:', grantGas, 'fee:', grantFee);
+
+		const result = await firma.FeeGrant.grantPeriodicAllowance(ledgerWallet, bobAddress, periodicAllowanceData, { gas: grantGas, fee: grantFee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
 
-		const revokeResult = await firma.FeeGrant.revokeAllowance(ledgerWallet, bobAddress);
+		const revokeGas = await firma.FeeGrant.getGasEstimationRevokeAllowance(ledgerWallet, bobAddress);
+		const revokeFee = Math.ceil(revokeGas * 0.1);
+		console.log('[Ledger] revoke gas:', revokeGas, 'fee:', revokeFee);
+
+		const revokeResult = await firma.FeeGrant.revokeAllowance(ledgerWallet, bobAddress, { gas: revokeGas, fee: revokeFee });
 		expect(revokeResult.code).to.equal(0);
 	});
 });

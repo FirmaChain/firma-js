@@ -54,7 +54,13 @@ describe('[08. Ledger NFT Tx Test]', () => {
 	it('NFT Mint via Ledger', async function() {
 		this.timeout(120000);
 
-		const result = await firma.Nft.mint(ledgerWallet, 'https://firmachain.org/ledger-test');
+		const tokenURI = 'https://firmachain.org/ledger-test';
+
+		const gas = await firma.Nft.getGasEstimationMint(ledgerWallet, tokenURI);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Nft.mint(ledgerWallet, tokenURI, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
@@ -63,11 +69,21 @@ describe('[08. Ledger NFT Tx Test]', () => {
 	it('NFT Transfer via Ledger', async function() {
 		this.timeout(180000);
 
-		const mintResult = await firma.Nft.mint(ledgerWallet, 'https://firmachain.org/ledger-transfer');
+		const tokenURI = 'https://firmachain.org/ledger-transfer';
+
+		const mintGas = await firma.Nft.getGasEstimationMint(ledgerWallet, tokenURI);
+		const mintFee = Math.ceil(mintGas * 0.1);
+		console.log('[Ledger] mint gas:', mintGas, 'fee:', mintFee);
+
+		const mintResult = await firma.Nft.mint(ledgerWallet, tokenURI, { gas: mintGas, fee: mintFee });
 		expect(mintResult.code).to.equal(0);
 		const nftIds = extractAllNftIds(mintResult.events);
 
-		const transferResult = await firma.Nft.transfer(ledgerWallet, bobAddress, nftIds[0]);
+		const transferGas = await firma.Nft.getGasEstimationTransfer(ledgerWallet, bobAddress, nftIds[0]);
+		const transferFee = Math.ceil(transferGas * 0.1);
+		console.log('[Ledger] transfer gas:', transferGas, 'fee:', transferFee);
+
+		const transferResult = await firma.Nft.transfer(ledgerWallet, bobAddress, nftIds[0], { gas: transferGas, fee: transferFee });
 
 		console.log('[Ledger] transfer code:', transferResult.code);
 		expect(transferResult.code).to.equal(0);
@@ -76,11 +92,21 @@ describe('[08. Ledger NFT Tx Test]', () => {
 	it('NFT Burn via Ledger', async function() {
 		this.timeout(180000);
 
-		const mintResult = await firma.Nft.mint(ledgerWallet, 'https://firmachain.org/ledger-burn');
+		const tokenURI = 'https://firmachain.org/ledger-burn';
+
+		const mintGas = await firma.Nft.getGasEstimationMint(ledgerWallet, tokenURI);
+		const mintFee = Math.ceil(mintGas * 0.1);
+		console.log('[Ledger] mint gas:', mintGas, 'fee:', mintFee);
+
+		const mintResult = await firma.Nft.mint(ledgerWallet, tokenURI, { gas: mintGas, fee: mintFee });
 		expect(mintResult.code).to.equal(0);
 		const nftIds = extractAllNftIds(mintResult.events);
 
-		const burnResult = await firma.Nft.burn(ledgerWallet, nftIds[0]);
+		const burnGas = await firma.Nft.getGasEstimationBurn(ledgerWallet, nftIds[0]);
+		const burnFee = Math.ceil(burnGas * 0.1);
+		console.log('[Ledger] burn gas:', burnGas, 'fee:', burnFee);
+
+		const burnResult = await firma.Nft.burn(ledgerWallet, nftIds[0], { gas: burnGas, fee: burnFee });
 
 		console.log('[Ledger] burn code:', burnResult.code);
 		expect(burnResult.code).to.equal(0);

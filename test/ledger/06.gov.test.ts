@@ -77,7 +77,11 @@ describe('[06. Ledger Gov Tx Test]', () => {
 		const amountFCT = 1000;
 		const recipient = ledgerAddress;
 
-		const result = await firma.Gov.submitCommunityPoolSpendProposal(ledgerWallet, title, summary, initialDepositFCT, amountFCT, recipient);
+		const gas = await firma.Gov.getGasEstimationSubmitCommunityPoolSpendProposal(ledgerWallet, title, summary, initialDepositFCT, amountFCT, recipient);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Gov.submitCommunityPoolSpendProposal(ledgerWallet, title, summary, initialDepositFCT, amountFCT, recipient, '', { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
@@ -97,7 +101,11 @@ describe('[06. Ledger Gov Tx Test]', () => {
 
 		const metadata = '';
 
-		const result = await firma.Gov.submitStakingParamsUpdateProposal(ledgerWallet, title, summary, initialDepositFCT, params, metadata);
+		const gas = await firma.Gov.getGasEstimationSubmitStakingParamsUpdateProposal(ledgerWallet, title, summary, initialDepositFCT, params, metadata);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Gov.submitStakingParamsUpdateProposal(ledgerWallet, title, summary, initialDepositFCT, params, metadata, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
@@ -114,7 +122,11 @@ describe('[06. Ledger Gov Tx Test]', () => {
 		params.burnProposalDepositPrevote = true;
 		const metadata = '';
 
-		const result = await firma.Gov.submitGovParamsUpdateProposal(ledgerWallet, title, summary, initialDepositFCT, params, metadata);
+		const gas = await firma.Gov.getGasEstimationSubmitGovParamsUpdateProposal(ledgerWallet, title, summary, initialDepositFCT, params, metadata);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Gov.submitGovParamsUpdateProposal(ledgerWallet, title, summary, initialDepositFCT, params, metadata, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
@@ -182,11 +194,19 @@ describe('[06. Ledger Gov Tx Test]', () => {
 			'→ using', initialDepositFCT, 'FCT');
 
 		// 2. Submit TextProposal.
+		const submitTitle = 'Ledger Voting Scenario Test';
+		const submitDescription = 'Submitted to exercise all four vote options via Ledger';
+
+		const submitGas = await firma.Gov.getGasEstimationSubmitTextProposal(ledgerWallet, submitTitle, submitDescription, initialDepositFCT);
+		const submitFee = Math.ceil(submitGas * 0.1);
+		console.log('[Ledger] submit gas:', submitGas, 'fee:', submitFee);
+
 		const submitResult = await firma.Gov.submitTextProposal(
 			ledgerWallet,
-			'Ledger Voting Scenario Test',
-			'Submitted to exercise all four vote options via Ledger',
-			initialDepositFCT
+			submitTitle,
+			submitDescription,
+			initialDepositFCT,
+			{ gas: submitGas, fee: submitFee }
 		);
 		expect(submitResult.code).to.equal(0);
 
@@ -196,19 +216,31 @@ describe('[06. Ledger Gov Tx Test]', () => {
 		console.log('[Ledger] proposalId:', proposalId);
 
 		// 3. Vote all four options on the same proposal; later votes override earlier ones.
-		const voteYes = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_YES);
+		const voteYesGas = await firma.Gov.getGasEstimationVote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_YES);
+		const voteYesFee = Math.ceil(voteYesGas * 0.1);
+		console.log('[Ledger] vote YES gas:', voteYesGas, 'fee:', voteYesFee);
+		const voteYes = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_YES, { gas: voteYesGas, fee: voteYesFee });
 		console.log('[Ledger] vote YES code:', voteYes.code);
 		expect(voteYes.code).to.equal(0);
 
-		const voteNo = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_NO);
+		const voteNoGas = await firma.Gov.getGasEstimationVote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_NO);
+		const voteNoFee = Math.ceil(voteNoGas * 0.1);
+		console.log('[Ledger] vote NO gas:', voteNoGas, 'fee:', voteNoFee);
+		const voteNo = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_NO, { gas: voteNoGas, fee: voteNoFee });
 		console.log('[Ledger] vote NO code:', voteNo.code);
 		expect(voteNo.code).to.equal(0);
 
-		const voteAbstain = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_ABSTAIN);
+		const voteAbstainGas = await firma.Gov.getGasEstimationVote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_ABSTAIN);
+		const voteAbstainFee = Math.ceil(voteAbstainGas * 0.1);
+		console.log('[Ledger] vote ABSTAIN gas:', voteAbstainGas, 'fee:', voteAbstainFee);
+		const voteAbstain = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_ABSTAIN, { gas: voteAbstainGas, fee: voteAbstainFee });
 		console.log('[Ledger] vote ABSTAIN code:', voteAbstain.code);
 		expect(voteAbstain.code).to.equal(0);
 
-		const voteVeto = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_NO_WITH_VETO);
+		const voteVetoGas = await firma.Gov.getGasEstimationVote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_NO_WITH_VETO);
+		const voteVetoFee = Math.ceil(voteVetoGas * 0.1);
+		console.log('[Ledger] vote NO_WITH_VETO gas:', voteVetoGas, 'fee:', voteVetoFee);
+		const voteVeto = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_NO_WITH_VETO, { gas: voteVetoGas, fee: voteVetoFee });
 		console.log('[Ledger] vote NO_WITH_VETO code:', voteVeto.code);
 		expect(voteVeto.code).to.equal(0);
 	});

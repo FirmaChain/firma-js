@@ -63,7 +63,11 @@ describe('[00. Ledger Bank Tx Test]', () => {
 		const amount = 1;
 		const decimal = 6;
 
-		const result = await firma.Bank.sendToken(ledgerWallet, bobAddress, tokenID, amount, decimal);
+		const gas = await firma.Bank.getGasEstimationSendToken(ledgerWallet, bobAddress, tokenID, amount, decimal);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Bank.sendToken(ledgerWallet, bobAddress, tokenID, amount, decimal, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);

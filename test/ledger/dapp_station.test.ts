@@ -81,7 +81,12 @@ describe('[dapp_station. Ledger Dapp Station Tx Test]', () => {
 	it('bank send via Ledger', async function() {
 		this.timeout(120000);
 
-		const result = await firma.Bank.send(ledgerWallet, bobAddress, 1, { memo: 'dapp-station bank send' });
+		const memo = 'dapp-station bank send';
+		const gas = await firma.Bank.getGasEstimationSend(ledgerWallet, bobAddress, 1, { memo });
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Bank.send(ledgerWallet, bobAddress, 1, { memo, gas, fee });
 
 		console.log('[Ledger] bank.send code:', result.code);
 		expect(result.code).to.equal(0);
@@ -92,10 +97,21 @@ describe('[dapp_station. Ledger Dapp Station Tx Test]', () => {
 		this.timeout(120000);
 
 		const maxFCT = 100;
+		const memo = 'dapp-station authz grant delegate';
+		const expiration = oneDayExpiration();
+
+		const gas = await firma.Authz.getGasEstimationGrantStakeAuthorization(
+			ledgerWallet, bobAddress, [valOperAddress],
+			AuthorizationType.AUTHORIZATION_TYPE_DELEGATE, expiration, maxFCT,
+			{ memo }
+		);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
 		const result = await firma.Authz.grantStakeAuthorization(
 			ledgerWallet, bobAddress, [valOperAddress],
-			AuthorizationType.AUTHORIZATION_TYPE_DELEGATE, oneDayExpiration(), maxFCT,
-			{ memo: 'dapp-station authz grant delegate' }
+			AuthorizationType.AUTHORIZATION_TYPE_DELEGATE, expiration, maxFCT,
+			{ memo, gas, fee }
 		);
 
 		console.log('[Ledger] authz.grantDelegate code:', result.code);
@@ -112,8 +128,13 @@ describe('[dapp_station. Ledger Dapp Station Tx Test]', () => {
 			this.skip();
 		}
 		const validatorAddress = delegationList[0].delegation.validator_address;
+		const memo = 'dapp-station distribution withdraw';
 
-		const result = await firma.Distribution.withdrawAllRewards(ledgerWallet, validatorAddress, { memo: 'dapp-station distribution withdraw' });
+		const gas = await firma.Distribution.getGasEstimationWithdrawAllRewards(ledgerWallet, validatorAddress, { memo });
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Distribution.withdrawAllRewards(ledgerWallet, validatorAddress, { memo, gas, fee });
 
 		console.log('[Ledger] distribution.withdraw code:', result.code);
 		expect(result.code).to.equal(0);
@@ -141,13 +162,15 @@ describe('[dapp_station. Ledger Dapp Station Tx Test]', () => {
 	it('gov submitTextProposal via Ledger', async function() {
 		this.timeout(120000);
 
-		const result = await firma.Gov.submitTextProposal(
-			ledgerWallet,
-			'Dapp Station Text Proposal',
-			'Submitted via Ledger from Station test',
-			2500,
-			{ memo: 'dapp-station gov submitTextProposal' }
-		);
+		const title = 'Dapp Station Text Proposal';
+		const description = 'Submitted via Ledger from Station test';
+		const memo = 'dapp-station gov submitTextProposal';
+
+		const gas = await firma.Gov.getGasEstimationSubmitTextProposal(ledgerWallet, title, description, 2500, { memo });
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Gov.submitTextProposal(ledgerWallet, title, description, 2500, { memo, gas, fee });
 
 		console.log('[Ledger] gov.text code:', result.code);
 		expect(result.code).to.equal(0);
@@ -156,15 +179,19 @@ describe('[dapp_station. Ledger Dapp Station Tx Test]', () => {
 	it('gov submitCommunityPoolSpendProposal via Ledger', async function() {
 		this.timeout(120000);
 
+		const title = 'Dapp Station Community Pool Spend';
+		const summary = 'Submitted via Ledger from Station test';
+		const memo = 'dapp-station gov submitCommunityPoolSpendProposal';
+
+		const gas = await firma.Gov.getGasEstimationSubmitCommunityPoolSpendProposal(
+			ledgerWallet, title, summary, 2500, 1000, ledgerAddress, { memo }
+		);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
 		const result = await firma.Gov.submitCommunityPoolSpendProposal(
-			ledgerWallet,
-			'Dapp Station Community Pool Spend',
-			'Submitted via Ledger from Station test',
-			2500,
-			1000,
-			ledgerAddress,
-			'',
-			{ memo: 'dapp-station gov submitCommunityPoolSpendProposal' }
+			ledgerWallet, title, summary, 2500, 1000, ledgerAddress, '',
+			{ memo, gas, fee }
 		);
 
 		console.log('[Ledger] gov.communityPoolSpend code:', result.code);
@@ -179,14 +206,19 @@ describe('[dapp_station. Ledger Dapp Station Tx Test]', () => {
 		params.historicalEntries = 10000;
 		params.minCommissionRate = FirmaUtil.processCommissionRateAsDecimal(params.minCommissionRate);
 
+		const title = 'Dapp Station Staking Params Update';
+		const summary = 'Submitted via Ledger from Station test';
+		const memo = 'dapp-station gov submitStakingParamsUpdateProposal';
+
+		const gas = await firma.Gov.getGasEstimationSubmitStakingParamsUpdateProposal(
+			ledgerWallet, title, summary, 2500, params, '', { memo }
+		);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
 		const result = await firma.Gov.submitStakingParamsUpdateProposal(
-			ledgerWallet,
-			'Dapp Station Staking Params Update',
-			'Submitted via Ledger from Station test',
-			2500,
-			params,
-			'',
-			{ memo: 'dapp-station gov submitStakingParamsUpdateProposal' }
+			ledgerWallet, title, summary, 2500, params, '',
+			{ memo, gas, fee }
 		);
 
 		console.log('[Ledger] gov.stakingParams code:', result.code);
@@ -199,14 +231,19 @@ describe('[dapp_station. Ledger Dapp Station Tx Test]', () => {
 		const params = await firma.Gov.getParamAsGovParams();
 		params.burnProposalDepositPrevote = true;
 
+		const title = 'Dapp Station Gov Params Update';
+		const summary = 'Submitted via Ledger from Station test';
+		const memo = 'dapp-station gov submitGovParamsUpdateProposal';
+
+		const gas = await firma.Gov.getGasEstimationSubmitGovParamsUpdateProposal(
+			ledgerWallet, title, summary, 2500, params, '', { memo }
+		);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
 		const result = await firma.Gov.submitGovParamsUpdateProposal(
-			ledgerWallet,
-			'Dapp Station Gov Params Update',
-			'Submitted via Ledger from Station test',
-			2500,
-			params,
-			'',
-			{ memo: 'dapp-station gov submitGovParamsUpdateProposal' }
+			ledgerWallet, title, summary, 2500, params, '',
+			{ memo, gas, fee }
 		);
 
 		console.log('[Ledger] gov.govParams code:', result.code);
@@ -245,17 +282,27 @@ describe('[dapp_station. Ledger Dapp Station Tx Test]', () => {
 	it('gov submitTextProposal & cancelProposal via Ledger', async function() {
 		this.timeout(240000);
 
+		const submitTitle = 'Dapp Station Cancel Target';
+		const submitDescription = 'Submitted then cancelled via Ledger';
+		const submitMemo = 'dapp-station gov submitTextProposal (cancel target)';
+
+		const submitGas = await firma.Gov.getGasEstimationSubmitTextProposal(ledgerWallet, submitTitle, submitDescription, 5000, { memo: submitMemo });
+		const submitFee = Math.ceil(submitGas * 0.1);
+		console.log('[Ledger] submit gas:', submitGas, 'fee:', submitFee);
+
 		const submitResult = await firma.Gov.submitTextProposal(
-			ledgerWallet,
-			'Dapp Station Cancel Target',
-			'Submitted then cancelled via Ledger',
-			5000,
-			{ memo: 'dapp-station gov submitTextProposal (cancel target)' }
+			ledgerWallet, submitTitle, submitDescription, 5000,
+			{ memo: submitMemo, gas: submitGas, fee: submitFee }
 		);
 		const proposalId = extractValue(submitResult.events, 'submit_proposal', 'proposal_id');
 		expect(submitResult.code).to.equal(0);
 
-		const cancelResult = await firma.Gov.cancelProposal(ledgerWallet, proposalId, { memo: 'dapp-station gov cancelProposal' });
+		const cancelMemo = 'dapp-station gov cancelProposal';
+		const cancelGas = await firma.Gov.getGasEstimationCancelProposal(ledgerWallet, proposalId, { memo: cancelMemo });
+		const cancelFee = Math.ceil(cancelGas * 0.1);
+		console.log('[Ledger] cancel gas:', cancelGas, 'fee:', cancelFee);
+
+		const cancelResult = await firma.Gov.cancelProposal(ledgerWallet, proposalId, { memo: cancelMemo, gas: cancelGas, fee: cancelFee });
 
 		console.log('[Ledger] gov.cancel code:', cancelResult.code);
 		expect(cancelResult.code).to.equal(0);
@@ -276,12 +323,17 @@ describe('[dapp_station. Ledger Dapp Station Tx Test]', () => {
 		console.log('[Ledger] min_deposit:', minDepositCoin.amount, minDepositCoin.denom,
 			'→ using', initialDepositFCT, 'FCT');
 
+		const submitTitle = 'Dapp Station Vote Scenario';
+		const submitDescription = 'Submitted to exercise all four vote options via Ledger';
+		const submitMemo = 'dapp-station gov submitTextProposal (vote scenario)';
+
+		const submitGas = await firma.Gov.getGasEstimationSubmitTextProposal(ledgerWallet, submitTitle, submitDescription, initialDepositFCT, { memo: submitMemo });
+		const submitFee = Math.ceil(submitGas * 0.1);
+		console.log('[Ledger] submit gas:', submitGas, 'fee:', submitFee);
+
 		const submitResult = await firma.Gov.submitTextProposal(
-			ledgerWallet,
-			'Dapp Station Vote Scenario',
-			'Submitted to exercise all four vote options via Ledger',
-			initialDepositFCT,
-			{ memo: 'dapp-station gov submitTextProposal (vote scenario)' }
+			ledgerWallet, submitTitle, submitDescription, initialDepositFCT,
+			{ memo: submitMemo, gas: submitGas, fee: submitFee }
 		);
 		expect(submitResult.code).to.equal(0);
 
@@ -290,23 +342,39 @@ describe('[dapp_station. Ledger Dapp Station Tx Test]', () => {
 		const proposalId = Number(proposalIdStr);
 		console.log('[Ledger] proposalId:', proposalId);
 
+		const voteYesMemo = 'dapp-station gov vote YES';
+		const voteYesGas = await firma.Gov.getGasEstimationVote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_YES, { memo: voteYesMemo });
+		const voteYesFee = Math.ceil(voteYesGas * 0.1);
+		console.log('[Ledger] vote YES gas:', voteYesGas, 'fee:', voteYesFee);
 		const voteYes = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_YES,
-			{ memo: 'dapp-station gov vote YES' });
+			{ memo: voteYesMemo, gas: voteYesGas, fee: voteYesFee });
 		console.log('[Ledger] vote YES code:', voteYes.code);
 		expect(voteYes.code).to.equal(0);
 
+		const voteNoMemo = 'dapp-station gov vote NO';
+		const voteNoGas = await firma.Gov.getGasEstimationVote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_NO, { memo: voteNoMemo });
+		const voteNoFee = Math.ceil(voteNoGas * 0.1);
+		console.log('[Ledger] vote NO gas:', voteNoGas, 'fee:', voteNoFee);
 		const voteNo = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_NO,
-			{ memo: 'dapp-station gov vote NO' });
+			{ memo: voteNoMemo, gas: voteNoGas, fee: voteNoFee });
 		console.log('[Ledger] vote NO code:', voteNo.code);
 		expect(voteNo.code).to.equal(0);
 
+		const voteAbstainMemo = 'dapp-station gov vote ABSTAIN';
+		const voteAbstainGas = await firma.Gov.getGasEstimationVote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_ABSTAIN, { memo: voteAbstainMemo });
+		const voteAbstainFee = Math.ceil(voteAbstainGas * 0.1);
+		console.log('[Ledger] vote ABSTAIN gas:', voteAbstainGas, 'fee:', voteAbstainFee);
 		const voteAbstain = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_ABSTAIN,
-			{ memo: 'dapp-station gov vote ABSTAIN' });
+			{ memo: voteAbstainMemo, gas: voteAbstainGas, fee: voteAbstainFee });
 		console.log('[Ledger] vote ABSTAIN code:', voteAbstain.code);
 		expect(voteAbstain.code).to.equal(0);
 
+		const voteVetoMemo = 'dapp-station gov vote NO_WITH_VETO';
+		const voteVetoGas = await firma.Gov.getGasEstimationVote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_NO_WITH_VETO, { memo: voteVetoMemo });
+		const voteVetoFee = Math.ceil(voteVetoGas * 0.1);
+		console.log('[Ledger] vote NO_WITH_VETO gas:', voteVetoGas, 'fee:', voteVetoFee);
 		const voteVeto = await firma.Gov.vote(ledgerWallet, proposalId, VotingOption.VOTE_OPTION_NO_WITH_VETO,
-			{ memo: 'dapp-station gov vote NO_WITH_VETO' });
+			{ memo: voteVetoMemo, gas: voteVetoGas, fee: voteVetoFee });
 		console.log('[Ledger] vote NO_WITH_VETO code:', voteVeto.code);
 		expect(voteVeto.code).to.equal(0);
 	});
@@ -315,7 +383,12 @@ describe('[dapp_station. Ledger Dapp Station Tx Test]', () => {
 	it('staking delegate via Ledger', async function() {
 		this.timeout(120000);
 
-		const result = await firma.Staking.delegate(ledgerWallet, valOperAddress, 60, { memo: 'dapp-station staking delegate' });
+		const memo = 'dapp-station staking delegate';
+		const gas = await firma.Staking.getGasEstimationDelegate(ledgerWallet, valOperAddress, 60, { memo });
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Staking.delegate(ledgerWallet, valOperAddress, 60, { memo, gas, fee });
 
 		console.log('[Ledger] staking.delegate code:', result.code);
 		expect(result.code).to.equal(0);
@@ -347,13 +420,20 @@ describe('[dapp_station. Ledger Dapp Station Tx Test]', () => {
 		const dst = validatorList[1].operator_address;
 		const amount = 10;
 
-		const delegateResult = await firma.Staking.delegate(ledgerWallet, src, amount, { memo: 'dapp-station staking delegate (redelegate source)' });
+		const delegateMemo = 'dapp-station staking delegate (redelegate source)';
+		const delegateGas = await firma.Staking.getGasEstimationDelegate(ledgerWallet, src, amount, { memo: delegateMemo });
+		const delegateFee = Math.ceil(delegateGas * 0.1);
+		console.log('[Ledger] delegate gas:', delegateGas, 'fee:', delegateFee);
+
+		const delegateResult = await firma.Staking.delegate(ledgerWallet, src, amount, { memo: delegateMemo, gas: delegateGas, fee: delegateFee });
 		expect(delegateResult.code).to.equal(0);
 
-		const gas = await firma.Staking.getGasEstimationRedelegate(ledgerWallet, src, dst, amount);
+		const redelegateMemo = 'dapp-station staking redelegate';
+		const gas = await firma.Staking.getGasEstimationRedelegate(ledgerWallet, src, dst, amount, { memo: redelegateMemo });
 		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] redelegate gas:', gas, 'fee:', fee);
 
-		const result = await firma.Staking.redelegate(ledgerWallet, src, dst, amount, { memo: 'dapp-station staking redelegate', gas, fee });
+		const result = await firma.Staking.redelegate(ledgerWallet, src, dst, amount, { memo: redelegateMemo, gas, fee });
 
 		console.log('[Ledger] staking.redelegate code:', result.code);
 		expect(result.code).to.equal(0);

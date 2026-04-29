@@ -51,7 +51,11 @@ describe('[10. Ledger Token Tx Test]', () => {
 	it('Token CreateToken via Ledger', async function() {
 		this.timeout(120000);
 
-		const result = await firma.Token.createToken(ledgerWallet, tokenName, symbol, tokenURI, totalSupply, decimal, mintable, burnable);
+		const gas = await firma.Token.getGasEstimationCreateToken(ledgerWallet, tokenName, symbol, tokenURI, totalSupply, decimal, mintable, burnable);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Token.createToken(ledgerWallet, tokenName, symbol, tokenURI, totalSupply, decimal, mintable, burnable, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
@@ -61,7 +65,12 @@ describe('[10. Ledger Token Tx Test]', () => {
 		this.timeout(120000);
 
 		const amount = 100000;
-		const result = await firma.Token.mint(ledgerWallet, tokenID, amount, decimal, ledgerAddress);
+
+		const gas = await firma.Token.getGasEstimationMint(ledgerWallet, tokenID, amount, decimal, ledgerAddress);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Token.mint(ledgerWallet, tokenID, amount, decimal, ledgerAddress, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
@@ -71,7 +80,12 @@ describe('[10. Ledger Token Tx Test]', () => {
 		this.timeout(120000);
 
 		const amount = 10;
-		const result = await firma.Token.burn(ledgerWallet, tokenID, amount, decimal);
+
+		const gas = await firma.Token.getGasEstimationBurn(ledgerWallet, tokenID, amount, decimal);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Token.burn(ledgerWallet, tokenID, amount, decimal, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
@@ -81,7 +95,12 @@ describe('[10. Ledger Token Tx Test]', () => {
 		this.timeout(120000);
 
 		const newUri = 'https://firmachain.dev';
-		const result = await firma.Token.updateTokenURI(ledgerWallet, tokenID, newUri);
+
+		const gas = await firma.Token.getGasEstimationUpdateTokenURI(ledgerWallet, tokenID, newUri);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Token.updateTokenURI(ledgerWallet, tokenID, newUri, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
@@ -91,7 +110,12 @@ describe('[10. Ledger Token Tx Test]', () => {
 		this.timeout(120000);
 
 		const amount = 100;
-		const result = await firma.Bank.sendToken(ledgerWallet, bobAddress, tokenID, amount, decimal);
+
+		const gas = await firma.Bank.getGasEstimationSendToken(ledgerWallet, bobAddress, tokenID, amount, decimal);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Bank.sendToken(ledgerWallet, bobAddress, tokenID, amount, decimal, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);

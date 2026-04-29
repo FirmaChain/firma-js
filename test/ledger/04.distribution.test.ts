@@ -44,8 +44,13 @@ describe('[04. Ledger Distribution Tx Test]', () => {
 		}
 		const validatorAddress = delegationList[0].delegation.validator_address;
 
+		const gas = await firma.Distribution.getGasEstimationWithdrawAllRewards(ledgerWallet, validatorAddress);
+		const fee = Math.ceil(gas * 0.1);
+
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
 		console.log('[Ledger] Please confirm the transaction on your Ledger device...');
-		const result = await firma.Distribution.withdrawAllRewards(ledgerWallet, validatorAddress);
+
+		const result = await firma.Distribution.withdrawAllRewards(ledgerWallet, validatorAddress, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
@@ -76,7 +81,12 @@ describe('[04. Ledger Distribution Tx Test]', () => {
 		this.timeout(120000);
 
 		const amount = 1;
-		const result = await firma.Distribution.fundCommunityPool(ledgerWallet, amount);
+
+		const gas = await firma.Distribution.getGasEstimationFundCommunityPool(ledgerWallet, amount);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Distribution.fundCommunityPool(ledgerWallet, amount, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
@@ -85,7 +95,11 @@ describe('[04. Ledger Distribution Tx Test]', () => {
 	it('SetWithdrawAddress via Ledger', async function() {
 		this.timeout(120000);
 
-		const result = await firma.Distribution.setWithdrawAddress(ledgerWallet, ledgerAddress);
+		const gas = await firma.Distribution.getGasEstimationSetWithdrawAddress(ledgerWallet, ledgerAddress);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Distribution.setWithdrawAddress(ledgerWallet, ledgerAddress, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
@@ -96,7 +110,12 @@ describe('[04. Ledger Distribution Tx Test]', () => {
 		this.timeout(120000);
 
 		const valOperAddress = FirmaUtil.getValOperAddressFromAccAddress(ledgerAddress);
-		const result = await firma.Distribution.withdrawValidatorCommission(ledgerWallet, valOperAddress);
+
+		const gas = await firma.Distribution.getGasEstimationWithdrawValidatorCommission(ledgerWallet, valOperAddress);
+		const fee = Math.ceil(gas * 0.1);
+		console.log('[Ledger] gas:', gas, 'fee:', fee);
+
+		const result = await firma.Distribution.withdrawValidatorCommission(ledgerWallet, valOperAddress, { gas, fee });
 
 		console.log('[Ledger] result code:', result.code);
 		expect(result.code).to.equal(0);
