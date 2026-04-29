@@ -208,7 +208,8 @@ export class FirmaWalletService {
     async signLedger(
         messages: EncodeObject[],
         option: SignAndBroadcastOptions,
-        registry: Registry
+        registry: Registry,
+        simulate = false
     ): Promise<TxRaw> {
 
         if (!this.ledger) {
@@ -224,17 +225,17 @@ export class FirmaWalletService {
             const errorMessage = error instanceof Error ? error.message : String(error);
             throw new Error(`Failed to connect to Ledger: ${errorMessage}. Please make sure your Ledger is connected and the FirmaChain app is open.`);
         }
-        
+
         // Retrieve signer data for protobuf signing with proper type safety
         const accountInfo = await FirmaUtil.getAccountInfo(address);
         const chainId = await FirmaUtil.getChainId();
-        
+
         const signerData = {
             account_number: parseInt(accountInfo.account_number, 10),
             sequence: parseInt(accountInfo.sequence, 10),
             chain_id: chainId,
         };
 
-        return await signWithSignerAuto(this.ledger, messages, signerData, option, registry, this.config.restApiAddress);
+        return await signWithSignerAuto(this.ledger, messages, signerData, option, registry, this.config.restApiAddress, simulate);
     }
 }

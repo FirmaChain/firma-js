@@ -21,10 +21,10 @@ export class ITxClient {
 
     public getRegistry(): Registry { return this.registry; }
 
-    async sign(msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions): Promise<TxRaw> {
+    async sign(msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions, simulate = false): Promise<TxRaw> {
 
         if (this.wallet.isLedger()) {
-            return this.wallet.signLedger(msgs, { fee, memo }, this.registry);
+            return this.wallet.signLedger(msgs, { fee, memo }, this.registry, simulate);
         } else {
             const client = await SigningStargateClient.connectWithSigner(this.serverUrl, this.rawWallet, { registry: this.registry });
             const address = (await this.rawWallet.getAccounts())[0].address;

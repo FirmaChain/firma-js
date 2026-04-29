@@ -1061,12 +1061,51 @@ export async function signWithSignerAuto(
   option: SignAndBroadcastOptions,
   registry: Registry,
   restApiAddress = "",
+  simulate = false,
 ): Promise<TxRaw> {
+  if (simulate) {
+    return buildSimulationTxRawLedger(signer, messages, signerData, option, registry);
+  }
   if (DEBUG_LEDGER) {
     const typeUrls = messages.map((m) => m.typeUrl).join(', ');
     console.log(`[Ledger] sign mode: TEXTUAL | msgs: ${typeUrls}`);
   }
   return signWithSignerTextual(signer, messages, signerData, option, registry, restApiAddress);
+}
+
+// Builds an unsigned TxRaw for simulation (gas estimation) without prompting the
+// Ledger device. Uses a 64-byte zero signature; the chain skips signature
+// verification in `runTxModeSimulate`, so the simulated gas is still accurate.
+export async function buildSimulationTxRawLedger(
+  signer: LedgerWalletInterface,
+  messages: EncodeObject[],
+  signerData: SignerData,
+  option: SignAndBroadcastOptions,
+  registry: Registry,
+): Promise<TxRaw> {
+  const { publicKey: pubkey } = await signer.getAddressAndPublicKey();
+
+  const pubkeyProto: Any = {
+    typeUrl: "/cosmos.crypto.secp256k1.PubKey",
+    value: Secp256k1PubKey.encode({ key: pubkey }).finish(),
+  };
+
+  const anyMsgs = messages.map((msg) => registry.encodeAsAny(msg));
+  const bodyBytes = TxBody.encode(
+    TxBody.fromPartial({ messages: anyMsgs, memo: option.memo || "" }),
+  ).finish();
+
+  const feeCoins: Coin[] = option.fee.amount.map((a) => ({ denom: a.denom, amount: a.amount }));
+  const authInfoBytes = makeAuthInfoBytes(
+    [{ pubkey: pubkeyProto, sequence: signerData.sequence }],
+    feeCoins,
+    option.fee.gasLimit,
+    option.fee.granter || undefined,
+    option.fee.payer || undefined,
+    SignMode.SIGN_MODE_DIRECT,
+  );
+
+  return TxRaw.fromPartial({ bodyBytes, authInfoBytes, signatures: [new Uint8Array(64)] });
 }
 
 export async function signWithSignerTextual(
