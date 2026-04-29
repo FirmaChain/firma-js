@@ -14,7 +14,8 @@
     "nodemon": "nodemon",
     "dev": "ts-node ./test/test_index.ts",
     "clean": "rm -rf dist",
-    "build": "npm run clean && tsc --module commonjs"
+    "build": "npm run clean && tsc --module commonjs",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
