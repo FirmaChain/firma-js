@@ -1,6 +1,6 @@
 {
   "name": "@firmachain/firma-js",
-  "version": "0.4.0",
+  "version": "0.4.0-beta1",
   "description": "The Official FirmaChain Javascript SDK written in Typescript",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -8,7 +8,6 @@
     "dist"
   ],
   "scripts": {
-    "test": "NODE_OPTIONS=--no-experimental-strip-types TS_NODE_TRANSPILE_ONLY=true mocha ${SPEC:-'test/integration/**/*.test.ts'}",
     "test:integration": "NODE_OPTIONS=--no-experimental-strip-types TS_NODE_TRANSPILE_ONLY=true mocha 'test/integration/**/*.test.ts'",
     "test:ledger": "NODE_OPTIONS=--no-experimental-strip-types TS_NODE_TRANSPILE_ONLY=true mocha 'test/ledger/**/*.test.ts'",
     "lint": "eslint src test --ext .ts,.tsx",
