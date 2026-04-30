@@ -356,6 +356,19 @@ export class FirmaStakingService {
         }
     }
 
+    async getRedelegationListFromValidator(valoperAddress: string, paginationKey: string = ""): Promise<{ dataList: RedelegationInfo[], pagination: Pagination }> {
+        try {
+            const queryClient = new StakingQueryClient(this.config.restApiAddress);
+            const result = await queryClient.queryGetRedelegationListFromValidator(valoperAddress, paginationKey);
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
     async getUndelegationListFromValidator(valoperAddress: string, paginationKey: string = ""): Promise<{ dataList: UndelegationInfo[], pagination: Pagination }> {
         try {
             const queryClient = new StakingQueryClient(this.config.restApiAddress);

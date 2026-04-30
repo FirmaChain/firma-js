@@ -139,6 +139,55 @@ export class StakingQueryClient {
         return result.data.redelegation_responses;
     }
 
+    /**
+     * Returns redelegations involving the given validator (as src or dst), aggregated
+     * across all delegators. The Cosmos SDK's gRPC `Redelegations` query accepts an
+     * empty `delegator_addr` together with `src_validator_addr` (or
+     * `dst_validator_addr`) to fetch chain-wide redelegations from / to a validator;
+     * this method exposes that capability through the standard REST URL with an
+     * empty delegator path segment.
+     *
+     * Two requests are issued (src filter + dst filter) and the results are merged
+     * with deduplication.
+     */
+    async queryGetRedelegationListFromValidator(
+        valoperAddress: string,
+        paginationKey: string = ""
+    ): Promise<{ dataList: RedelegationInfo[], pagination: Pagination }> {
+
+        const path = `/cosmos/staking/v1beta1/delegators//redelegations`;
+
+        const fetchByFilter = async (filterKey: 'src_validator_addr' | 'dst_validator_addr'): Promise<RedelegationInfo[]> => {
+            const params: Record<string, any> = {
+                [filterKey]: valoperAddress,
+                "pagination.limit": 1000,
+            };
+            if (paginationKey) params["pagination.key"] = paginationKey;
+
+            const result = await this.axios.get(path, { params });
+            return result.data.redelegation_responses || [];
+        };
+
+        const [fromList, toList] = await Promise.all([
+            fetchByFilter('src_validator_addr'),
+            fetchByFilter('dst_validator_addr'),
+        ]);
+
+        const seen = new Set<string>();
+        const merged: RedelegationInfo[] = [];
+        for (const r of [...fromList, ...toList]) {
+            const k = `${r.redelegation.delegator_address}|${r.redelegation.validator_src_address}|${r.redelegation.validator_dst_address}`;
+            if (seen.has(k)) continue;
+            seen.add(k);
+            merged.push(r);
+        }
+
+        return {
+            dataList: merged,
+            pagination: { next_key: '', total: merged.length },
+        };
+    }
+
     async queryGetUndelegationListFromValidator(valoperAddress: string, paginationKey: string = ""): Promise<{ dataList: UndelegationInfo[], pagination: Pagination }> {
 
         const path = `/cosmos/staking/v1beta1/validators/${valoperAddress}/unbonding_delegations`;
