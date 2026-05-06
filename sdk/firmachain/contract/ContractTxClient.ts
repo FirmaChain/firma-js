@@ -1,14 +1,14 @@
-import { Registry, EncodeObject, OfflineDirectSigner } from "@cosmjs/proto-signing";
+import { Registry, EncodeObject, GeneratedType } from "@cosmjs/proto-signing";
 import { MsgCreateContractFile, MsgAddContractLog } from "./ContractTxTypes";
 import { ITxClient } from "../common/ITxClient";
 import { FirmaWalletService } from "../../FirmaWalletService";
 
-const types = [
+const types: ReadonlyArray<[string, GeneratedType]> = [
     ["/firmachain.contract.MsgCreateContractFile", MsgCreateContractFile],
-    ["/firmachain.contract.MsgAddContractLog", MsgAddContractLog]
+    ["/firmachain.contract.MsgAddContractLog", MsgAddContractLog],
 ];
 
-const registry = new Registry(types as any);
+const registry = new Registry(types);
 
 export interface MsgAddContractLogEncodeObject extends EncodeObject {
     readonly typeUrl: "/firmachain.contract.MsgAddContractLog";

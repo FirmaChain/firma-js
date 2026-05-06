@@ -1,14 +1,16 @@
-import { Registry, OfflineDirectSigner, EncodeObject } from "@cosmjs/proto-signing";
+import { Registry, EncodeObject, GeneratedType } from "@cosmjs/proto-signing";
 import { MsgGrantAllowance, MsgRevokeAllowance } from "./FeeGrantTxTypes";
 import { ITxClient } from "../common/ITxClient";
 import { FirmaWalletService } from "../../FirmaWalletService";
 
+// FeeGrantTxTypes are protobufjs-generated without a `decode` method, so they
+// cannot satisfy GeneratedType directly.
 const types = [
     ["/cosmos.feegrant.v1beta1.MsgGrantAllowance", MsgGrantAllowance],
-    ["/cosmos.feegrant.v1beta1.MsgRevokeAllowance", MsgRevokeAllowance]
-];
+    ["/cosmos.feegrant.v1beta1.MsgRevokeAllowance", MsgRevokeAllowance],
+] as unknown as ReadonlyArray<[string, GeneratedType]>;
 
-const registry = new Registry(types as any);
+const registry = new Registry(types);
 
 export interface MsgFeeGrantAllowanceEncodeObject extends EncodeObject {
     readonly typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance";

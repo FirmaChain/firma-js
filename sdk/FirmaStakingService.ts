@@ -42,7 +42,7 @@ export class FirmaStakingService {
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxDelegate(wallet, validatorAddres, amount, txMisc);
+            const txRaw = await this.getSignedTxDelegate(wallet, validatorAddres, amount, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -57,7 +57,7 @@ export class FirmaStakingService {
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxUndelegate(wallet, validatorAddres, amount, txMisc);
+            const txRaw = await this.getSignedTxUndelegate(wallet, validatorAddres, amount, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -73,7 +73,7 @@ export class FirmaStakingService {
         txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxRedelegate(wallet, validatorSrcAddress, validatorDstAddress, amount, txMisc);
+            const txRaw = await this.getSignedTxRedelegate(wallet, validatorSrcAddress, validatorDstAddress, amount, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -85,7 +85,8 @@ export class FirmaStakingService {
     private async getSignedTxDelegate(wallet: FirmaWalletService,
         validatorAddres: string,
         amount: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const txClient = new StakingTxClient(wallet, this.config.rpcAddress);
@@ -99,7 +100,7 @@ export class FirmaStakingService {
                 amount: sendAmount
             });
 
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -110,7 +111,8 @@ export class FirmaStakingService {
     private async getSignedTxUndelegate(wallet: FirmaWalletService,
         validatorAddres: string,
         amount: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const txClient = new StakingTxClient(wallet, this.config.rpcAddress);
@@ -124,7 +126,7 @@ export class FirmaStakingService {
                 amount: sendAmount
             });
 
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -136,7 +138,8 @@ export class FirmaStakingService {
         validatorSrcAddress: string,
         validatorDstAddress: string,
         amount: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const txClient = new StakingTxClient(wallet, this.config.rpcAddress);
@@ -151,7 +154,7 @@ export class FirmaStakingService {
                 amount: sendAmount
             });
 
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -344,6 +347,19 @@ export class FirmaStakingService {
         try {
             const queryClient = new StakingQueryClient(this.config.restApiAddress);
             const result = await queryClient.querygetTotalRedelegationInfo(address);
+
+            return result;
+
+        } catch (error) {
+            FirmaUtil.printLog(error);
+            throw error;
+        }
+    }
+
+    async getRedelegationListFromValidator(valoperAddress: string, paginationKey: string = ""): Promise<{ dataList: RedelegationInfo[], pagination: Pagination }> {
+        try {
+            const queryClient = new StakingQueryClient(this.config.restApiAddress);
+            const result = await queryClient.queryGetRedelegationListFromValidator(valoperAddress, paginationKey);
 
             return result;
 

@@ -1,13 +1,13 @@
-import { Registry, EncodeObject } from "@cosmjs/proto-signing";
+import { Registry, EncodeObject, GeneratedType } from "@cosmjs/proto-signing";
 import { FirmaWalletService } from "../../FirmaWalletService";
 import { ITxClient } from "../common/ITxClient";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 
-const types = [
+const types: ReadonlyArray<[string, GeneratedType]> = [
     ["/ibc.applications.transfer.v1.MsgTransfer", MsgTransfer],
 ];
 
-const registry = new Registry(types as any);
+const registry = new Registry(types);
 
 export interface MsgTransferEncodeObject extends EncodeObject {
     readonly typeUrl: "/ibc.applications.transfer.v1.MsgTransfer";

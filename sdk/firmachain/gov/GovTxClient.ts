@@ -1,4 +1,4 @@
-import { Registry, EncodeObject } from "@cosmjs/proto-signing";
+import { Registry, EncodeObject, GeneratedType } from "@cosmjs/proto-signing";
 import {
     MsgDeposit as V1MsgDeposit,
     MsgSubmitProposal as V1MsgSubmitProposal,
@@ -13,6 +13,9 @@ import { MsgCancelProposal as V1MsgCancelProposal } from "@kintsugi-tech/cosmjs-
 import { FirmaWalletService } from "../../FirmaWalletService";
 import { ITxClient } from "../common/ITxClient";
 
+// @kintsugi-tech/cosmjs-types uses a different BinaryWriter than cosmjs-types,
+// so these types are structurally incompatible with GeneratedType despite being
+// functionally equivalent.
 const types = [
     ["/cosmos.gov.v1.MsgDeposit", V1MsgDeposit],
     ["/cosmos.gov.v1.MsgSubmitProposal", V1MsgSubmitProposal],
@@ -25,9 +28,9 @@ const types = [
     ["/cosmos.gov.v1beta1.MsgSubmitProposal", MsgSubmitProposal],
     ["/cosmos.gov.v1beta1.MsgVote", MsgVote],
     ["/cosmos.gov.v1beta1.MsgVoteWeighted", MsgVoteWeighted],
-];
+] as unknown as ReadonlyArray<[string, GeneratedType]>;
 
-const registry = new Registry(types as any);
+const registry = new Registry(types);
 
 export interface V1MsgDepositEncodeObject extends EncodeObject {
     readonly typeUrl: "/cosmos.gov.v1.MsgDeposit";

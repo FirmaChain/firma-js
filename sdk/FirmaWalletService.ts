@@ -4,7 +4,7 @@ import { stringToPath, Slip10, HdPath, Slip10Curve, Bip39, EnglishMnemonic } fro
 
 import { FirmaConfig } from "./FirmaConfig";
 import { FirmaUtil } from "./FirmaUtil";
-import { LedgerWalletInterface, signWithSignerProtobuf } from "./firmachain/common/LedgerWallet";
+import { LedgerWalletInterface, signWithSignerAuto } from "./firmachain/common/LedgerWallet";
 import { SignAndBroadcastOptions } from "./firmachain/common";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
@@ -116,7 +116,7 @@ export class FirmaWalletService {
 
     async initFromPrivateKey(privateKey: string) {
         try {
-            const tempPrivateKey = Buffer.from(privateKey.replace("0x", ""), "hex");
+            const tempPrivateKey = new Uint8Array(Buffer.from(privateKey.replace("0x", ""), "hex"));
             this.wallet = await DirectSecp256k1Wallet.fromKey(tempPrivateKey, this.getPrefix());
             
             this.privateKey = privateKey;
@@ -208,7 +208,8 @@ export class FirmaWalletService {
     async signLedger(
         messages: EncodeObject[],
         option: SignAndBroadcastOptions,
-        registry: Registry
+        registry: Registry,
+        simulate = false
     ): Promise<TxRaw> {
 
         if (!this.ledger) {
@@ -220,32 +221,21 @@ export class FirmaWalletService {
         try {
             const addressAndPubkey = await this.ledger.getAddressAndPublicKey();
             address = addressAndPubkey.address;
-            
-            // Optional: Test address display on device
-            if (this.ledger.showAddressOnDevice) {
-                try {
-                    await this.ledger.showAddressOnDevice();
-                } catch (displayError) {
-                    // Silent fail for address display
-                }
-            }
-            
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             throw new Error(`Failed to connect to Ledger: ${errorMessage}. Please make sure your Ledger is connected and the FirmaChain app is open.`);
         }
-        
+
         // Retrieve signer data for protobuf signing with proper type safety
         const accountInfo = await FirmaUtil.getAccountInfo(address);
         const chainId = await FirmaUtil.getChainId();
-        
+
         const signerData = {
             account_number: parseInt(accountInfo.account_number, 10),
             sequence: parseInt(accountInfo.sequence, 10),
             chain_id: chainId,
         };
 
-        // Use protobuf signing with FirmaChain Ledger app
-        return await signWithSignerProtobuf(this.ledger, messages, signerData, option, registry);
+        return await signWithSignerAuto(this.ledger, messages, signerData, option, registry, this.config.restApiAddress, simulate);
     }
 }

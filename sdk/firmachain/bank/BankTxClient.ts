@@ -1,14 +1,14 @@
-import { Registry, EncodeObject } from "@cosmjs/proto-signing";
+import { Registry, EncodeObject, GeneratedType } from "@cosmjs/proto-signing";
 import { MsgSend, MsgMultiSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
 import { FirmaWalletService } from "../../FirmaWalletService";
 import { ITxClient } from "../common/ITxClient";
 
-const types = [
+const types: ReadonlyArray<[string, GeneratedType]> = [
     ["/cosmos.bank.v1beta1.MsgSend", MsgSend],
-    ["/cosmos.bank.v1beta1.MsgMultiSend", MsgMultiSend]
+    ["/cosmos.bank.v1beta1.MsgMultiSend", MsgMultiSend],
 ];
 
-const registry = new Registry(types as any);
+const registry = new Registry(types);
 
 export interface MsgSendEncodeObject extends EncodeObject {
     readonly typeUrl: "/cosmos.bank.v1beta1.MsgSend";

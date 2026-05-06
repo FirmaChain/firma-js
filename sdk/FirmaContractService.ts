@@ -98,7 +98,7 @@ export class ContractService {
 
             const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
 
-            const txRaw = await contractTxClient.sign(txList, getSignAndBroadcastOption(this.config.denom, txMisc));
+            const txRaw = await contractTxClient.sign(txList, getSignAndBroadcastOption(this.config.denom, txMisc), true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -120,7 +120,8 @@ export class ContractService {
                 timeStamp,
                 ownerList,
                 metaDataJsonString,
-                txMisc);
+                txMisc,
+                true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -156,7 +157,8 @@ export class ContractService {
         timeStamp: number,
         ownerList: string[],
         metaDataJsonString: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const address = await wallet.getAddress();
@@ -169,7 +171,7 @@ export class ContractService {
             });
 
             const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
-            return await contractTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await contractTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -213,7 +215,8 @@ export class ContractService {
                 eventName,
                 ownerAddress,
                 jsonString,
-                txMisc);
+                txMisc,
+                true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -228,7 +231,8 @@ export class ContractService {
         eventName: string,
         ownerAddress: string,
         jsonString: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const address = await wallet.getAddress();
@@ -242,7 +246,7 @@ export class ContractService {
             });
 
             const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
-            return await contractTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await contractTxClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
         } catch (error) {
             FirmaUtil.printLog(error);
             throw error;
@@ -307,7 +311,7 @@ export class ContractService {
 
             const contractTxClient = new ContractTxClient(wallet, this.config.rpcAddress);
 
-            const txRaw = await contractTxClient.sign(msgList, getSignAndBroadcastOption(this.config.denom, txMisc));
+            const txRaw = await contractTxClient.sign(msgList, getSignAndBroadcastOption(this.config.denom, txMisc), true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {

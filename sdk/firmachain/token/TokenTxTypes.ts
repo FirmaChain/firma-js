@@ -1,4 +1,5 @@
 import { Reader, Writer } from "protobufjs/minimal";
+import Long from "long";
 
 export const protobufPackage = "token";
 
@@ -777,3 +778,4 @@ function longToNumber(long: Long): number {
   }
   return long.toNumber();
 }
+

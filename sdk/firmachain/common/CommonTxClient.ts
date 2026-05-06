@@ -1,4 +1,4 @@
-import { Registry } from "@cosmjs/proto-signing";
+import { Registry, GeneratedType } from "@cosmjs/proto-signing";
 import { MsgSend, MsgMultiSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
 import {
     MsgDeposit as V1MsgDeposit,
@@ -22,6 +22,8 @@ import { MsgTransfer, MsgMint, MsgBurn } from "../nft/NftTxTypes";
 import { MsgCreateToken, MsgUpdateTokenURI } from "../token/TokenTxTypes";
 import { ITxClient } from "./ITxClient";
 
+// Some entries use protobufjs-generated types (no `decode`) or types from
+// @kintsugi-tech/cosmjs-types (different BinaryWriter), so a cast is required.
 const types = [
     ["/cosmos.authz.v1beta1.MsgExec", MsgExec],
     ["/cosmos.authz.v1beta1.MsgGrant", MsgGrant],
@@ -75,11 +77,10 @@ const types = [
     ["/firmachain.token.MsgCreateToken", MsgCreateToken],
     ["/firmachain.token.MsgUpdateTokenURI", MsgUpdateTokenURI],
     ["/firmachain.token.MsgMint", MsgMint],
-    ["/firmachain.token.MsgBurn", MsgBurn]
-    
-];
+    ["/firmachain.token.MsgBurn", MsgBurn],
+] as unknown as ReadonlyArray<[string, GeneratedType]>;
 
-const registry = new Registry(types as any);
+const registry = new Registry(types);
 
 export class CommonTxClient extends ITxClient {
 

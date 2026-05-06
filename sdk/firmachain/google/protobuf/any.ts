@@ -1,6 +1,5 @@
 /* eslint-disable */
-import { util, configure, Writer, Reader } from "protobufjs/minimal";
-import * as Long from "long";
+import { Reader } from "protobufjs/minimal";
 import { BinaryWriter } from "cosmjs-types/binary";
 
 export const protobufPackage = "google.protobuf";
@@ -203,15 +202,6 @@ var globalThis: any = (() => {
 //  globalThis.atob ||
 //  ((b64) => globalThis.Buffer.from(b64, "base64").toString("binary"));
 
-function bytesFromBase64(b64: string): Uint8Array {
-  //const bin = globalThis.Buffer.from(b64, "base64").toString("binary");
-  const bin = atob(b64);
-  const arr = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; ++i) {
-    arr[i] = bin.charCodeAt(i);
-  }
-  return arr;
-}
 
 /*const btoa: (bin: string) => string =
   globalThis.btoa ||

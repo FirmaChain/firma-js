@@ -28,7 +28,7 @@ export class FirmaDistributionService {
         Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxSetWithdrawAddress(wallet, withdrawAddress, txMisc);
+            const txRaw = await this.getSignedTxSetWithdrawAddress(wallet, withdrawAddress, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -43,7 +43,7 @@ export class FirmaDistributionService {
         Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxFundCommunityPool(wallet, amount, txMisc);
+            const txRaw = await this.getSignedTxFundCommunityPool(wallet, amount, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -58,7 +58,7 @@ export class FirmaDistributionService {
         Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxWithdrawValidatorCommission(wallet, validatorAddress, txMisc);
+            const txRaw = await this.getSignedTxWithdrawValidatorCommission(wallet, validatorAddress, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -69,8 +69,9 @@ export class FirmaDistributionService {
 
     async getGasEstimationWithdrawAllRewardsFromAllValidator(wallet: FirmaWalletService, delegationList: DelegationInfo[], txMisc: TxMisc = DefaultTxMisc): Promise<number> {
 
+
         try {
-            const txRaw = await this.getSignedTxwithdrawAllRewardsFromAllValidator(wallet, delegationList, txMisc);
+            const txRaw = await this.getSignedTxwithdrawAllRewardsFromAllValidator(wallet, delegationList, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -86,7 +87,7 @@ export class FirmaDistributionService {
         Promise<number> {
 
         try {
-            const txRaw = await this.getSignedTxWithdrawAllRewards(wallet, validatorAddress, txMisc);
+            const txRaw = await this.getSignedTxWithdrawAllRewards(wallet, validatorAddress, txMisc, true);
             return await FirmaUtil.estimateGas(txRaw);
 
         } catch (error) {
@@ -97,7 +98,8 @@ export class FirmaDistributionService {
 
     private async getSignedTxWithdrawAllRewards(wallet: FirmaWalletService,
         validatorAddress: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
@@ -105,7 +107,7 @@ export class FirmaDistributionService {
             const address = await wallet.getAddress();
             const message = DistributionTxClient.msgWithdrawDelegatorReward({ delegatorAddress: address, validatorAddress: validatorAddress });
 
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -115,14 +117,15 @@ export class FirmaDistributionService {
 
     private async getSignedTxSetWithdrawAddress(wallet: FirmaWalletService,
         withdrawAddress: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
         try {
             const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
 
             const address = await wallet.getAddress();
             const message = DistributionTxClient.msgSetWithdrawAddress({ delegatorAddress: address, withdrawAddress: withdrawAddress });
 
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -132,7 +135,8 @@ export class FirmaDistributionService {
 
     private async getSignedTxFundCommunityPool(wallet: FirmaWalletService,
         amount: number,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
@@ -142,7 +146,7 @@ export class FirmaDistributionService {
 
             const message = DistributionTxClient.msgFundCommunityPool({ depositor: address, amount: [sendAmount] });
 
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -152,14 +156,15 @@ export class FirmaDistributionService {
 
     private async getSignedTxWithdrawValidatorCommission(wallet: FirmaWalletService,
         validatorAddres: string,
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const txClient = new DistributionTxClient(wallet, this.config.rpcAddress);
 
             const message = DistributionTxClient.msgWithdrawValidatorCommission({ validatorAddress: validatorAddres });
 
-            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign([message], getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
@@ -214,7 +219,8 @@ export class FirmaDistributionService {
 
     private async getSignedTxwithdrawAllRewardsFromAllValidator(wallet: FirmaWalletService,
         delegationList: DelegationInfo[],
-        txMisc: TxMisc = DefaultTxMisc): Promise<TxRaw> {
+        txMisc: TxMisc = DefaultTxMisc,
+        simulate = false): Promise<TxRaw> {
 
         try {
             const address = await wallet.getAddress();
@@ -243,7 +249,7 @@ export class FirmaDistributionService {
                 messageList.push(message);
             }
 
-            return await txClient.sign(messageList, getSignAndBroadcastOption(this.config.denom, txMisc));
+            return await txClient.sign(messageList, getSignAndBroadcastOption(this.config.denom, txMisc), simulate);
 
         } catch (error) {
             FirmaUtil.printLog(error);
