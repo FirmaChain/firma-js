@@ -253,6 +253,24 @@ function isLongObject(v: unknown): v is { low: number; high: number; unsigned: b
   return typeof v === "object" && v !== null && "low" in v && "high" in v && typeof (v as { toString: unknown }).toString === "function";
 }
 
+// Cosmos textual bytes renderer — mirror of cosmos-sdk x/tx/signing/textual/bytes.go.
+//   ≤ 35 bytes  → uppercase hex, space inserted after every 4th char
+//   > 35 bytes  → "SHA-256=" + hex of sha256(bz)
+// Prior implementation returned `(${len} bytes)`, which has no analogue in
+// cosmos-sdk's renderer and silently broke TEXTUAL signature verification for
+// any non-pubkey bytes field (extension_options, certain authz/proposal
+// payloads, etc.). The pubkey-specific formatPubkeyHex above is retained for
+// clarity at its single call site.
+function formatTextualBytes(bz: Uint8Array): string {
+  const HEX_THRESHOLD = 35;
+  const useHash = bz.length > HEX_THRESHOLD;
+  const target = useHash ? sha256(bz) : bz;
+  const hex = Buffer.from(target).toString("hex").toUpperCase();
+  const groups: string[] = [];
+  for (let i = 0; i < hex.length; i += 4) groups.push(hex.slice(i, i + 4));
+  return (useHash ? "SHA-256=" : "") + groups.join(" ");
+}
+
 // Converts Uint8Array or a JSON-serialized numeric-keyed object back to Uint8Array
 function toUint8ArraySafe(v: unknown): Uint8Array | null {
   if (v instanceof Uint8Array) return v;
@@ -648,7 +666,7 @@ async function renderFieldValue(
   // Long.js object (protobufjs uint64/int64) → decimal string with apostrophe separators
   if (isLongObject(value)) return formatIntWithSep(value.toString());
   if (typeof value === "boolean") return value ? "True" : "False";
-  if (value instanceof Uint8Array) return `(${value.length} bytes)`;
+  if (value instanceof Uint8Array) return formatTextualBytes(value);
   if (Array.isArray(value)) {
     if (value.length === 0) return "(none)";
     if (
@@ -661,8 +679,21 @@ async function renderFieldValue(
     }
     // Any[] — show typeUrls only to avoid Uint8Array serialization
     if (typeof value[0] === "object" && value[0] !== null && "typeUrl" in value[0]) {
+      console.warn(
+        "[Textual] Any[] field hit single-string fallback (typeUrls joined). " +
+        "Cosmos-sdk renders Any[] via formatRepeated multi-screen. " +
+        "Sign-bytes will diverge if this field reaches the chain.",
+        { fieldName, typeUrl, count: value.length },
+      );
       return (value as Array<{ typeUrl: string }>).map((a) => a.typeUrl).join(", ");
     }
+    // Unknown array shape: cosmos-sdk renders as formatRepeated with per-element
+    // screens. JSON.stringify will not match. Log so divergence surfaces in dev.
+    console.warn(
+      "[Textual] unknown array shape hit JSON.stringify fallback — sign-bytes " +
+      "will diverge from chain's formatRepeated output.",
+      { fieldName, typeUrl, sample: value.slice(0, 2) },
+    );
     return JSON.stringify(value);
   }
   if (typeof value === "object" && value !== null) {
@@ -681,6 +712,15 @@ async function renderFieldValue(
     }
     // Any object — show typeUrl only
     if ("typeUrl" in value) return (value as { typeUrl: string }).typeUrl;
+    // Unknown object: cosmos-sdk renders nested messages with "{TypeName} object"
+    // header + sub-field screens. JSON.stringify will not match. Log so divergence
+    // surfaces in dev — the proper fix is to add a renderNestedProtoMessage path
+    // (likely via NESTED_ANY_DECODERS or extending isPlainProtoMessage).
+    console.warn(
+      "[Textual] unknown object shape hit JSON.stringify fallback — sign-bytes " +
+      "will diverge from chain's MessageValueRenderer output.",
+      { fieldName, typeUrl, keys: Object.keys(value) },
+    );
     return JSON.stringify(value);
   }
   return String(value ?? "");
@@ -748,8 +788,8 @@ async function buildTextualScreens(
   const screens: TextualScreen[] = [];
 
   screens.push({ title: "Chain id", content: signerData.chain_id });
-  screens.push({ title: "Account number", content: signerData.account_number.toString() });
-  screens.push({ title: "Sequence", content: signerData.sequence.toString() });
+  screens.push({ title: "Account number", content: formatIntWithSep(signerData.account_number.toString()) });
+  screens.push({ title: "Sequence", content: formatIntWithSep(signerData.sequence.toString()) });
   screens.push({ title: "Address", content: address, expert: true });
   screens.push({ title: "Public key", content: "/cosmos.crypto.secp256k1.PubKey", expert: true });
   screens.push({ title: "Key", content: formatPubkeyHex(pubkey), indent: 1, expert: true });
@@ -832,14 +872,26 @@ async function buildTextualScreens(
 
   const feeCoins = option.fee.amount.map((c) => ({ denom: c.denom, amount: c.amount }));
   screens.push({ title: "Fees", content: await formatCoins(feeCoins, restApiAddress) });
-  // Fee payer / Fee granter — conditional, non-expert, emitted by chain's renderFee.
+  // Fee payer / Fee granter — emitted iff set. Both ARE in cosmos-sdk's envelope
+  // expert map (x/tx/signing/textual/tx.go), so we mark them expert=true to
+  // match the chain's CBOR. (Earlier comment claiming "non-expert" was wrong —
+  // currently latent because firma-station does not exercise these fields, but
+  // any future fee-grant flow would otherwise hit a 1-bit expert mismatch and
+  // fail signature verification with `code 4 unauthorized`.)
   if (option.fee.payer) {
-    screens.push({ title: "Fee payer", content: option.fee.payer });
+    screens.push({ title: "Fee payer", content: option.fee.payer, expert: true });
   }
   if (option.fee.granter) {
-    screens.push({ title: "Fee granter", content: option.fee.granter });
+    screens.push({ title: "Fee granter", content: option.fee.granter, expert: true });
   }
   screens.push({ title: "Gas limit", content: formatGasLimit(option.fee.gasLimit), expert: true });
+  // NOTE: cosmos-sdk envelope also renders TimeoutHeight and Extension options
+  // when non-default. Currently unreachable here because TxBody.fromPartial above
+  // (and SignAndBroadcastOptions) does not expose either field — both stay at
+  // proto3 default and the chain's renderer skips them too, so CBOR matches.
+  // If TxBody plumbing gains timeout_height / extension_options support, add
+  // their screens here (Timeout height as expert, between Gas limit and Hash of
+  // raw bytes; Extension options / Non critical extension options also expert).
   screens.push({
     title: "Hash of raw bytes",
     content: computeRawBytesHash(bodyBytes, authInfoBytes),
